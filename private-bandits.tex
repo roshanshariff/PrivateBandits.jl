@@ -1,0 +1,264 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Differentially Private Contextual Bandits}
+\author{Roshan Shariff}
+
+\usepackage[semibold]{libertine} % a bit lighter than Times--no osf in math
+\usepackage[T1]{fontenc} % best for Western European languages
+\usepackage{textcomp} % required to get special symbols
+\usepackage[varqu,varl]{inconsolata} % a typewriter font must be defined
+\usepackage{amsmath,mathtools}
+\usepackage{amsthm,thmtools,thm-restate}
+\usepackage{amssymb} % loads amsfonts
+\usepackage{nicefrac}
+\usepackage[libertine,cmintegrals,bigdelims,vvarbb]{newtxmath} % replaces some amssymb symbols
+\usepackage[scr=rsfso]{mathalfa} % Use rsfso to provide mathscr
+\usepackage{dsfont}
+\usepackage{bm} % load after all math to give access to bold math
+
+\usepackage{microtype}
+\usepackage[inline,shortlabels]{enumitem}
+\usepackage{setspace}
+\usepackage{tikz-cd}
+\usepackage{booktabs}
+\usepackage[boxed]{algorithm}
+\usepackage{algpseudocode}
+\usepackage{fullpage}
+%\usepackage{dblfloatfix}
+
+%% Bibliography/\usepackage[round,colon]{natbib}
+
+%% Cross-references
+\usepackage{varioref}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise]{cleveref}
+
+%% To-do notes
+\usepackage[obeyFinal]{todonotes}
+
+% \newcommand{\tinytodo}[2][]{\todo[size=\tiny]{#2}}
+\newcommand{\tinytodo}[2][]{\todo[size=\tiny, #1]{\begin{spacing}{1.0}#2\end{spacing}}}
+\newcommand{\RStodo}[2][]{\tinytodo[color=red!20, #1]{R:\@#2}} % Roshan
+\newcommand{\OStodo}[2][]{\tinytodo[color=blue!20, #1]{Cs: #2}} % Or
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+%% Macros
+
+\newcommand{\wildcard}{\mathinner{\,{\cdot}\,}}
+\newcommand{\defeq}{\coloneq}
+\newcommand{\eqdef}{\eqcolon}
+\newcommand{\inv}[1]{#1^{-1}}
+\newcommand{\Real}{\mathds{R}}
+\newcommand{\Nat}{\mathds{N}}
+\newcommand{\Int}{\mathds{Z}}
+\newcommand{\UCB}{\operatorname{UCB}}
+\renewcommand\mid{\mathinner{\vert}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\tr}{tr}
+
+\newcommand\given[1][\delimsize]{%
+  \providecommand{\delimsize}{}
+  \nonscript\:#1\vert\allowbreak\nonscript\:\mathopen{}
+}
+
+\DeclarePairedDelimiter{\abs}||
+\DeclarePairedDelimiter{\paren}()
+\DeclarePairedDelimiter{\brck}{[}{]}
+\DeclarePairedDelimiter{\set}\{\}
+\DeclarePairedDelimiterX{\innerp}[2]\langle\rangle{#1,#2}
+\DeclarePairedDelimiterXPP{\Prob}[1]{\mathds{P}}(){}{#1}
+\DeclarePairedDelimiterXPP{\PrSet}[1]{\mathds{P}}\{\}{}{#1}
+\DeclarePairedDelimiterXPP{\Ex}[1]{\mathds{E}}{[}{]}{}{#1}
+\DeclarePairedDelimiterXPP{\Exx}[2]{\mathds{E}_{#1}}{[}{]}{}{#2}
+\DeclarePairedDelimiterXPP{\Var}[1]{\mathrm{Var}}{[}{]}{}{#1}
+\DeclarePairedDelimiterXPP{\One}[1]{\mathds{1}}\{\}{}{#1}
+\DeclarePairedDelimiterXPP{\norm}[2]{}\Vert\Vert{_{#1}}{#2}
+
+%% Other symbols
+\newcommand{\transp}[1]{#1^\intercal}
+\newcommand{\Dset}[1]{\mathcal{D}_{#1}}
+\newcommand{\Cset}[1]{\mathcal{C}_{#1}}
+
+% Theorem environments
+
+\declaretheorem[style=theorem]{assumption}
+\declaretheorem[style=theorem]{theorem}
+\declaretheorem[style=theorem]{lemma}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\onehalfspacing
+
+\begin{document}
+
+\maketitle
+
+\section{Linear UCB}
+
+We start by analyzing the LinUCB algorithm (also known as OFUL ---
+Optimism in the Face of Uncertainty--Linear).  The algorithm is as follows
+
+\begin{algorithm}
+  \caption{Linear UCB}\label{alg:linucb}
+  \begin{algorithmic}
+    \For{$t \in 1,2,\dotsc,n$}
+    \State Receive decision set $\Dset{t} \subset \Real^d$
+    \State $\Cset{t} \gets \Cset{t}(A_1,X_1,\dotsc,A_{t-1},X_{t-1})$
+    \State $A_t \gets \argmax_{a\in\Dset{t}}
+    \max_{\theta\in\Cset{t}} \innerp{a}{\theta}$
+    \State Choose action $A_t$ and receive reward $X_t$
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+We will show a generic regret bound that will depend on certain
+assumptions about the decision sets $\Dset{t} \subset \Real^d$,
+unknown parameter vector $\theta^*\in\Real^d$, and confidence sets
+$\Cset{t}$.
+
+\begin{assumption}\label{assumption:linucb}
+  We assume that
+  \begin{itemize}
+  \item The mean reward is bounded: $\abs{\innerp{a}{\theta^*}} \le B$
+    for any $a\in\bigcup_t\Dset{t}$.
+  \item The actions are bounded: $\norm{2}{a} \le L$ for all
+    $a\in\bigcup_t\Dset{t}$.
+  \item The confidence intervals hold with high probability: with
+    probability $1-\delta$, for all $t\in[n]$, $a\in\Dset{t}$,
+    \begin{align*}
+      \UCB_t(a) &\ge \innerp{a}{\theta^*} \ge \UCB_t(a) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{a} \\
+      \shortintertext{where}
+      \UCB_t(a) &= \max_{\theta\in\Cset{t}} \innerp{a}{\theta} \\
+      V_t &= V_0 + \sum_{s=1}^tA_s\transp{A_s} \\
+      V_0 &\succeq 0.
+    \end{align*}
+  \end{itemize}
+\end{assumption}
+
+\begin{theorem}\label{thm:linucb-regret}
+  Suppose \cref{assumption:linucb} holds and $(\beta_t)_t$ is a
+  non-decreasing sequence with $\beta_{n-1} \ge B^2$. Then, with
+  probability $1-\delta$ the pseudo-regret
+  \begin{align*}
+    \widehat{R}_n &= \sum_{t=1}^n \max_{a\in\Dset{t}} \innerp{a}{\theta^*} - \innerp{A_t}{\theta*}
+  \end{align*}
+  of Linear UCB satisfies
+  \begin{align*}
+    \widehat{R}_n &\le \sqrt{8n\beta_{n-1} \log\frac{\det V_n}{\det V_0}}
+                   \le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
+  \end{align*}
+
+  \begin{proof}
+    We have assumed that the confidence intervals hold with
+    probability $1-\delta$, so it suffices to restrict ourselves to
+    this event.  Let $r_t = \max_{a\in\Dset{t}} \innerp{a}{\theta*} -
+    \innerp{A_t}{\theta^*}$ be the immediate pseudo-regret suffered at
+    round $t\in[n]$.
+
+    Let $A_t^* = \argmax_{a\in\Dset{t}}\innerp{a}{\theta^*}$ be an optimal
+    action for round $t$.  We know that the confidence interval holds
+    for $A_t^*$, and also that we choose the action with highest UCB, so
+    \begin{align*}
+      \innerp{A_t^*}{\theta^*} &\le \UCB_t(A_t^*) \le \UCB_t(A_t).
+    \end{align*}
+    Since the lower confidence bound also holds by assumption,
+    \begin{align*}
+      \innerp{A_t}{\theta^*} &\ge \UCB_t(A_t) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{A_t}.
+    \end{align*}
+    Combining these inequalities we get
+    \begin{align*}
+      r_t &= \innerp{A_t^*}{\theta^*} - \innerp{A_t}{\theta^*} \\
+         &\le \UCB_t(A_t) - \innerp{A_t}{\theta^*} \\
+         &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{A_t}.
+    \end{align*}
+    Since we assumed that the mean absolute reward is bounded by $B$
+    we also get that $r_t \le 2B$, and since $\beta_n \ge \beta_t \vee B$
+    we have
+    \begin{align*}
+      r_t &\le 2B \wedge 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{A_t}
+           \le 2\sqrt{\beta_{n-1}} (1 \wedge \norm{\inv{V_{t-1}}}{A_t}).
+    \end{align*}
+
+    Now we apply Jensen's inequality as follows:
+    \begin{align*}
+      R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
+            \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
+      R_n &\le \sqrt{n\sum_{t=1}^n r_t^2} \\
+          &= \sqrt{4n\beta_{n-1} \sum_{t=1}^n (1 \wedge \norm{\inv{V_{t-1}}}{A_t}^2)}.
+    \end{align*}
+    We can apply \cref{lemma:elliptical-potential} to the last
+    expression to get the desired result.
+  \end{proof}
+\end{theorem}
+
+
+\begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
+  Let $x_1,\dotsc,x_n \in \Real^d$,
+  $V_t = V_0 + \sum_{s=1}^t x_s \transp{x_s}$, $t\in[n]$, and
+  $L \ge \max_t\norm{2}{x_t}$. Then
+  \begin{align*}
+    \sum_{t=1}^n 1 \wedge \norm{\inv{V_{t-1}}}{x_t}^2
+    &\le 2\log\frac{\det V_n}{\det V_0} \le 2d\log\frac{v_0+nL^2}{d\det^{1/d} V_0}.
+  \end{align*}
+
+  \begin{proof}
+    We use the fact that for any $u \ge 0$, $u \wedge 1 \le
+    2\log(1+u)$, so that
+    \begin{align*}
+      \sum_{t=1}^n 1 \wedge \norm{\inv{V_{t-1}}}{x_t}^2
+      &\le 2\sum_{t=1}^n \log(1 + \norm{\inv{V_{t-1}}}{x_t}^2).
+    \end{align*}
+    We will show that this last expression is $\log(\det V_n/\det
+    V_0)$.  For $t \ge 1$ we have
+    \begin{align*}
+      V_t &= V_{t-1} + x_t\transp{x_t}
+           = V_{t-1}^{1/2} (I + V_{t-1}^{-1/2}x_t\transp{x_t}V_{t-1}^{-1/2}) V_{t-1}^{1/2} \\
+      \det V_t &= \det V_{t-1}\det(I + V_{t-1}^{-1/2}x_t\transp{x_t}V_{t-1}^{-1/2}).
+    \end{align*}
+
+    Consider the eigenvectors of the matrix $I+y\transp{y}$.  We know
+    that $y$ itself is an eigenvector with eigenvalue $1+\norm{2}{y}^2$:
+    \begin{align*}
+      (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{2}{y}^2)y.
+    \end{align*}
+    Moreover, since $I+y\transp{y}$ is symmetric, every other
+    eigenvector $u$ is orthogonal to $y$, so that
+    \begin{align*}
+      (I + y\transp{y})u &= u + u\innerp{y}{u} = u.
+    \end{align*}
+    Therefore the only eigenvalues of $I+y\transp{y}$ are
+    $1+\norm{2}{y}^2$ (with eigenvector $y$) and 1.
+
+    In our case $y = V_{t-1}^{-1/2}x_t$ and $\norm{2}{y}^2 =
+    \transp{x_t}V_{t-1}x_t = \norm{\inv{V_{t-1}}}{x_t}$, so we get our
+    first inequality:
+    \begin{align*}
+      \det V_n &= \det V_0 \prod_{t=1}^n(1 + \norm{\inv{V_{t-1}}}{x_t}^2) \\
+      \log\frac{\det V_n}{\det V_0} &= \sum_{t=1}^n\log(1+\norm{\inv{V_{t-1}}}{x_t}^2).
+    \end{align*}
+
+    To get the second inequality, we apply the arithmetic-geometric
+    mean inequality to the eigenvalues $\lambda_i$ of $V_n$:
+    \begin{align*}
+      \det V_n &= \prod_{i=1}^d \lambda_i
+                \le \paren[\Big]{\frac{1}{d} \sum_{i=1}^d \lambda_i}^d
+                = \paren{(1/d)\tr V_n}^d
+                = \paren{(\tr V_0 + nL^2)/d}^d \\
+      \log\frac{\det V_n}{\det V_0}
+              &= d\log\frac{\tr V_0 + nL^2}{d\det^{1/d}V_0}
+    \end{align*}
+
+  \end{proof}
+
+\end{lemma}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
