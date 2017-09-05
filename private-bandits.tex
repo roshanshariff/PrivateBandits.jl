@@ -246,15 +246,72 @@ $\Cset{t}$.
       \det V_n &= \prod_{i=1}^d \lambda_i
                 \le \paren[\Big]{\frac{1}{d} \sum_{i=1}^d \lambda_i}^d
                 = \paren{(1/d)\tr V_n}^d
-                = \paren{(\tr V_0 + nL^2)/d}^d \\
+                \le \paren{(\tr V_0 + nL^2)/d}^d \\
       \log\frac{\det V_n}{\det V_0}
-              &= d\log\frac{\tr V_0 + nL^2}{d\det^{1/d}V_0}
+              &\le d\log\frac{\tr V_0 + nL^2}{d\det^{1/d}V_0}
     \end{align*}
 
   \end{proof}
 
 \end{lemma}
 
+\section{Ellipsoidal Confidence Bounds}
+\label{sec:ellips-conf-bounds}
+
+We will consider confidence bounds for the value of $\theta^*$ that are
+ellipsoidal with centre $\hat{\theta}$, of the form
+$\set{\theta\in\Real^d \given \norm{V}{\theta-\hat{\theta}}^2 \le
+  \beta}$.
+
+Let $X_s \in \Real^d$ be the action vector selected by the algorithm at
+time $s$, so that $X$ is a $t \times d$ matrix (here we have fixed
+some particular round $t \le n$).  The \emph{Gram matrix} is given by
+$G \defeq \transp{X}X \in \Real^{d \times d}$.  Let $y_s$ be the reward
+received at time $s$, so that $y\in\Real^t$.
+
+We will take $\hat{\theta}$ to be a regularized solution of the
+least-squares system
+\begin{align*}
+  X\theta &\approx y,
+\end{align*}
+regularized by the matrix $\transp{H} H \succeq 0$:
+\begin{align*}
+  \hat{\theta} &= \argmin_\theta \frac{1}{2}\norm{}{X\theta - y}^2 + \frac{1}{2}\norm{\transp{H}H}{\theta}^2 \\
+               &= \inv{\paren{\transp{X}X + \transp{H}H}} \transp{X}y \\
+               &= \inv{\paren{\transp{X}X + \transp{H}H}} \transp{X} \paren{X\theta^* + \eta} \\
+               &= \theta^* + \inv{\paren{\transp{X}X + \transp{H}H}}\paren{\transp{X}\eta - \transp{H}H\theta^*} \\
+               &= \theta^* + \inv{V}Z - \inv{V}\transp{H}H\theta*
+\end{align*}
+where we used the fact that $y = X\theta^* + \eta$ (and $\eta_s$ is the
+noise in the reward at round $s$) and we defined $V \defeq \transp{X}X +
+\transp{H}H$ and $Z\defeq X^T\eta$.
+
+\begin{assumption}\label{assumption:cond-subgaussian}
+  The noise $\eta_s$ is conditionally subgaussian:
+  \begin{align*}
+    \Ex{\exp(\lambda\eta_s) \given \eta_1,\dotsc,\eta_{s-1}} &\le \exp(\lambda^2/2),
+    &\text{for all } 1 \le s \le t.
+  \end{align*}
+\end{assumption}
+
+\begin{lemma}
+  Under \cref{assumption:cond-subgaussian} and for any $\lambda\in\Real^d$, the random variable $Z =
+  \transp{X}\eta$ satisfies
+  \begin{align*}
+    \Ex{\exp(\transp{\lambda}Z)} \le \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}\transp{X}X\lambda}.
+  \end{align*}
+
+  \begin{proof}
+    We have
+    \begin{align*}
+      \Ex{\exp(\transp{\lambda}Z)}
+      &= \Ex{\exp(\transp{\lambda}\transp{X}\eta)} \\
+      &= \Ex[\Big]{\exp\paren[\Big]{\sum_{s=1}^t \transp{\lambda}X_s\eta_s}} \\
+      &= \Ex[\Big]{\Ex[\Big]{\transp{\lambda}X_t\eta_t \given \eta_1,\dotsc,\eta_{t-1}} + \sum_{s=1}^{t-1}\transp{\lambda}X_s\eta_s} \\
+      &\le \Ex[\Big]{(\transp{\lambda}X_t)^2/2 + \sum_{s=1}^{t-1}\transp{\lambda}X_s\eta_s}
+    \end{align*}
+  \end{proof}
+\end{lemma}
 
 \end{document}
 
