@@ -159,7 +159,7 @@ $\Cset{t}$.
     \begin{align*}
       \UCB_t(x) &\ge \innerp{x}{\theta^*} \ge \UCB_t(x) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x}
       \shortintertext{where}
-      \UCB_t(a) &\defeq \max_{\theta\in\Cset{t}} \innerp{a}{\theta}
+      \UCB_t(x) &\defeq \max_{\theta\in\Cset{t}} \innerp{x}{\theta}
     \end{align*}
     and $\beta_0,\dotsc,\beta_{n-1}\in\Real$ is a non-decreasing sequence
     with $\beta_{n-1} \ge B^2$ and $0 \prec V_0,\dotsc,V_{n-1} \in
@@ -216,21 +216,6 @@ $\Cset{t}$.
     \end{align*}
   \end{proof}
 \end{lemma}
-
-\begin{theorem}\label{thm:linucb-regret}
-  Suppose \cref{assumption:linucb} holds with
-  $0 \prec V_0 \in \Real^{d \times d}$ being symmetric positive
-  semi-definite and $V_t = V_{t-1} + X_t\transp{X_t}$. Then, with
-  probability $1-\delta$ the pseudo-regret
-  \begin{align*}
-    \widehat{R}_n &= \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*}
-  \end{align*}
-  of Linear UCB satisfies
-  \begin{align*}
-    \widehat{R}_n &\le \sqrt{8n\beta_{n-1} \log\frac{\det V_n}{\det V_0}}
-                   \le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
-  \end{align*}
-\end{theorem}
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
   Let $x_1,\dotsc,x_n \in \Real^d$,
@@ -292,18 +277,55 @@ $\Cset{t}$.
   \end{proof}
 \end{lemma}
 
-\begin{proof}[Proof of \cref{thm:linucb-regret}]
-  Combine \cref{lemma:linucb-regret,lemma:elliptical-potential}.
-\end{proof}
+
+\begin{theorem}[Generic LinUCB Regret]\label{thm:linucb-regret}
+  Suppose \cref{assumption:linucb} holds with
+  $0 \prec V_0 \in \Real^{d \times d}$ being symmetric positive
+  semi-definite and $V_t = V_{t-1} + X_t\transp{X_t}$. Then, with
+  probability $1-\delta$ the pseudo-regret
+  \begin{align*}
+    \widehat{R}_n &= \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*}
+  \end{align*}
+  of Linear UCB satisfies
+  \begin{align*}
+    \widehat{R}_n &\le \sqrt{8n\beta_{n-1} \log\frac{\det V_n}{\det V_0}}
+                   \le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
+  \end{align*}
+
+  \begin{proof}
+    Combine \cref{lemma:linucb-regret,lemma:elliptical-potential}.
+  \end{proof}
+
+\end{theorem}
 
 
-\section{Ellipsoidal Confidence Bounds}
+\section{Ellipsoidal Confidence Sets}
 \label{sec:ellips-conf-bounds}
 
-We will consider confidence bounds for the value of $\theta^*$ that are
+We will consider confidence sets for the value of $\theta^*$ that are
 ellipsoidal with centre $\hat{\theta}$, of the form
 $\set{\theta\in\Real^d \given \norm{V}{\theta-\hat{\theta}}^2 \le
-  \beta}$.
+  \beta}$.  Then the upper confidence bound of an action $x$ is
+\begin{align*}
+  \UCB(x) &= \max_{\theta: \norm{V}{\theta-\hat\theta}^2 \le \beta} \innerp{x}{\theta} \\
+  \shortintertext{We solve this constrained optimization problem by the method of
+  Lagrange multipliers:}
+  \mathcal{L}(\theta, \lambda) &= \innerp{x}{\theta} - \lambda(\norm{V}{\theta-\hat\theta}^2 - \beta) \\
+  \nabla_\theta\mathcal{L}(\theta, \lambda) &= \transp{x} - \lambda\transp{(\theta-\hat\theta)}V = 0 \\
+  \theta &= \hat\theta + \frac{{\inv{V}x}}{\lambda} \\
+  \shortintertext{To find $\lambda$:}
+  \beta &= \norm{V}{\theta-\hat\theta}^2
+          = \norm[\bigg]{V}{\frac{\inv{V}x}{\lambda}}^2
+          = \frac{1}{\lambda^2}\transp{x}\inv{V}x \\
+  \lambda &= \norm{\inv{V}}{x} / \sqrt\beta \\
+  \shortintertext{Which we substitute into the expression above:}
+  \UCB(x) &= \innerp[\bigg]{x}{\hat\theta + \frac{\sqrt\beta}{\norm{\inv{V}}{x}}\inv{V}x} \\
+          &= \innerp{x}{\hat\theta} + \sqrt\beta \norm{\inv{V}}{x}.
+\end{align*}
+We have therefore shown that if we construct an ellipsoidal confidence
+set with an appropriate $V$ and $\beta$, then the requirements of
+\cref{assumption:linucb} will be satisfied with the above $\UCB$
+index.
 
 Let $X_s \in \Real^d$ be the action vector selected by the algorithm at
 time $s$, so that $X$ is a $t \times d$ matrix (here we have fixed
@@ -353,7 +375,7 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
 \end{lemma}
 
 
-\begin{lemma}
+\begin{lemma}\label{lemma:z-norm-bounded-whp}
   Suppose for any $\lambda\in\Real^d$ the random variable
   $Z=\transp{X}\eta$ satisfies
   $\Ex{\exp(\transp{\lambda}Z)} \le \exp(\norm{G}{\lambda}^2/2)$ (see,
@@ -361,7 +383,7 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
   $0 \prec H \in \Real^{d\times d}$ be any symmetric positive definite
   matrix.  Then for any $0 < \delta \le 1$, we have
   \begin{align*}
-    \Prob[\bigg]{\norm{\inv{(G+H)}}{Z} \ge \log\frac{1}{\delta^2} + \log\frac{\det(G+H)}{\det H}} &\le \delta.
+    \Prob[\Bigg]{\norm{\inv{(G+H)}}{Z} \ge \sqrt{2\log\frac{1}{\delta} + \log\frac{\det(G+H)}{\det H}}} &\le \delta.
   \end{align*}
 
   \begin{proof}
@@ -383,15 +405,15 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
     \begin{align*}
       \transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda - \frac{1}{2}\transp{\lambda}H\lambda
       &= \frac{1}{2}\transp{Z}\inv{(G+H)}Z - \frac{1}{2}\transp{(\lambda - \inv{(G+H)}Z)}(G+H)(\lambda-\inv{(G+H)}Z) \\
-      &= \frac{1}{2} \norm{\inv{(G+H)}}{Z} - \frac{1}{2}\norm{G+H}{\lambda-\inv{(G+H)}Z}
+      &= \frac{1}{2} \norm{\inv{(G+H)}}{Z}^2 - \frac{1}{2}\norm{G+H}{\lambda-\inv{(G+H)}Z}^2
     \end{align*}
     which we substitute into the previous equation to get
     \begin{align*}
       \bar{M}
-      &= \frac{\exp\paren[\big]{\frac{1}{2} \norm{\inv{(G+H)}}{Z}}}{\sqrt{{(2\pi)}^d \det\inv{H}}}
-        \int \exp\paren[\Big]{-\frac{1}{2} \norm{G+H}{\lambda-\inv{(G+H)}Z}} \,d\lambda \\
-      &= \sqrt{\frac{\det H}{\det(G+H)}} \exp\paren[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z}}, \\
-      \log\bar{M} &= \frac{1}{2}\norm{\inv{(G+H)}}{Z} + \frac{1}{2}\log\frac{\det H}{\det(G+H)}.
+      &= \frac{\exp\paren[\big]{\frac{1}{2} \norm{\inv{(G+H)}}{Z}^2}}{\sqrt{{(2\pi)}^d \det\inv{H}}}
+        \int \exp\paren[\Big]{-\frac{1}{2} \norm{G+H}{\lambda-\inv{(G+H)}Z}^2} \,d\lambda \\
+      &= \sqrt{\frac{\det H}{\det(G+H)}} \exp\paren[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z}^2}, \\
+      \log\bar{M} &= \frac{1}{2}\norm{\inv{(G+H)}}{Z}^2 + \frac{1}{2}\log\frac{\det H}{\det(G+H)}.
     \end{align*}
     Our assumption gives us
     \begin{align*}
@@ -399,17 +421,18 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
       \Ex[\bigg]{\frac{\exp(\transp{\lambda}Z)}{\exp(\frac{1}{2}\transp{\lambda}G\lambda)}}
       &= \Ex{M_\lambda} \le 1, &\text{for all }\lambda\in\Real^d.
     \end{align*}
-    Now, by Fubini's theorem
+    Now, by Fubini's theorem we can exchange the expectation with the
+    integral over $\lambda$:
     \begin{align*}
       \Ex{\bar{M}} &= \Ex[\Big]{\int M_\lambda\,h(\lambda)\,d\lambda} = \int \Ex{M_\lambda} \,h(\lambda)\,d\lambda \le 1
     \end{align*}
-    which applied to Chebyshev's bound gives
+    and use a Chernoff bound:
     \begin{align*}
       \Prob{\log(\bar{M}) \ge u} &\le \exp(-u) \\
-      \Prob[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z} \ge u + \frac{1}{2}\log\frac{\det(G+H)}{\det H}} &\le \exp(-u)
+      \Prob[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z}^2 \ge u + \frac{1}{2}\log\frac{\det(G+H)}{\det H}} &\le \exp(-u) \\
+      \Prob[\Big]{\norm{\inv{(G+H)}}{Z} \ge \sqrt{2u + \log\frac{\det(G+H)}{\det H}}} &\le \exp(-u).
     \end{align*}
-    Substituting $u = \log(1/\delta)$ and multiplying the inequality
-    by 2 completes the proof.
+    Substituting $u = \log(1/\delta)$ completes the proof.
   \end{proof}
 
 \end{lemma}
@@ -447,6 +470,51 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
 % \hrule
 %===============================================================================
 
+\subsection{Ridge Regression}
+\label{sec:ridge-regression}
+
+We will now instantiate a concrete algorithm based on \emph{ridge
+  regression}, i.e.\ using the regularizer $H=\rho I$ for some
+$\rho>0$.  Thus we will have
+\begin{align*}
+  V_t &\defeq \rho I + \sum_{s=1}^t X_s\transp{X_s}\\
+  \shortintertext{and}
+  \hat{\theta}_t - \theta^* &= \inv{V_t}Z_t - \inv{V_t}H\theta^* \\
+                          &= \inv{V_t}Z_t - \rho\inv{V_t}\theta^* \\
+  V_t^{1/2}(\hat{\theta}_t - \theta^*) &= V_t^{-1/2}Z - \rho V_t^{-1/2}\theta^* \\
+  \norm{V_t}{\hat{\theta}_t - \theta^*} &= \norm{}{V_t^{-1/2}Z - \rho V_t^{-1/2}\theta^*} \\
+  &\le \norm{\inv{V_t}}{Z} + \rho\norm{\inv{V_t}}{\theta^*}.\
+                          &\text{Triangle inequality} \\
+  &\le \norm{\inv{V_t}}{Z} + \sqrt\rho \norm{}{\theta^*} &\text{Since } V_t \succeq \rho I.
+\end{align*}
+We now use \cref{lemma:subgaussian-z,lemma:z-norm-bounded-whp} in our
+confidence bound:
+\begin{align*}
+  \Prob[\Bigg]{\norm{V_t}{\hat{\theta}_t - \theta^*} > \sqrt\rho\norm{}{\theta^*} + \sqrt{2\log\frac{1}{\delta} + \log\frac{\det V_t}{\det \rho I}}}
+  &\le \delta.
+\end{align*}
+We assume that $\norm{}{\theta^*} \le S$.  We use the union bound,
+replacing $\delta$ with $\delta/n$ to get a bound that holds uniformly
+at every round:
+\begin{align*}
+  \sqrt{\beta_t} &= \sqrt\rho S + \sqrt{2\log\frac{n}{\delta} + \log\frac{\det V_t}{\det \rho I}}.
+\end{align*}
+Applying \cref{thm:linucb-regret} gives us the regret bound
+\begin{align*}
+  \widehat{R}_n
+  &\le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
+    = \sqrt{8dn\beta_{n-1}\log\frac{d\rho + nL^2}{d\rho}} \\
+  \shortintertext{where}
+  \sqrt{\beta_{n-1}}
+  &= \sqrt\rho S + \sqrt{2\log\frac{n}{\delta} + \log\frac{\det V_{n-1}}{\det \rho I}} \\
+  &\le \sqrt\rho S + \sqrt{2\log\frac{n}{\delta} + d\log\paren*{1 + \frac{nL^2}{d\rho}}}.
+\end{align*}
+Choosing $\delta=1/n$ and constant $\rho$ gives $\sqrt{\beta_{n-1}} =
+O(d^{1/2}\log^{1/2}(n/d))$ and thus the expected regret of Linear UCB
+with ellipsoidal confidence sets satisfies
+\begin{align*}
+  \widehat{R}_n &= O(\beta_n^{1/2}\sqrt{dn\log(n/d)}) = O(d\log(n/d)\sqrt{n}).
+\end{align*}
 \end{document}
 
 %%% Local Variables:
