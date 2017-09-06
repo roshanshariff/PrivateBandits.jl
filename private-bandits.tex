@@ -87,6 +87,7 @@
 \declaretheorem[style=definition]{assumption}
 \declaretheorem[style=definition]{theorem}
 \declaretheorem[style=definition]{lemma}
+\declaretheorem[style=definition]{corollary}
 
 %%%%%%%%%%%%%%%%%%%%%G%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -274,17 +275,17 @@ least-squares system
 \begin{align*}
   X\theta &\approx y,
 \end{align*}
-regularized by the matrix $\transp{H} H \succeq 0$:
+regularized by the symmetric positive definite matrix $H \succeq 0$:
 \begin{align*}
-  \hat{\theta} &= \argmin_\theta \frac{1}{2}\norm{}{X\theta - y}^2 + \frac{1}{2}\norm{\transp{H}H}{\theta}^2 \\
-               &= \inv{\paren{\transp{X}X + \transp{H}H}} \transp{X}y \\
-               &= \inv{\paren{\transp{X}X + \transp{H}H}} \transp{X} \paren{X\theta^* + \eta} \\
-               &= \theta^* + \inv{\paren{\transp{X}X + \transp{H}H}}\paren{\transp{X}\eta - \transp{H}H\theta^*} \\
-               &= \theta^* + \inv{V}Z - \inv{V}\transp{H}H\theta*
+  \hat{\theta} &= \argmin_\theta \frac{1}{2}\norm{}{X\theta - y}^2 + \frac{1}{2}\norm{H}{\theta}^2 \\
+               &= \inv{\paren{\transp{X}X + H}} \transp{X}y \\
+               &= \inv{\paren{\transp{X}X + H}} \transp{X} \paren{X\theta^* + \eta} \\
+               &= \theta^* + \inv{\paren{\transp{X}X + H}}\paren{\transp{X}\eta - H\theta^*} \\
+               &= \theta^* + \inv{V}Z - \inv{V}H\theta^*
 \end{align*}
 where we used the fact that $y = X\theta^* + \eta$ (and $\eta_s$ is the
-noise in the reward at round $s$) and we defined $V \defeq \transp{X}X +
-\transp{H}H$ and $Z\defeq X^T\eta$.
+noise in the reward at round $s$) and we defined $V \defeq \transp{X}X
++ H$ and $Z\defeq X^T\eta$.
 
 \begin{assumption}\label{assumption:cond-subgaussian}
   The noise $\eta_s$ is conditionally subgaussian:
@@ -306,12 +307,89 @@ noise in the reward at round $s$) and we defined $V \defeq \transp{X}X +
     \begin{align*}
       \Ex{\exp(\transp{\lambda}Z)}
       &= \Ex{\exp(\transp{\lambda}\transp{X}\eta)} \\
-      &= \Ex[\Big]{\exp\paren[\Big]{\sum_{s=1}^t \transp{\lambda}X_s\eta_s}} \\
-      &= \Ex[\Big]{\Ex[\Big]{\transp{\lambda}X_t\eta_t \given \eta_1,\dotsc,\eta_{t-1}} + \sum_{s=1}^{t-1}\transp{\lambda}X_s\eta_s} \\
-      &\le \Ex[\Big]{(\transp{\lambda}X_t)^2/2 + \sum_{s=1}^{t-1}\transp{\lambda}X_s\eta_s}
+      &= \Ex[\Big]{\prod_{s=1}^t \exp\paren{\transp{\lambda}X_s\eta_s}} \\
+      &= \Ex[\Big]{\prod_{s=1}^t\Ex[\Big]{\exp(\transp{\lambda}X_s\eta_s) \given \eta_1,\dotsc,\eta_{s-1}}} \\
+      &\le \Ex[\Big]{\prod_{s=1}^t\exp\paren[\Big]{\frac{\paren{\transp{\lambda}X_s}^2}{2}}} \\
+      &= \Ex[\Big]{\exp\paren[\Big]{\sum_{s=1}^t\frac{\transp{\lambda}X_s\transp{X_s}\lambda}{2}}} \\
+      &= \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}\transp{X}X\lambda} \qedhere
     \end{align*}
   \end{proof}
 \end{lemma}
+
+We define
+\begin{align*}
+  M_\lambda \defeq \exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda},
+\end{align*}
+so that the above lemma implies that
+\begin{align*}
+  \Ex[\Big]{\exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}} &= \Ex{M_\lambda} \le 1.
+\end{align*}
+Now suppose that $\lambda\sim\mathcal{N}(0, \inv{H})$ is a random
+variable and $h(\lambda)$ is its density function.  Define
+\begin{align*}
+  \bar{M}
+  &\defeq \int M_\lambda \,h(\lambda)\,d\lambda \\
+  &= \frac{1}{\sqrt{{(2\pi)}^d \det\inv{H}}} \int\exp\paren[\Big]{\transp{\lambda}Z
+    - \frac{1}{2}\transp{\lambda}G\lambda
+    - \frac{1}{2}\transp{\lambda}H\lambda
+    } \,d\lambda.
+\end{align*}
+We complete the square in the integrand:
+\begin{align*}
+  \transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda - \frac{1}{2}\transp{\lambda}H\lambda
+  &= \frac{1}{2}\transp{Z}\inv{(G+H)}Z - \frac{1}{2}\transp{(\lambda - \inv{(G+H)}Z)}(G+H)(\lambda-\inv{(G+H)}Z) \\
+  &= \frac{1}{2} \norm{\inv{(G+H)}}{Z} - \frac{1}{2}\norm{G+H}{\lambda-\inv{(G+H)}Z}
+\end{align*}
+which we substitute into the previous equation to get
+\begin{align*}
+  \bar{M}
+  &= \frac{\exp\paren[\big]{\frac{1}{2} \norm{\inv{(G+H)}}{Z}}}{\sqrt{{(2\pi)}^d \det\inv{H}}}
+    \int \exp\paren[\Big]{-\frac{1}{2} \norm{G+H}{\lambda-\inv{(G+H)}Z}} \,d\lambda \\
+  &= \sqrt{\frac{\det H}{\det(G+H)}} \exp\paren[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z}}, \\
+  \log\bar{M} &= \frac{1}{2}\norm{\inv{(G+H)}}{Z} + \frac{1}{2}\log\frac{\det H}{\det(G+H)}.
+\end{align*}
+Now, by Fubini's theorem
+\begin{align*}
+  \Ex{\bar{M}} &= \Ex[\Big]{\int M_\lambda\,h(\lambda)\,d\lambda} = \int \Ex{M_\lambda} \,h(\lambda)\,d\lambda \le 1
+\end{align*}
+which applied to Chebyshev's bound gives
+\begin{align*}
+  \Prob{\log(\bar{M}) \ge u} &\le \exp(-u) \\
+  \Prob[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z} \ge u + \frac{1}{2}\log\frac{\det(G+H)}{\det H}} &\le \exp(-u)
+\end{align*}
+
+%===============================================================================
+% \hrule
+
+% We see that
+% \begin{align*}
+%   \max_{\lambda\in\Real^d} \exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}
+%   &= \exp\paren[\Big]{\max_{\lambda\in\Real^d} \transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}.
+% \end{align*}
+% The maximizer of this expression is given by taking the gradient and
+% setting it to zero:
+% \begin{align*}
+%   \nabla_\lambda\brck[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}_{\lambda=\lambda^*} = Z - G\lambda^* &= 0 \\
+%   \lambda^* &= \inv{G}Z
+% \end{align*}
+% and thus
+% \begin{align*}
+%   \max_{\lambda\in\Real^d} \exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}
+%   &= \exp\paren[\Big]{\transp{Z}\inv{G}Z - \frac{1}{2}\transp{Z}\inv{G}Z} \\
+%   &= \exp\paren[\Big]{\frac{1}{2}\norm{\inv{G}}{Z}^2}.
+% \end{align*}
+% We define
+% \begin{align*}
+%   M_\lambda \defeq \exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}
+% \end{align*}
+% and use Chernoff's bound:
+% \begin{align*}
+%   \Pr\paren[\Big]{\frac{1}{2}\norm{\inv{G}}{Z}^2 > u}
+%   &= \Pr\paren[\Big]{\max_{\lambda\in\Real^d}M_\lambda > u} \\
+%   &\le \exp(-u) \Ex[\Big]{\max_{\lambda\in\Real^d} M_\lambda}.
+% \end{align*}
+% \hrule
+%===============================================================================
 
 \end{document}
 
