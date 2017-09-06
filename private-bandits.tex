@@ -53,6 +53,7 @@
 \newcommand{\Real}{\mathds{R}}
 \newcommand{\Nat}{\mathds{N}}
 \newcommand{\Int}{\mathds{Z}}
+\newcommand{\mgf}{\mathrm{mgf}}
 \newcommand{\UCB}{\operatorname{UCB}}
 \renewcommand\mid{\mathinner{\vert}}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -89,6 +90,8 @@
 \declaretheorem[style=definition]{lemma}
 \declaretheorem[style=definition]{corollary}
 
+\Crefname{assumption}{Assumption}{Assumptions}
+
 %%%%%%%%%%%%%%%%%%%%%G%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \onehalfspacing
@@ -97,6 +100,30 @@
 
 \maketitle
 
+\section{The Contextual Linear Bandit Framework}
+
+In the stochastic linear bandit framework, at each round:
+\begin{enumerate}
+\item The agent receives a \emph{decision set} $\mathcal{D}_t \subset
+  \Real^d$.
+\item The agent chooses an \emph{action} $X_t \in \mathcal{D}_t$.
+\item The agent receives a \emph{reward} $Y_t = \innerp{X_t}{\theta^*} + \eta_t$.
+\end{enumerate}
+The vector $\theta^*\in\Real^d$ is an unknown parameter of the
+environment.
+
+\begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
+  We denote by
+  $\mathcal{F}_t =
+  \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
+  all the information available just before the noise $\eta_t$ is
+  observed.  We assume that $\eta_t$ is \emph{conditionally
+    1-subgaussian:}
+  \begin{align*}
+    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} &\le \exp(\lambda^2/2),
+    &\text{for all } \lambda\in\Real.
+  \end{align*}
+\end{assumption}
 \section{Linear UCB}
 
 We start by analyzing the LinUCB algorithm (also known as OFUL ---
@@ -107,10 +134,10 @@ Optimism in the Face of Uncertainty--Linear).  The algorithm is as follows
   \begin{algorithmic}
     \For{$t \in 1,2,\dotsc,n$}
     \State Receive decision set $\Dset{t} \subset \Real^d$
-    \State $\Cset{t} \gets \Cset{t}(A_1,X_1,\dotsc,A_{t-1},X_{t-1})$
-    \State $A_t \gets \argmax_{a\in\Dset{t}}
-    \max_{\theta\in\Cset{t}} \innerp{a}{\theta}$
-    \State Choose action $A_t$ and receive reward $X_t$
+    \State $\Cset{t} \gets \Cset{t}(X_1,Y_1,\dotsc,X_{t-1},Y_{t-1})$
+    \State $X_t \gets \argmax_{x\in\Dset{t}}
+    \max_{\theta\in\Cset{t}} \innerp{x}{\theta}$
+    \State Choose action $X_t$ and receive reward $Y_t$
     \EndFor
   \end{algorithmic}
 \end{algorithm}
@@ -123,86 +150,95 @@ $\Cset{t}$.
 \begin{assumption}\label{assumption:linucb}
   We assume that
   \begin{itemize}
-  \item The mean reward is bounded: $\abs{\innerp{a}{\theta^*}} \le B$
-    for any $a\in\bigcup_t\Dset{t}$.
-  \item The actions are bounded: $\norm{2}{a} \le L$ for all
-    $a\in\bigcup_t\Dset{t}$.
+  \item The mean reward is bounded: $\abs{\innerp{x}{\theta^*}} \le B$
+    for any $x\in\bigcup_t\Dset{t}$.
+  \item The actions are bounded: $\norm{}{x} \le L$ for all
+    $x\in\bigcup_t\Dset{t}$.
   \item The confidence intervals hold with high probability: with
-    probability $1-\delta$, for all $t\in[n]$, $a\in\Dset{t}$,
+    probability $1-\delta$, for all $t\in[n]$, $x\in\Dset{t}$,
     \begin{align*}
-      \UCB_t(a) &\ge \innerp{a}{\theta^*} \ge \UCB_t(a) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{a} \\
+      \UCB_t(x) &\ge \innerp{x}{\theta^*} \ge \UCB_t(x) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x}
       \shortintertext{where}
-      \UCB_t(a) &= \max_{\theta\in\Cset{t}} \innerp{a}{\theta} \\
-      V_t &= V_0 + \sum_{s=1}^tA_s\transp{A_s} \\
-      V_0 &\succeq 0.
+      \UCB_t(a) &\defeq \max_{\theta\in\Cset{t}} \innerp{a}{\theta}
     \end{align*}
+    and $\beta_0,\dotsc,\beta_{n-1}\in\Real$ is a non-decreasing sequence
+    with $\beta_{n-1} \ge B^2$ and $0 \prec V_0,\dotsc,V_{n-1} \in
+    \Real^{d \times d}$ is a sequence of symmetric positive definite matrices.
   \end{itemize}
 \end{assumption}
 
+\begin{lemma}\label{lemma:linucb-regret}
+  Suppose \cref{assumption:linucb} holds with some sequences
+  ${(\beta_t)}_t$ and ${(V_t)}_t$.  Then, with probability $1-\delta$
+  the pseudo-regret of Linear UCB satisfies
+  \begin{align*}
+    \widehat{R}_n &\le \sqrt{4n\beta_{n-1} \sum_{t=1}^n (1 \wedge \norm{\inv{V_{t-1}}}{X_t}^2)}.
+  \end{align*}
+
+  \begin{proof}
+    We have assumed that the confidence intervals hold with
+    probability $1-\delta$, so it suffices to restrict ourselves to
+    this event.  Let
+    $r_t = \max_{x\in\Dset{t}} \innerp{x-X_t}{\theta^*}$ be the
+    immediate pseudo-regret suffered at round $t\in[n]$.
+
+    Let $X_t^* = \argmax_{x\in\Dset{t}}\innerp{x}{\theta^*}$ be an optimal
+    action for round $t$.  We know that the confidence interval holds
+    for $X_t^*$, and also that we choose the action with highest UCB, so
+    \begin{align*}
+      \innerp{X_t^*}{\theta^*} &\le \UCB_t(X_t^*) \le \UCB_t(X_t).
+    \end{align*}
+    Since the lower confidence bound also holds by our assumption,
+    \begin{align*}
+      \innerp{X_t}{\theta^*} &\ge \UCB_t(X_t) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{X_t}.
+    \end{align*}
+    Combining these inequalities we get
+    \begin{align*}
+      r_t &= \innerp{X_t^*}{\theta^*} - \innerp{X_t}{\theta^*} \\
+         &\le \UCB_t(X_t) - \innerp{X_t}{\theta^*} \\
+         &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{X_t}.
+    \end{align*}
+    Since we assumed that the mean absolute reward is bounded by $B$
+    we also get that $r_t \le 2B$, and since $\beta_n \ge \beta_t \vee B$
+    we have
+    \begin{align*}
+      r_t &\le 2B \wedge 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{X_t}
+           \le 2\sqrt{\beta_{n-1}} (1 \wedge \norm{\inv{V_{t-1}}}{X_t}).
+    \end{align*}
+
+    Now we apply Jensen's inequality as follows:
+    \begin{align*}
+      \widehat{R}_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
+                      \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
+      \widehat{R}_n &\le \sqrt{n\sum_{t=1}^n r_t^2} \\
+                    &= \sqrt{4n\beta_{n-1} \sum_{t=1}^n (1 \wedge \norm{\inv{V_{t-1}}}{X_t}^2)}.
+                      \qedhere
+    \end{align*}
+  \end{proof}
+\end{lemma}
+
 \begin{theorem}\label{thm:linucb-regret}
-  Suppose \cref{assumption:linucb} holds and $(\beta_t)_t$ is a
-  non-decreasing sequence with $\beta_{n-1} \ge B^2$. Then, with
+  Suppose \cref{assumption:linucb} holds with
+  $0 \prec V_0 \in \Real^{d \times d}$ being symmetric positive
+  semi-definite and $V_t = V_{t-1} + X_t\transp{X_t}$. Then, with
   probability $1-\delta$ the pseudo-regret
   \begin{align*}
-    \widehat{R}_n &= \sum_{t=1}^n \max_{a\in\Dset{t}} \innerp{a}{\theta^*} - \innerp{A_t}{\theta*}
+    \widehat{R}_n &= \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*}
   \end{align*}
   of Linear UCB satisfies
   \begin{align*}
     \widehat{R}_n &\le \sqrt{8n\beta_{n-1} \log\frac{\det V_n}{\det V_0}}
                    \le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
   \end{align*}
-
-  \begin{proof}
-    We have assumed that the confidence intervals hold with
-    probability $1-\delta$, so it suffices to restrict ourselves to
-    this event.  Let $r_t = \max_{a\in\Dset{t}} \innerp{a}{\theta*} -
-    \innerp{A_t}{\theta^*}$ be the immediate pseudo-regret suffered at
-    round $t\in[n]$.
-
-    Let $A_t^* = \argmax_{a\in\Dset{t}}\innerp{a}{\theta^*}$ be an optimal
-    action for round $t$.  We know that the confidence interval holds
-    for $A_t^*$, and also that we choose the action with highest UCB, so
-    \begin{align*}
-      \innerp{A_t^*}{\theta^*} &\le \UCB_t(A_t^*) \le \UCB_t(A_t).
-    \end{align*}
-    Since the lower confidence bound also holds by assumption,
-    \begin{align*}
-      \innerp{A_t}{\theta^*} &\ge \UCB_t(A_t) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{A_t}.
-    \end{align*}
-    Combining these inequalities we get
-    \begin{align*}
-      r_t &= \innerp{A_t^*}{\theta^*} - \innerp{A_t}{\theta^*} \\
-         &\le \UCB_t(A_t) - \innerp{A_t}{\theta^*} \\
-         &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{A_t}.
-    \end{align*}
-    Since we assumed that the mean absolute reward is bounded by $B$
-    we also get that $r_t \le 2B$, and since $\beta_n \ge \beta_t \vee B$
-    we have
-    \begin{align*}
-      r_t &\le 2B \wedge 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{A_t}
-           \le 2\sqrt{\beta_{n-1}} (1 \wedge \norm{\inv{V_{t-1}}}{A_t}).
-    \end{align*}
-
-    Now we apply Jensen's inequality as follows:
-    \begin{align*}
-      R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
-            \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
-      R_n &\le \sqrt{n\sum_{t=1}^n r_t^2} \\
-          &= \sqrt{4n\beta_{n-1} \sum_{t=1}^n (1 \wedge \norm{\inv{V_{t-1}}}{A_t}^2)}.
-    \end{align*}
-    We can apply \cref{lemma:elliptical-potential} to the last
-    expression to get the desired result.
-  \end{proof}
 \end{theorem}
-
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
   Let $x_1,\dotsc,x_n \in \Real^d$,
   $V_t = V_0 + \sum_{s=1}^t x_s \transp{x_s}$, $t\in[n]$, and
-  $L \ge \max_t\norm{2}{x_t}$. Then
+  $L \ge \max_t\norm{}{x_t}$. Then
   \begin{align*}
     \sum_{t=1}^n 1 \wedge \norm{\inv{V_{t-1}}}{x_t}^2
-    &\le 2\log\frac{\det V_n}{\det V_0} \le 2d\log\frac{v_0+nL^2}{d\det^{1/d} V_0}.
+    &\le 2\log\frac{\det V_n}{\det V_0} \le 2d\log\frac{\tr V_0+nL^2}{d\det^{1/d} V_0}.
   \end{align*}
 
   \begin{proof}
@@ -220,10 +256,11 @@ $\Cset{t}$.
       \det V_t &= \det V_{t-1}\det(I + V_{t-1}^{-1/2}x_t\transp{x_t}V_{t-1}^{-1/2}).
     \end{align*}
 
-    Consider the eigenvectors of the matrix $I+y\transp{y}$.  We know
-    that $y$ itself is an eigenvector with eigenvalue $1+\norm{2}{y}^2$:
+    Consider the eigenvectors of the matrix $I+y\transp{y}$ for an
+    arbitrary vector $y\in\Real^s$.  We know that $y$ itself is an
+    eigenvector with eigenvalue $1+\norm{}{y}^2$:
     \begin{align*}
-      (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{2}{y}^2)y.
+      (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{}{y}^2)y.
     \end{align*}
     Moreover, since $I+y\transp{y}$ is symmetric, every other
     eigenvector $u$ is orthogonal to $y$, so that
@@ -231,10 +268,10 @@ $\Cset{t}$.
       (I + y\transp{y})u &= u + u\innerp{y}{u} = u.
     \end{align*}
     Therefore the only eigenvalues of $I+y\transp{y}$ are
-    $1+\norm{2}{y}^2$ (with eigenvector $y$) and 1.
+    $1+\norm{}{y}^2$ (with eigenvector $y$) and 1.
 
-    In our case $y = V_{t-1}^{-1/2}x_t$ and $\norm{2}{y}^2 =
-    \transp{x_t}V_{t-1}x_t = \norm{\inv{V_{t-1}}}{x_t}$, so we get our
+    In our case $y = V_{t-1}^{-1/2}x_t$ and $\norm{}{y}^2 =
+    \transp{x_t}\inv{V_{t-1}}x_t = \norm{\inv{V_{t-1}}}{x_t}^2$, so we get our
     first inequality:
     \begin{align*}
       \det V_n &= \det V_0 \prod_{t=1}^n(1 + \norm{\inv{V_{t-1}}}{x_t}^2) \\
@@ -250,11 +287,15 @@ $\Cset{t}$.
                 \le \paren{(\tr V_0 + nL^2)/d}^d \\
       \log\frac{\det V_n}{\det V_0}
               &\le d\log\frac{\tr V_0 + nL^2}{d\det^{1/d}V_0}
+                \qedhere
     \end{align*}
-
   \end{proof}
-
 \end{lemma}
+
+\begin{proof}[Proof of \cref{thm:linucb-regret}]
+  Combine \cref{lemma:linucb-regret,lemma:elliptical-potential}.
+\end{proof}
+
 
 \section{Ellipsoidal Confidence Bounds}
 \label{sec:ellips-conf-bounds}
@@ -287,19 +328,11 @@ where we used the fact that $y = X\theta^* + \eta$ (and $\eta_s$ is the
 noise in the reward at round $s$) and we defined $V \defeq \transp{X}X
 + H$ and $Z\defeq X^T\eta$.
 
-\begin{assumption}\label{assumption:cond-subgaussian}
-  The noise $\eta_s$ is conditionally subgaussian:
+\begin{lemma}\label{lemma:subgaussian-z}
+  Under \cref{assumption:subgaussian-noise} and for any
+$\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
   \begin{align*}
-    \Ex{\exp(\lambda\eta_s) \given \eta_1,\dotsc,\eta_{s-1}} &\le \exp(\lambda^2/2),
-    &\text{for all } 1 \le s \le t.
-  \end{align*}
-\end{assumption}
-
-\begin{lemma}
-  Under \cref{assumption:cond-subgaussian} and for any $\lambda\in\Real^d$, the random variable $Z =
-  \transp{X}\eta$ satisfies
-  \begin{align*}
-    \Ex{\exp(\transp{\lambda}Z)} \le \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}\transp{X}X\lambda}.
+    \Ex{\exp(\transp{\lambda}Z)} \le \exp\paren{\norm{G}{\lambda}^2/2}.
   \end{align*}
 
   \begin{proof}
@@ -307,56 +340,79 @@ noise in the reward at round $s$) and we defined $V \defeq \transp{X}X
     \begin{align*}
       \Ex{\exp(\transp{\lambda}Z)}
       &= \Ex{\exp(\transp{\lambda}\transp{X}\eta)} \\
-      &= \Ex[\Big]{\prod_{s=1}^t \exp\paren{\transp{\lambda}X_s\eta_s}} \\
-      &= \Ex[\Big]{\prod_{s=1}^t\Ex[\Big]{\exp(\transp{\lambda}X_s\eta_s) \given \eta_1,\dotsc,\eta_{s-1}}} \\
-      &\le \Ex[\Big]{\prod_{s=1}^t\exp\paren[\Big]{\frac{\paren{\transp{\lambda}X_s}^2}{2}}} \\
+      &= \Ex[\Big]{\Ex[\Big]{\prod_{s=1}^t \exp\paren{\transp{\lambda}X_s\eta_s} \given \mathcal{F}_t}} \\
+      &= \Ex[\Big]{\Ex[\Big]{\exp\paren{\transp{\lambda}X_t\eta_t} \given \mathcal{F}_t} \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}} \\
+      &\le \Ex[\Big]{\exp\paren{{(\transp{\lambda}X_t)}^2/2} \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}} \\
+      &\le \Ex[\Big]{\prod_{s=1}^t\exp({(\transp{\lambda}X_s)}^2/2)} \\
       &= \Ex[\Big]{\exp\paren[\Big]{\sum_{s=1}^t\frac{\transp{\lambda}X_s\transp{X_s}\lambda}{2}}} \\
-      &= \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}\transp{X}X\lambda} \qedhere
+      &= \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}\transp{X}X\lambda}
+        = \exp(\norm{G}{\lambda}^2/2)
+        \qedhere
     \end{align*}
   \end{proof}
 \end{lemma}
 
-We define
-\begin{align*}
-  M_\lambda \defeq \exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda},
-\end{align*}
-so that the above lemma implies that
-\begin{align*}
-  \Ex[\Big]{\exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}} &= \Ex{M_\lambda} \le 1.
-\end{align*}
-Now suppose that $\lambda\sim\mathcal{N}(0, \inv{H})$ is a random
-variable and $h(\lambda)$ is its density function.  Define
-\begin{align*}
-  \bar{M}
-  &\defeq \int M_\lambda \,h(\lambda)\,d\lambda \\
-  &= \frac{1}{\sqrt{{(2\pi)}^d \det\inv{H}}} \int\exp\paren[\Big]{\transp{\lambda}Z
-    - \frac{1}{2}\transp{\lambda}G\lambda
-    - \frac{1}{2}\transp{\lambda}H\lambda
-    } \,d\lambda.
-\end{align*}
-We complete the square in the integrand:
-\begin{align*}
-  \transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda - \frac{1}{2}\transp{\lambda}H\lambda
-  &= \frac{1}{2}\transp{Z}\inv{(G+H)}Z - \frac{1}{2}\transp{(\lambda - \inv{(G+H)}Z)}(G+H)(\lambda-\inv{(G+H)}Z) \\
-  &= \frac{1}{2} \norm{\inv{(G+H)}}{Z} - \frac{1}{2}\norm{G+H}{\lambda-\inv{(G+H)}Z}
-\end{align*}
-which we substitute into the previous equation to get
-\begin{align*}
-  \bar{M}
-  &= \frac{\exp\paren[\big]{\frac{1}{2} \norm{\inv{(G+H)}}{Z}}}{\sqrt{{(2\pi)}^d \det\inv{H}}}
-    \int \exp\paren[\Big]{-\frac{1}{2} \norm{G+H}{\lambda-\inv{(G+H)}Z}} \,d\lambda \\
-  &= \sqrt{\frac{\det H}{\det(G+H)}} \exp\paren[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z}}, \\
-  \log\bar{M} &= \frac{1}{2}\norm{\inv{(G+H)}}{Z} + \frac{1}{2}\log\frac{\det H}{\det(G+H)}.
-\end{align*}
-Now, by Fubini's theorem
-\begin{align*}
-  \Ex{\bar{M}} &= \Ex[\Big]{\int M_\lambda\,h(\lambda)\,d\lambda} = \int \Ex{M_\lambda} \,h(\lambda)\,d\lambda \le 1
-\end{align*}
-which applied to Chebyshev's bound gives
-\begin{align*}
-  \Prob{\log(\bar{M}) \ge u} &\le \exp(-u) \\
-  \Prob[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z} \ge u + \frac{1}{2}\log\frac{\det(G+H)}{\det H}} &\le \exp(-u)
-\end{align*}
+
+\begin{lemma}
+  Suppose for any $\lambda\in\Real^d$ the random variable
+  $Z=\transp{X}\eta$ satisfies
+  $\Ex{\exp(\transp{\lambda}Z)} \le \exp(\norm{G}{\lambda}^2/2)$ (see,
+  for example, \cref{lemma:subgaussian-z}).  Let
+  $0 \prec H \in \Real^{d\times d}$ be any symmetric positive definite
+  matrix.  Then for any $0 < \delta \le 1$, we have
+  \begin{align*}
+    \Prob[\bigg]{\norm{\inv{(G+H)}}{Z} \ge \log\frac{1}{\delta^2} + \log\frac{\det(G+H)}{\det H}} &\le \delta.
+  \end{align*}
+
+  \begin{proof}
+    We define
+    \begin{align*}
+      M_\lambda &\defeq \exp\paren[\Big]{\transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda}.
+    \end{align*}
+    Now consider $\lambda\sim\mathcal{N}(0, \inv{H})$ to be a random
+    variable with the density function $h(\lambda)$.  Define
+    \begin{align*}
+      \bar{M}
+      &\defeq \int M_\lambda \,h(\lambda)\,d\lambda \\
+      &= \frac{1}{\sqrt{{(2\pi)}^d \det\inv{H}}} \int\exp\paren[\Big]{\transp{\lambda}Z
+        - \frac{1}{2}\transp{\lambda}G\lambda
+        - \frac{1}{2}\transp{\lambda}H\lambda
+        } \,d\lambda.
+    \end{align*}
+    We complete the square in the integrand:
+    \begin{align*}
+      \transp{\lambda}Z - \frac{1}{2}\transp{\lambda}G\lambda - \frac{1}{2}\transp{\lambda}H\lambda
+      &= \frac{1}{2}\transp{Z}\inv{(G+H)}Z - \frac{1}{2}\transp{(\lambda - \inv{(G+H)}Z)}(G+H)(\lambda-\inv{(G+H)}Z) \\
+      &= \frac{1}{2} \norm{\inv{(G+H)}}{Z} - \frac{1}{2}\norm{G+H}{\lambda-\inv{(G+H)}Z}
+    \end{align*}
+    which we substitute into the previous equation to get
+    \begin{align*}
+      \bar{M}
+      &= \frac{\exp\paren[\big]{\frac{1}{2} \norm{\inv{(G+H)}}{Z}}}{\sqrt{{(2\pi)}^d \det\inv{H}}}
+        \int \exp\paren[\Big]{-\frac{1}{2} \norm{G+H}{\lambda-\inv{(G+H)}Z}} \,d\lambda \\
+      &= \sqrt{\frac{\det H}{\det(G+H)}} \exp\paren[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z}}, \\
+      \log\bar{M} &= \frac{1}{2}\norm{\inv{(G+H)}}{Z} + \frac{1}{2}\log\frac{\det H}{\det(G+H)}.
+    \end{align*}
+    Our assumption gives us
+    \begin{align*}
+      \Ex{\exp(\transp{\lambda}Z)} &\le \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}G\lambda} \\
+      \Ex[\bigg]{\frac{\exp(\transp{\lambda}Z)}{\exp(\frac{1}{2}\transp{\lambda}G\lambda)}}
+      &= \Ex{M_\lambda} \le 1, &\text{for all }\lambda\in\Real^d.
+    \end{align*}
+    Now, by Fubini's theorem
+    \begin{align*}
+      \Ex{\bar{M}} &= \Ex[\Big]{\int M_\lambda\,h(\lambda)\,d\lambda} = \int \Ex{M_\lambda} \,h(\lambda)\,d\lambda \le 1
+    \end{align*}
+    which applied to Chebyshev's bound gives
+    \begin{align*}
+      \Prob{\log(\bar{M}) \ge u} &\le \exp(-u) \\
+      \Prob[\Big]{\frac{1}{2}\norm{\inv{(G+H)}}{Z} \ge u + \frac{1}{2}\log\frac{\det(G+H)}{\det H}} &\le \exp(-u)
+    \end{align*}
+    Substituting $u = \log(1/\delta)$ and multiplying the inequality
+    by 2 completes the proof.
+  \end{proof}
+
+\end{lemma}
 
 %===============================================================================
 % \hrule
