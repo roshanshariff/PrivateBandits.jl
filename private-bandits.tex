@@ -100,6 +100,10 @@
 
 \maketitle
 
+\todo[inline]{Consider non-contextual bandits; only the rewards are
+  private.  Does this help with the counter-example against optimism
+  in Tor's paper?}
+
 \section{The Contextual Linear Bandit Framework}
 
 In the stochastic linear bandit framework, at each round:
@@ -515,6 +519,7 @@ with ellipsoidal confidence sets satisfies
 \begin{align*}
   \widehat{R}_n &= O(\beta_n^{1/2}\sqrt{dn\log(n/d)}) = O(d\log(n/d)\sqrt{n}).
 \end{align*}
+
 \end{document}
 
 %%% Local Variables:
