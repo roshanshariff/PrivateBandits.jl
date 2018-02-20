@@ -25,6 +25,8 @@
 \usepackage[boxed]{algorithm}
 \usepackage{algpseudocode}
 \usepackage{fullpage}
+\usepackage{color}
+\newcommand{\os}[1]{\textcolor{red}{Or's comment:~}#1}
 %\usepackage{dblfloatfix}
 
 %% Bibliography/\usepackage[round,colon]{natbib}
@@ -158,7 +160,7 @@ $\Cset{t}$.
     for any $x\in\bigcup_t\Dset{t}$.
   \item The actions are bounded: $\norm{}{x} \le L$ for all
     $x\in\bigcup_t\Dset{t}$.
-  \item The confidence intervals hold with high probability: with
+  \item \os{This isn't an assumption. This is more of the nature of things you want to prove. My suggestion: call a sequence of $\beta$s and $V$s $\delta$-good if for any $t$ and blah-blah it holds that...} The confidence intervals hold with high probability: with
     probability $1-\delta$, for all $t\in[n]$, $x\in\Dset{t}$,
     \begin{align*}
       \UCB_t(x) &\ge \innerp{x}{\theta^*} \ge \UCB_t(x) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x}
