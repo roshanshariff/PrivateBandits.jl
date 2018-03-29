@@ -27,7 +27,8 @@
 \usepackage{fullpage}
 %\usepackage{dblfloatfix}
 
-%% Bibliography/\usepackage[round,colon]{natbib}
+%% Bibliography/References
+\usepackage[round,colon]{natbib}
 
 %% Cross-references
 \usepackage{varioref}
@@ -59,6 +60,7 @@
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
 
 \newcommand\given[1][\delimsize]{%
   \providecommand{\delimsize}{}
@@ -68,7 +70,8 @@
 \DeclarePairedDelimiter{\abs}||
 \DeclarePairedDelimiter{\paren}()
 \DeclarePairedDelimiter{\brck}{[}{]}
-\DeclarePairedDelimiter{\set}\{\}
+\DeclarePairedDelimiterX{\set}[1]\lbrace\rbrace{#1}
+\DeclarePairedDelimiter{\ceil}\lceil\rceil
 \DeclarePairedDelimiterX{\innerp}[2]\langle\rangle{#1,#2}
 \DeclarePairedDelimiterXPP{\Prob}[1]{\mathds{P}}(){}{#1}
 \DeclarePairedDelimiterXPP{\PrSet}[1]{\mathds{P}}\{\}{}{#1}
@@ -79,15 +82,18 @@
 \DeclarePairedDelimiterXPP{\norm}[2]{}\Vert\Vert{_{#1}}{#2}
 
 %% Other symbols
-\newcommand{\transp}[1]{#1^\intercal}
+\newcommand{\transp}[1]{#1^\top}
+\newcommand{\Aset}[1]{\mathcal{A}_{#1}}
 \newcommand{\Dset}[1]{\mathcal{D}_{#1}}
 \newcommand{\Cset}[1]{\mathcal{C}_{#1}}
 
 % Theorem environments
 
+\declaretheorem[style=definition]{definition}
 \declaretheorem[style=definition]{assumption}
 \declaretheorem[style=definition]{theorem}
 \declaretheorem[style=definition]{lemma}
+\declaretheorem[style=definition]{claim}
 \declaretheorem[style=definition]{corollary}
 
 \Crefname{assumption}{Assumption}{Assumptions}
@@ -100,13 +106,90 @@
 
 \maketitle
 
+
+\section{Introduction}
+
+The multi-armed bandit is a sequential decision-making task in which
+an agent (or learner) repeatedly takes an action (or arm) and receives
+a corresponding reward.  The agent tries to maximize the total reward
+it earns over several rounds.  Since the agent only observes the
+reward for actions it takes, this is an online learning task with
+partial information.  Learning the rewards associated with all the
+arms requires an agent to \emph{explore} them.  Too much exploration,
+however, would be counter-productive; eventually the algorithm should
+\emph{exploit} the best arms it has found.  The main challenge of
+bandit strategies is to balance exploration and exploitation.
+
+If a bandit algorithm is learning from sensitive user data, we might
+also want it maintain users' privacy.
+
 \todo[inline]{Consider non-contextual bandits; only the rewards are
   private.  Does this help with the counter-example against optimism
   in Tor's paper?}
 
-\section{The Contextual Linear Bandit Framework}
+\todo[inline]{Looks like a $d^2$ dependence is necessary: consider
+  $\theta^*=\paren{\pm 1/d, \dotsc}$ and the actions are $e_i$.  Then
+  you need $d^2\log d$ samples?}
 
-In the stochastic linear bandit framework, at each round:
+\section{Contextual Bandits}
+
+A contextual bandit algorithm receives a \emph{context}
+$c_t\in\Cset{}$ at every round $t$, which it uses to select an action
+$a_t\in\Aset{}$.  It then receives a reward $r_t\in\Real$
+corresponding to the action it selected.  The goal of the algorithm is
+to choose actions that maximize its cumulative reward.  We will
+represent such an algorithm by a function
+$A : (\Cset{}\times\Aset{}\times\Real)^* \times \Cset{} \to
+\Delta_{\Aset{}}$ whose input is a history of context-action-reward
+triples along with a current context, and whose output is a
+probability distribution over actions.  The context usually gives
+additional information about the actions, in a sense that we will
+expand upon below.
+
+\subsection{Privacy for Contextual Bandits}
+
+In many applications, the context and reward may be considered private
+information about the users of the bandit algorithm.  For example, a
+search engine might have a context consisting of a user's search
+query, identity, interests, and physical location, while the reward
+indicates which search result the user clicked on.  The search engine
+should, of course, use the context to answer each query; furthermore,
+it should learn from the reward to better respond to future queries
+from other users.  However, it should also maintain privacy: its
+responses to queries should not reveal \emph{too much} information
+about the context and rewards it has learned from.  More precisely, we
+want algorithms that are \emph{jointly differentially private} in the
+following sense:
+
+\begin{definition}
+  A randomized contextual bandit algorithm $A$ is
+  \emph{$(\varepsilon,\delta)$-differentially private} if the
+  following holds for every $t^*\in\set{1,\dotsc,n}$.  Let
+  $H = (c_t,a_t,r_t)_{t=1}^n$ and $H' = (c'_t,a'_t,r'_t)_{t=1}^n$ be
+  two sequences of context-action-reward triples that differ only on
+  round $t^*$; in other words, $c_t=c'_t$, $a_t=a'_t$, $r_t=r'_t$ for
+  $t\neq t^*$.  \todo[inline]{Complete this definition.  How to
+    construct the probability space?}
+\end{definition}
+
+\subsection{Stochastic Linear Contextual Bandits}
+
+We will assume that the context affects the reward in a linear way, in
+the following sense.  Suppose there is a known \emph{feature function}
+$\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
+pair to a $d$-dimensional \emph{feature vector}.  We will assume that
+the reward is a linear function of the feature vector, with some added
+noise: $r_t = \innerp{\theta^*}{\phi(c_t,a_t)} + \eta_t$ for some
+unknown vector $\theta^*\in\Real^d$.
+
+Since all the information the algorithm needs is encoded in the
+feature vector of each action, we can now formulate the contextual
+bandit problem in the following equivalent way.  Define the decision
+set
+$\Dset{t} \defeq \set{\phi(c_t,a)\given a\in\Aset{}} \subset \Real^d$.
+The context is implicitly encoded in the decision set, and choosing
+$x_t\in\Dset{t}$ is equivalent to choosing an action $a_t\in\Aset{}$.
+In the contextual stochastic linear bandit framework, at each round:
 \begin{enumerate}
 \item The agent receives a \emph{decision set} $\mathcal{D}_t \subset
   \Real^d$.
@@ -114,7 +197,7 @@ In the stochastic linear bandit framework, at each round:
 \item The agent receives a \emph{reward} $Y_t = \innerp{X_t}{\theta^*} + \eta_t$.
 \end{enumerate}
 The vector $\theta^*\in\Real^d$ is an unknown parameter of the
-environment.
+environment which the agent learns so that it can maximize its reward.
 
 \begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
   We denote by
@@ -122,12 +205,14 @@ environment.
   \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
   all the information available just before the noise $\eta_t$ is
   observed.  We assume that $\eta_t$ is \emph{conditionally
-    1-subgaussian:}
+    $\sigma^2$-subgaussian:}
   \begin{align*}
-    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} &\le \exp(\lambda^2/2),
+    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} &\le \exp(\lambda^2\sigma^2/2),
     &\text{for all } \lambda\in\Real.
   \end{align*}
 \end{assumption}
+
+
 \section{Linear UCB}
 
 We start by analyzing the LinUCB algorithm (also known as OFUL ---
@@ -158,37 +243,34 @@ $\Cset{t}$.
     for any $x\in\bigcup_t\Dset{t}$.
   \item The actions are bounded: $\norm{}{x} \le L$ for all
     $x\in\bigcup_t\Dset{t}$.
-  \item The confidence intervals hold with high probability: with
-    probability $1-\delta$, for all $t\in[n]$, $x\in\Dset{t}$,
+  \item The confidence intervals hold: for all $t\in[n]$,
+    $x\in\Dset{t}$,
     \begin{align*}
       \UCB_t(x) &\ge \innerp{x}{\theta^*} \ge \UCB_t(x) - 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x}
       \shortintertext{where}
       \UCB_t(x) &\defeq \max_{\theta\in\Cset{t}} \innerp{x}{\theta}
     \end{align*}
     and $\beta_0,\dotsc,\beta_{n-1}\in\Real$ is a non-decreasing sequence
-    with $\beta_{n-1} \ge B^2$ and $0 \prec V_0,\dotsc,V_{n-1} \in
+    with $\beta_{n-1} \ge 1$ and $0 \prec V_0,\dotsc,V_{n-1} \in
     \Real^{d \times d}$ is a sequence of symmetric positive definite matrices.
   \end{itemize}
 \end{assumption}
 
 \begin{lemma}\label{lemma:linucb-regret}
-  Suppose \cref{assumption:linucb} holds with some sequences
-  ${(\beta_t)}_t$ and ${(V_t)}_t$.  Then, with probability $1-\delta$
-  the pseudo-regret of Linear UCB satisfies
+  Suppose \cref{assumption:linucb} holds with some
+  ${(\beta_t, V_t)}_{t=0}^{n-1}$.  Then the pseudo-regret of Linear
+  UCB satisfies
   \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n\beta_{n-1} \sum_{t=1}^n (1 \wedge \norm{\inv{V_{t-1}}}{X_t}^2)}.
+    \widehat{R}_n &\le \sqrt{4n\beta_{n-1} \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{X_t}^2}}.
   \end{align*}
 
   \begin{proof}
-    We have assumed that the confidence intervals hold with
-    probability $1-\delta$, so it suffices to restrict ourselves to
-    this event.  Let
-    $r_t = \max_{x\in\Dset{t}} \innerp{x-X_t}{\theta^*}$ be the
-    immediate pseudo-regret suffered at round $t\in[n]$.
-
-    Let $X_t^* = \argmax_{x\in\Dset{t}}\innerp{x}{\theta^*}$ be an optimal
+    Let $r_t = \max_{x\in\Dset{t}} \innerp{x-X_t}{\theta^*}$ be the
+    immediate pseudo-regret suffered at round $t\in[n]$ and let
+    $X_t^* = \argmax_{x\in\Dset{t}}\innerp{x}{\theta^*}$ be an optimal
     action for round $t$.  We know that the confidence interval holds
-    for $X_t^*$, and also that we choose the action with highest UCB, so
+    for $X_t^*$, and also that we choose the action with highest UCB,
+    so
     \begin{align*}
       \innerp{X_t^*}{\theta^*} &\le \UCB_t(X_t^*) \le \UCB_t(X_t).
     \end{align*}
@@ -203,11 +285,11 @@ $\Cset{t}$.
          &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{X_t}.
     \end{align*}
     Since we assumed that the mean absolute reward is bounded by $B$
-    we also get that $r_t \le 2B$, and since $\beta_n \ge \beta_t \vee B$
+    we also get that $r_t \le 2B$, and since $\beta_{n-1} \ge \max\set{\beta_t, 1}$
     we have
     \begin{align*}
-      r_t &\le 2B \wedge 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{X_t}
-           \le 2\sqrt{\beta_{n-1}} (1 \wedge \norm{\inv{V_{t-1}}}{X_t}).
+      r_t &\le \min\set{2B, 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{X_t}}
+           \le 2\sqrt{\beta_{n-1}} \min\set{B, \norm{\inv{V_{t-1}}}{X_t}}.
     \end{align*}
 
     Now we apply Jensen's inequality as follows:
@@ -215,38 +297,39 @@ $\Cset{t}$.
       \widehat{R}_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
                       \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
       \widehat{R}_n &\le \sqrt{n\sum_{t=1}^n r_t^2} \\
-                    &= \sqrt{4n\beta_{n-1} \sum_{t=1}^n (1 \wedge \norm{\inv{V_{t-1}}}{X_t}^2)}.
+                    &= \sqrt{4n\beta_{n-1} \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{X_t}^2}}.
                       \qedhere
     \end{align*}
   \end{proof}
 \end{lemma}
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
-  Let $x_1,\dotsc,x_n \in \Real^d$,
-  $V_t = V_0 + \sum_{s=1}^t x_s \transp{x_s}$, $t\in[n]$, and
-  $L \ge \max_t\norm{}{x_t}$. Then
+  Let $x_1,\dotsc,x_n \in \Real^d$ and for all $t\in[n]$,
+  $U_t = U_0 + \sum_{s=1}^t x_s \transp{x_s}$ and
+  $L \ge \max_t\norm{}{x_t}$. Then for any $B > 0$
   \begin{align*}
-    \sum_{t=1}^n 1 \wedge \norm{\inv{V_{t-1}}}{x_t}^2
-    &\le 2\log\frac{\det V_n}{\det V_0} \le 2d\log\frac{\tr V_0+nL^2}{d\det^{1/d} V_0}.
+    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_{t-1}}}{x_t}^2}
+    &\le \max\set{2, B^2}\log\frac{\det U_n}{\det U_0}
+      \le \max\set{2, B^2} d\log\frac{\tr U_0+nL^2}{d\det^{1/d} U_0}.
   \end{align*}
 
   \begin{proof}
-    We use the fact that for any $u \ge 0$, $u \wedge 1 \le
-    2\log(1+u)$, so that
+    We use the fact that $u \wedge B \le \max\set{2, B}\log(1+u)$ for
+    any $u \ge 0$, so that
     \begin{align*}
-      \sum_{t=1}^n 1 \wedge \norm{\inv{V_{t-1}}}{x_t}^2
-      &\le 2\sum_{t=1}^n \log(1 + \norm{\inv{V_{t-1}}}{x_t}^2).
+      \sum_{t=1}^n\min\set{B^2 \wedge \norm{\inv{U_{t-1}}}{x_t}^2}
+      &\le \max\set{2, B^2} \sum_{t=1}^n \log(1 + \norm{\inv{U_{t-1}}}{x_t}^2).
     \end{align*}
-    We will show that this last expression is $\log(\det V_n/\det
-    V_0)$.  For $t \ge 1$ we have
+    We will show that this last summation is $\log(\det U_n/\det
+    U_0)$.  For $t \ge 1$ we have
     \begin{align*}
-      V_t &= V_{t-1} + x_t\transp{x_t}
-           = V_{t-1}^{1/2} (I + V_{t-1}^{-1/2}x_t\transp{x_t}V_{t-1}^{-1/2}) V_{t-1}^{1/2} \\
-      \det V_t &= \det V_{t-1}\det(I + V_{t-1}^{-1/2}x_t\transp{x_t}V_{t-1}^{-1/2}).
+      U_t &= U_{t-1} + x_t\transp{x_t}
+           = U_{t-1}^{1/2} (I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}) U_{t-1}^{1/2} \\
+      \det U_t &= \det U_{t-1}\det(I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}).
     \end{align*}
 
     Consider the eigenvectors of the matrix $I+y\transp{y}$ for an
-    arbitrary vector $y\in\Real^s$.  We know that $y$ itself is an
+    arbitrary vector $y\in\Real^d$.  We know that $y$ itself is an
     eigenvector with eigenvalue $1+\norm{}{y}^2$:
     \begin{align*}
       (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{}{y}^2)y.
@@ -259,23 +342,23 @@ $\Cset{t}$.
     Therefore the only eigenvalues of $I+y\transp{y}$ are
     $1+\norm{}{y}^2$ (with eigenvector $y$) and 1.
 
-    In our case $y = V_{t-1}^{-1/2}x_t$ and $\norm{}{y}^2 =
-    \transp{x_t}\inv{V_{t-1}}x_t = \norm{\inv{V_{t-1}}}{x_t}^2$, so we get our
+    In our case $y = U_{t-1}^{-1/2}x_t$ and $\norm{}{y}^2 =
+    \transp{x_t}\inv{U_{t-1}}x_t = \norm{\inv{U_{t-1}}}{x_t}^2$, so we get our
     first inequality:
     \begin{align*}
-      \det V_n &= \det V_0 \prod_{t=1}^n(1 + \norm{\inv{V_{t-1}}}{x_t}^2) \\
-      \log\frac{\det V_n}{\det V_0} &= \sum_{t=1}^n\log(1+\norm{\inv{V_{t-1}}}{x_t}^2).
+      \det U_n &= \det U_0 \prod_{t=1}^n(1 + \norm{\inv{U_{t-1}}}{x_t}^2) \\
+      \log\frac{\det U_n}{\det U_0} &= \sum_{t=1}^n\log(1+\norm{\inv{U_{t-1}}}{x_t}^2).
     \end{align*}
 
     To get the second inequality, we apply the arithmetic-geometric
-    mean inequality to the eigenvalues $\lambda_i$ of $V_n$:
+    mean inequality to the eigenvalues $\lambda_i$ of $U_n$:
     \begin{align*}
-      \det V_n &= \prod_{i=1}^d \lambda_i
+      \det U_n &= \prod_{i=1}^d \lambda_i
                 \le \paren[\Big]{\frac{1}{d} \sum_{i=1}^d \lambda_i}^d
-                = \paren{(1/d)\tr V_n}^d
-                \le \paren{(\tr V_0 + nL^2)/d}^d \\
-      \log\frac{\det V_n}{\det V_0}
-              &\le d\log\frac{\tr V_0 + nL^2}{d\det^{1/d}V_0}
+                = \paren{(1/d)\tr U_n}^d
+                \le \paren{(\tr U_0 + nL^2)/d}^d \\
+      \log\frac{\det U_n}{\det U_0}
+              &\le d\log\frac{\tr U_0 + nL^2}{d\det^{1/d}U_0}
                 \qedhere
     \end{align*}
   \end{proof}
@@ -283,21 +366,38 @@ $\Cset{t}$.
 
 
 \begin{theorem}[Generic LinUCB Regret]\label{thm:linucb-regret}
-  Suppose \cref{assumption:linucb} holds with
-  $0 \prec V_0 \in \Real^{d \times d}$ being symmetric positive
-  semi-definite and $V_t = V_{t-1} + X_t\transp{X_t}$. Then, with
-  probability $1-\delta$ the pseudo-regret
+  Suppose \cref{assumption:linucb} holds with some $\beta_t$ and
+  $V_t \defeq G_t + H_t$, where
+  $G_t \defeq \sum_{s=1}^t X_s\transp{X_s}$ and
+  $H_t \succeq H \succ 0$ for some symmetric
+  $H_t, H \in \Real^{d\times d}$.  Then the pseudo-regret
   \begin{align*}
-    \widehat{R}_n &= \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*}
-  \end{align*}
-  of Linear UCB satisfies
-  \begin{align*}
-    \widehat{R}_n &\le \sqrt{8n\beta_{n-1} \log\frac{\det V_n}{\det V_0}}
-                   \le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
+    \widehat{R}_n &= \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*} \\
+    \intertext{of Linear UCB satisfies}
+    \widehat{R}_n &\le \sqrt{4\max\set{2,B^2}n\beta_{n-1} \log\frac{\det V_n}{\det H}} \\
+    \widehat{R}_n &\le \sqrt{4\max\set{2,B^2}dn\beta_{n-1}\log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
   \end{align*}
 
   \begin{proof}
-    Combine \cref{lemma:linucb-regret,lemma:elliptical-potential}.
+    From our assumptions and \cref{lemma:linucb-regret}, we know that
+    the Linear UCB regret is bounded by
+    \begin{align*}
+      \widehat{R}_n &\le \sqrt{4n\beta_{n-1} \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{X_t}^2}}.
+    \end{align*}
+    Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
+    \citet[Theorem~7.8]{ZhangMatrixTheory2011} it follows that
+    $\inv{V_t} \preceq \inv{U_t}$, which means $\norm{\inv{V_{t-1}}}{X_t}^2
+    \le \norm{\inv{U_{t-1}}}{X_t}^2$.  We now apply
+    \cref{lemma:elliptical-potential} to the sequence $U_t$ to get
+    \begin{align*}
+      \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{X_t}}
+      &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{X_t}} \\
+      &\le \max\set{2, B^2}\log\det\frac{U_n}{U_0} \\
+      &\le \max\set{2, B^2}d\log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
+    \end{align*}
+    To get the required bounds, it only remains to see that $U_0 = H$
+    and that $\det U_n \le \det V_n$ \citep[again
+    by][Theorem~7.8]{ZhangMatrixTheory2011}.
   \end{proof}
 
 \end{theorem}
@@ -306,14 +406,19 @@ $\Cset{t}$.
 \section{Ellipsoidal Confidence Sets}
 \label{sec:ellips-conf-bounds}
 
+Throughout this section we will fix some particular round $t \le n$
+and suppress the subscripted $t$.
+
 We will consider confidence sets for the value of $\theta^*$ that are
 ellipsoidal with centre $\hat{\theta}$, of the form
 $\set{\theta\in\Real^d \given \norm{V}{\theta-\hat{\theta}}^2 \le
   \beta}$.  Then the upper confidence bound of an action $x$ is
 \begin{align*}
-  \UCB(x) &= \max_{\theta: \norm{V}{\theta-\hat\theta}^2 \le \beta} \innerp{x}{\theta} \\
-  \shortintertext{We solve this constrained optimization problem by the method of
-  Lagrange multipliers:}
+  \UCB(x) &= \max_{\theta: \norm{V}{\theta-\hat\theta}^2 \le \beta} \innerp{x}{\theta}
+\end{align*}
+We solve this constrained optimization problem by the method of
+Lagrange multipliers:
+\begin{align*}
   \mathcal{L}(\theta, \lambda) &= \innerp{x}{\theta} - \lambda(\norm{V}{\theta-\hat\theta}^2 - \beta) \\
   \nabla_\theta\mathcal{L}(\theta, \lambda) &= \transp{x} - \lambda\transp{(\theta-\hat\theta)}V = 0 \\
   \theta &= \hat\theta + \frac{{\inv{V}x}}{\lambda} \\
@@ -322,7 +427,7 @@ $\set{\theta\in\Real^d \given \norm{V}{\theta-\hat{\theta}}^2 \le
           = \norm[\bigg]{V}{\frac{\inv{V}x}{\lambda}}^2
           = \frac{1}{\lambda^2}\transp{x}\inv{V}x \\
   \lambda &= \norm{\inv{V}}{x} / \sqrt\beta \\
-  \shortintertext{Which we substitute into the expression above:}
+  \intertext{Which we substitute into the expression above:}
   \UCB(x) &= \innerp[\bigg]{x}{\hat\theta + \frac{\sqrt\beta}{\norm{\inv{V}}{x}}\inv{V}x} \\
           &= \innerp{x}{\hat\theta} + \sqrt\beta \norm{\inv{V}}{x}.
 \end{align*}
@@ -332,10 +437,9 @@ set with an appropriate $V$ and $\beta$, then the requirements of
 index.
 
 Let $X_s \in \Real^d$ be the action vector selected by the algorithm at
-time $s$, so that $X$ is a $t \times d$ matrix (here we have fixed
-some particular round $t \le n$).  The \emph{Gram matrix} is given by
-$G \defeq \transp{X}X \in \Real^{d \times d}$.  Let $y_s$ be the reward
-received at time $s$, so that $y\in\Real^t$.
+time $s$, so that $X$ is a $t \times d$ matrix.  The \emph{Gram matrix} is given by
+$G \defeq \transp{X}X \in \Real^{d \times d}$.  Let $y_s$ be the
+reward received at time $s$, so that $y\in\Real^t$.
 
 We will take $\hat{\theta}$ to be a regularized solution of the
 least-squares system
@@ -368,8 +472,11 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
       &= \Ex{\exp(\transp{\lambda}\transp{X}\eta)} \\
       &= \Ex[\Big]{\Ex[\Big]{\prod_{s=1}^t \exp\paren{\transp{\lambda}X_s\eta_s} \given \mathcal{F}_t}} \\
       &= \Ex[\Big]{\Ex[\Big]{\exp\paren{\transp{\lambda}X_t\eta_t} \given \mathcal{F}_t} \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}} \\
-      &\le \Ex[\Big]{\exp\paren{{(\transp{\lambda}X_t)}^2/2} \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}} \\
-      &\le \Ex[\Big]{\prod_{s=1}^t\exp({(\transp{\lambda}X_s)}^2/2)} \\
+      &\le \Ex[\Big]{\exp\paren{{(\transp{\lambda}X_t)}^2/2}
+        \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}}
+      &\text{since $\eta_t$ is conditionally 1-subgaussian given $\mathcal{F}_t$}\\
+      &\le \Ex[\Big]{\prod_{s=1}^t\exp({(\transp{\lambda}X_s)}^2/2)}
+      &\text{similarly conditioning on $\mathcal{F}_{t-1},\mathcal{F}_{t-2},\dotsc$}\\
       &= \Ex[\Big]{\exp\paren[\Big]{\sum_{s=1}^t\frac{\transp{\lambda}X_s\transp{X_s}\lambda}{2}}} \\
       &= \exp\paren[\Big]{\frac{1}{2}\transp{\lambda}\transp{X}X\lambda}
         = \exp(\norm{G}{\lambda}^2/2)
@@ -519,6 +626,189 @@ with ellipsoidal confidence sets satisfies
 \begin{align*}
   \widehat{R}_n &= O(\beta_n^{1/2}\sqrt{dn\log(n/d)}) = O(d\log(n/d)\sqrt{n}).
 \end{align*}
+
+\appendix
+
+\section{Facts About Random Variables}
+
+\begin{definition}[Subgaussian random variable]\label{def:subG}
+  A real-valued random variable $X$ is \emph{$\sigma^2$-subgaussian}
+  if its moment-generating function satisfies:
+  \begin{align*}
+    \mgf_X(s) \defeq \Ex{\exp(sX)} &\le \exp(s^2\sigma^2/2).
+  \end{align*}
+\end{definition}
+
+\begin{definition}[Subexponential random variable]\label{def:subExp}
+  A real-valued random variable $X$ is \emph{$\lambda$-subexponential}
+  if its moment-generating function satisfies:
+  \begin{align*}
+    \mgf_X(s) \defeq \Ex{\exp(sX)} &\le \exp(s^2\lambda^2/2),
+    &\text{for all } \abs{s}\le 1/\lambda.
+  \end{align*}
+\end{definition}
+
+\begin{definition}[Subgaussian/subexponential random vector]
+  A random vector $X\in\Real^b$ is subgaussian (subexponential) if the
+  random variable $\innerp{v}{X}$ is subgaussian (subexponential) for
+  any $v\in\Real^n$ with $\norm{}{v}=1$.
+\end{definition}
+
+\begin{definition}[Subgaussian/subexponential random matrix]
+  A random matrix $W\in\Real^{n\times m}$ is subgaussian (subexponential)
+  if the random vector $Wu\in\Real^n$ is subgaussian
+  (subexponential) for any $u\in\Real^m$ with $\norm{}{u}=1$.
+\end{definition}
+
+\section{Proofs}
+
+\begin{lemma}[{\citealp[Lemma~9]{AbbasiYadkoriImprovedAlgorithmsLinear2011}}]\label{lemma:martingale-mgf}
+  Let $X_1, X_2, \dotsc \in \Real$ and
+  $\sigma_1, \sigma_2, \dotsc \in \Real$ be sequences of random
+  variables and let
+  $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dotsb$ be a
+  filtration.  Suppose that each $X_t \in \mathcal{F}_t$ and almost
+  surely
+  $\Ex{\exp(\lambda X_t)\given \mathcal{F}_{t-1}} \le
+  \exp(\sigma_t^2\lambda^2/2)$ (i.e. each
+  $\sigma_t \in \mathcal{F}_{t-1}$ and $X_t$ is conditionally
+  $\sigma_t$-subgaussian given $\mathcal{F}_{t-1}$).  For any
+  $\lambda\in\Real$, define
+  \begin{align*}
+    M_{t,\psi} &\defeq \exp\paren[\bigg]{\sum_{s=1}^t \psi X_s - \frac{1}{2}\sigma_s^2\psi^2}.
+  \end{align*}
+  Let $\tau$ be a stopping time with respect to
+  ${(\mathcal{F}_t)}_{t=1}^\infty$.  Then $M_{\tau,\psi}$ is almost surely
+  well-defined and $\Ex{M_{\tau,\psi}} \le 1$.
+
+  \begin{proof}
+    We will show that ${(M_{t,\psi})}_{t=1}^\infty$ is a
+    supermartingale.  Let
+    \begin{align*}
+      D_{t,\psi} &\defeq \exp\paren[\bigg]{\psi X_t - \frac{1}{2}\sigma_t^2\psi^2}.
+    \end{align*}
+    By the conditional subgaussianity of $X_t$, we have
+    \begin{align*}
+      \Ex{D_{t,\psi}\given\mathcal{F}_{t-1}}
+      &= \Ex{\exp(\psi X_t)\given\mathcal{F}_{t-1}}
+        \cdot \exp\paren[\bigg]{-\frac{1}{2}\sigma_t^2\psi^2}
+      \le \exp\paren[\bigg]{\frac{1}{2}\sigma_t^2\psi^2}
+        \cdot \exp\paren[\bigg]{-\frac{1}{2}\sigma_t^2\psi^2}
+      = 1.
+    \end{align*}
+    It is also clear that $D_{t,\psi}$ is $\mathcal{F}_t$-measurable
+    (since $X_t,\sigma_t \in \mathcal{F}_t$), and therefore so is
+    $M_{t,\psi}$.  Furthermore,
+    \begin{align*}
+      \Ex{M_{t,\psi}\given\mathcal{F}_{t-1}}
+      &= \Ex{M_{t-1,\psi}\cdot D_{t,\psi}\given\mathcal{F}_{t-1}}
+        = M_{t-1,\psi} \Ex{D_{t,\psi}\given\mathcal{F}_{t-1}}
+        \le M_{t-1,\psi},
+    \end{align*}
+    showing that $M_{t,\psi}$ is indeed a supermartingale and therefore
+    by Doob's optional stopping theorem
+    $\Ex{M_{\tau,\psi}} \le \Ex{M_{0,\psi}} = 1$.
+
+    Now, we argue that $M_{\tau,\psi}$ is well-defined.  By the
+    convergence theorem for non-negative supermartingales,
+    $M_{\infty,\psi} = \lim_{t\to\infty}M_{t,\psi}$ is almost surely
+    well-defined.  Hence, $M_{\tau,\psi}$ is almost surely
+    well-defined independently of whether $\tau<\infty$ holds or not.
+    Next, we show that $\Ex{M_{\tau,\psi}} \le 1$.  For this, let
+    $Q_{t,\psi} \defeq M_{\min\{\tau,t\},\psi}$ be a stopped
+    version of ${(M_{t,\psi})}_t$.  By Fatou's lemma,
+    $\Ex{M_{\tau,\psi}} = \Ex{\liminf_{t\to\infty}Q_{t,\psi}} \le
+    \liminf_{t\to\infty}\Ex{Q_{t,\psi}} \le 1$, showing the
+    $\Ex{M_{\tau,\psi}} \le 1$ indeed holds.
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}
+  Let $n\in\Nat$ and $\varepsilon>0$ and $\sigma^2>0$.  Let
+  $X_1,X_2,\dotsc,X_n\in\Real$ and
+  $\sigma_1,\sigma_2,\dotsc,\sigma_n\in\Real$ be sequences of random
+  variables and let
+  $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dotsb \subset
+  \mathcal{F}_n$ be a filtration.  Suppose that each
+  $X_t\in\mathcal{F}_t$ and almost surely each $\sigma_t \le \sigma$
+  and each $X_t$ is conditionally $\sigma_t$-subgaussian given
+  $\mathcal{F}_{t-1}$.  Then
+  \begin{align*}
+    \Prob[\Big]{\exists t \le n. \sum_{s=1}^t X_s \ge
+    \sqrt{2\gamma_nV_t\log(N/\delta)}}
+    &\le \delta,
+  \end{align*}
+  where
+  \begin{align*}
+    V_t &\defeq \max\set[\Big]{\varepsilon,\sum_{s=1}^t \sigma_s^2}, &
+    \gamma_n &\defeq 1 + \frac{1}{\log(n)}, &
+    N &\defeq 1 + \ceil*{\frac{\log(n\sigma^2/\varepsilon)}{\log(\gamma_n)}}.
+  \end{align*}
+
+  \begin{proof}
+    For $\psi\in\Real$ define
+    \begin{align*}
+      M_{t,\psi} &\defeq \exp\paren[\bigg]{\sum_{s=1}^t \psi X_s - \frac{1}{2}\psi^2\sigma_s^2}.
+    \end{align*}
+    If $\tau \le n$ is a stopping time with respect to $\mathcal{F}$,
+    then $\Ex{M_{\tau,\psi}} \le 1$ by \cref{lemma:martingale-mgf}.
+    Therefore by Markov's inequality,
+    \begin{align*}
+      \delta/N
+      &\ge \Prob{M_{\tau,\psi} \ge N/\delta} \\
+      &= \Prob[\bigg]{\exp\paren[\Big]{\sum_{s=1}^\tau \psi X_s - \frac{\psi^2\sigma_s^2}{2}} \ge N/\delta} \\
+      &= \Prob[\bigg]{\psi \sum_{s=1}^\tau X_s - \frac{\psi\sigma_s^2}{2} \ge \log(N/\delta)} \\
+      &\ge \Prob[\bigg]{\sum_{s=1}^\tau X_s \ge \frac{\log(N/\delta)}{\psi} + \frac{\psi V_\tau}{2}},
+      &\text{since } V_\tau \ge \sum_{s=1}^\tau \sigma_s^2.
+    \end{align*}
+    To get the tightest tail bound, we want to minimize the quantity
+    on the right side of the inequality; it attains a minimum of
+    $\sqrt{2V_\tau \log(1/\delta)}$ at
+    $\psi_{\min} \defeq \sqrt{2\log(N/\delta)/V_\tau}$.  Furthermore,
+    for any $\psi\ge\psi_{\min}$ that quantity is at most
+    $\psi V_\tau$.
+
+    However, since $V_\tau$ is a random quantity, we cannot simply set
+    $\psi \defeq \psi_{\min}$.  Instead, we recognize that
+    $V_\tau \in [\varepsilon, n\sigma^2]$ almost surely, and we can
+    logarithmically cover this range with the $N$ values
+    $\varepsilon\gamma_n^{k-1}$ for $k=1,2,\dotsc,N$; at least one of
+    these must lie in the interval $[V_\tau/\gamma_n, V_\tau]$.  Then
+    we can define the corresponding values
+    \begin{align*}
+      \psi_k &\defeq \sqrt{\frac{2\log(N/\delta)}{\varepsilon\gamma_n^{k-1}}},
+              &\text{for } k=1,2,\dotsc,N;
+    \end{align*}
+    there must be some value of $k$ for which
+    $\psi_k \in [\psi_{\min}, \gamma_n\psi_{\min}]$.  Using a union bound
+    over these $N$ values, we get
+    \begin{align*}
+      \delta
+      &\ge \Prob[\bigg]{\exists k\in[N]. \sum_{s=1}^\tau X_s \ge \frac{\log(N/\delta)}{\psi_k} + \frac{\psi_k V_\tau}{2}} \\
+      &\ge \Prob[\bigg]{\sum_{s=1}^\tau X_s \ge \gamma_n\psi_{\min}V_\tau} \\
+      &= \Prob[\bigg]{\sum_{s=1}^\tau X_s \ge \sqrt{2\gamma_nV_\tau\log(N/\delta)}}.
+    \end{align*}
+    To complete the proof, define the stopping time $\tau =
+    \min\set{n,\tau_n}$ where
+    \begin{align*}
+      \tau_n &\defeq \min\set[\Big]{t \le n \given \sum_{s=1}^tX_s \ge \sqrt{2\gamma_nV_t\log(N/\delta)}}.
+              \qedhere
+    \end{align*}
+  \end{proof}
+\end{lemma}
+
+
+\begin{claim}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]
+  If $A \succeq B \succeq 0$, then
+  \begin{enumerate}
+  \item $\rank(A) \ge \rank(B)$
+  \item $\det A \ge \det B$
+  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
+  \end{enumerate}
+\end{claim}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
 
 \end{document}
 
