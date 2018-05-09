@@ -1,19 +1,41 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 
-\title{Differentially Private Contextual Bandits}
-\author{Roshan Shariff}
+% if you need to pass options to natbib, use, e.g.:
+% \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading nips_2018
+\PassOptionsToPackage{round,colon}{natbib}
 
-\usepackage[semibold]{libertine} % a bit lighter than Times--no osf in math
+% ready for submission
+\usepackage{nips_2018}
+
+% to compile a preprint version, e.g., for submission to arXiv, add
+% add the [preprint] option:
+% \usepackage[preprint]{nips_2018}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+% \usepackage[final]{nips_2018}
+
+% to avoid loading the natbib package, add option nonatbib:
+% \usepackage[nonatbib]{nips_2018}
+
+\title{Differentially Private Contextual Linear Bandits}
+\author{
+  Roshan Shariff
+  \And
+  Or Sheffet
+}
+
+%\usepackage[semibold]{libertine} % a bit lighter than Times--no osf in math
 \usepackage[T1]{fontenc} % best for Western European languages
-\usepackage{textcomp} % required to get special symbols
-\usepackage[varqu,varl]{inconsolata} % a typewriter font must be defined
+%\usepackage{textcomp} % required to get special symbols
+%\usepackage[varqu,varl]{inconsolata} % a typewriter font must be defined
 \usepackage{amsmath,mathtools}
 \usepackage{amsthm,thmtools,thm-restate}
 \usepackage{amssymb} % loads amsfonts
 \usepackage{nicefrac}
-\usepackage[libertine,cmintegrals,bigdelims,vvarbb]{newtxmath} % replaces some amssymb symbols
-\usepackage[scr=rsfso]{mathalfa} % Use rsfso to provide mathscr
+%\usepackage[libertine,cmintegrals,bigdelims,vvarbb]{newtxmath} % replaces some amssymb symbols
+%\usepackage[scr=rsfso]{mathalfa} % Use rsfso to provide mathscr
 \usepackage{dsfont}
 \usepackage{bm} % load after all math to give access to bold math
 
@@ -24,13 +46,13 @@
 \usepackage{booktabs}
 \usepackage[boxed]{algorithm}
 \usepackage{algpseudocode}
-\usepackage{fullpage}
+%\usepackage{fullpage}
 \usepackage{color}
 \newcommand{\os}[1]{\textcolor{red}{Or's comment:~}#1}
 %\usepackage{dblfloatfix}
 
 %% Bibliography/References
-\usepackage[round,colon]{natbib}
+%\usepackage[round,colon]{natbib}
 
 %% Cross-references
 \usepackage{varioref}
@@ -84,6 +106,8 @@
 \DeclarePairedDelimiterXPP{\norm}[2]{}\Vert\Vert{_{#1}}{#2}
 
 %% Other symbols
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\C}{\mathcal{C}}
 \newcommand{\transp}[1]{#1^\top}
 \newcommand{\Aset}[1]{\mathcal{A}_{#1}}
 \newcommand{\Dset}[1]{\mathcal{D}_{#1}}
@@ -100,30 +124,69 @@
 
 \Crefname{assumption}{Assumption}{Assumptions}
 
-%%%%%%%%%%%%%%%%%%%%%G%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\onehalfspacing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\onehalfspacing
 
 \begin{document}
 
 \maketitle
 
+\begin{abstract}
+  We study the contextual linear bandit problem, where an algorithm
+  sequentially selects actions that maximize an associated reward,
+  which may depend on a provided per-round \emph{context}.  In
+  particular, the reward is assumed to be a linear function of a
+  \emph{feature vector} that encodes the context and selected action,
+  with added stochastic noise.
+
+  In many real-world applications, it is important to maintain the
+  privacy of the provided contexts and rewards.  Specifically, the
+  algorithm's choice of actions should not reveal too much information
+  about the previous contexts and rewards it has learned from.  We
+  address this concern by providing a \emph{differentially private}
+  algorithm for the contextual linear bandit problem, along with
+  bounds on its performance.
+\end{abstract}
 
 \section{Introduction}
+\label{sec:introduction}
 
-The multi-armed bandit is a sequential decision-making task in which
-an agent (or learner) repeatedly takes an action (or arm) and receives
-a corresponding reward.  The agent tries to maximize the total reward
-it earns over several rounds.  Since the agent only observes the
-reward for actions it takes, this is an online learning task with
-partial information.  Learning the rewards associated with all the
-arms requires an agent to \emph{explore} them.  Too much exploration,
-however, would be counter-productive; eventually the algorithm should
-\emph{exploit} the best arms it has found.  The main challenge of
-bandit strategies is to balance exploration and exploitation.
+The \emph{multi-armed bandit} is a well-known sequential
+decision-making task: in every round $t$, an algorithm chooses an
+action (or arm) $a_t\in\A$ and receives a corresponding reward $r_t$.
+The objective is to maximize the cumulative reward $\sum_tr_t$ by
+learning from the past rewards associated with the different actions.
+Many real-world applications, however, are instances of the more
+general \emph{contextual} bandit problem, where an additional piece of
+context $c_t\in\C$ is available at the beginning of each round.  The
+reward is then assumed to depend not only on the selected action but
+also on the context.
 
-If a bandit algorithm is learning from sensitive user data, we might
-also want it maintain users' privacy.
+% Since the agent only observes the reward for actions it takes, this
+% is an online learning task with partial information.  Learning the
+% rewards associated with all the arms requires an agent to
+% \emph{explore} them.  Too much exploration, however, would be
+% counter-productive; eventually the algorithm should \emph{exploit}
+% the best arms it has found.  The main challenge of bandit strategies
+% is to balance exploration and exploitation.
+
+As a motivating example, consider the problem of choosing an
+advertisement to be displayed on a web site.  The algorithm receives a
+reward when a user clicks on an ad.  The probability of this click can
+vary greatly, however, depending on how well the chosen advertisement
+matches the contents of the web page and the expressed interests of
+the user.  Using this additional context allows an algorithm to make
+vastly better decisions than would be possible by observing the
+rewards alone, which can only quantify the effectiveness of each ad
+without regard to any particular situation.
+
+This example highlights the need to maintain the privacy of the
+context and reward: users' interests, web site visits, and clicks are
+sensitive personal information.  An algorithm may pick an ad for a
+user based on their own information, and it may even learn from
+aggregated information to choose better in the future, but an
+adversary analyzing these ad choices must not be able to learn too
+much about any individual user.
 
 \todo[inline]{Consider non-contextual bandits; only the rewards are
   private.  Does this help with the counter-example against optimism
@@ -132,6 +195,12 @@ also want it maintain users' privacy.
 \todo[inline]{Looks like a $d^2$ dependence is necessary: consider
   $\theta^*=\paren{\pm 1/d, \dotsc}$ and the actions are $e_i$.  Then
   you need $d^2\log d$ samples?}
+
+\subsection{Related Work}
+\label{sec:related-work}
+
+
+
 
 \section{Contextual Bandits}
 
@@ -367,15 +436,15 @@ $\Cset{t}$.
 \end{lemma}
 
 
-\begin{theorem}[Generic LinUCB Regret]\label{thm:linucb-regret}
+\begin{theorem}[Generic Linear UCB Regret]\label{thm:linucb-regret}
   Suppose \cref{assumption:linucb} holds with some $\beta_t$ and
   $V_t \defeq G_t + H_t$, where
   $G_t \defeq \sum_{s=1}^t X_s\transp{X_s}$ and
   $H_t \succeq H \succ 0$ for some symmetric
-  $H_t, H \in \Real^{d\times d}$.  Then the pseudo-regret
+  $H_t, H \in \Real^{d\times d}$.  Then the pseudo-regret of Linear UCB
   \begin{align*}
-    \widehat{R}_n &= \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*} \\
-    \intertext{of Linear UCB satisfies}
+    \widehat{R}_n &\defeq \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*}
+    \shortintertext{satisfies}
     \widehat{R}_n &\le \sqrt{4\max\set{2,B^2}n\beta_{n-1} \log\frac{\det V_n}{\det H}} \\
     \widehat{R}_n &\le \sqrt{4\max\set{2,B^2}dn\beta_{n-1}\log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
   \end{align*}
@@ -392,8 +461,8 @@ $\Cset{t}$.
     \le \norm{\inv{U_{t-1}}}{X_t}^2$.  We now apply
     \cref{lemma:elliptical-potential} to the sequence $U_t$ to get
     \begin{align*}
-      \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{X_t}}
-      &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{X_t}} \\
+      \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{X_t}^2}
+      &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{X_t}^2} \\
       &\le \max\set{2, B^2}\log\det\frac{U_n}{U_0} \\
       &\le \max\set{2, B^2}d\log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
     \end{align*}
@@ -423,12 +492,12 @@ Lagrange multipliers:
 \begin{align*}
   \mathcal{L}(\theta, \lambda) &= \innerp{x}{\theta} - \lambda(\norm{V}{\theta-\hat\theta}^2 - \beta) \\
   \nabla_\theta\mathcal{L}(\theta, \lambda) &= \transp{x} - \lambda\transp{(\theta-\hat\theta)}V = 0 \\
-  \theta &= \hat\theta + \frac{{\inv{V}x}}{\lambda} \\
+  \theta &= \hat\theta + \frac{{\inv{V}x}}{\lambda}
   \shortintertext{To find $\lambda$:}
   \beta &= \norm{V}{\theta-\hat\theta}^2
           = \norm[\bigg]{V}{\frac{\inv{V}x}{\lambda}}^2
           = \frac{1}{\lambda^2}\transp{x}\inv{V}x \\
-  \lambda &= \norm{\inv{V}}{x} / \sqrt\beta \\
+  \lambda &= \norm{\inv{V}}{x} / \sqrt\beta
   \intertext{Which we substitute into the expression above:}
   \UCB(x) &= \innerp[\bigg]{x}{\hat\theta + \frac{\sqrt\beta}{\norm{\inv{V}}{x}}\inv{V}x} \\
           &= \innerp{x}{\hat\theta} + \sqrt\beta \norm{\inv{V}}{x}.
@@ -590,7 +659,7 @@ We will now instantiate a concrete algorithm based on \emph{ridge
   regression}, i.e.\ using the regularizer $H=\rho I$ for some
 $\rho>0$.  Thus we will have
 \begin{align*}
-  V_t &\defeq \rho I + \sum_{s=1}^t X_s\transp{X_s}\\
+  V_t &\defeq \rho I + \sum_{s=1}^t X_s\transp{X_s}
   \shortintertext{and}
   \hat{\theta}_t - \theta^* &= \inv{V_t}Z_t - \inv{V_t}H\theta^* \\
                           &= \inv{V_t}Z_t - \rho\inv{V_t}\theta^* \\
@@ -616,7 +685,7 @@ Applying \cref{thm:linucb-regret} gives us the regret bound
 \begin{align*}
   \widehat{R}_n
   &\le \sqrt{8dn\beta_{n-1}\log\frac{\tr V_0 + nL^2}{d\det^{1/d} V_0}}
-    = \sqrt{8dn\beta_{n-1}\log\frac{d\rho + nL^2}{d\rho}} \\
+    = \sqrt{8dn\beta_{n-1}\log\frac{d\rho + nL^2}{d\rho}}
   \shortintertext{where}
   \sqrt{\beta_{n-1}}
   &= \sqrt\rho S + \sqrt{2\log\frac{n}{\delta} + \log\frac{\det V_{n-1}}{\det \rho I}} \\
@@ -628,6 +697,19 @@ with ellipsoidal confidence sets satisfies
 \begin{align*}
   \widehat{R}_n &= O(\beta_n^{1/2}\sqrt{dn\log(n/d)}) = O(d\log(n/d)\sqrt{n}).
 \end{align*}
+
+
+\section{Privacy-Preserving Linear UCB}
+
+The Linear UCB algorithm records its history of actions vectors and
+rewards, which it uses to select its next action at every round.  We
+will now examine the effects of recording this history in a
+privacy-preserving manner.
+
+In particular, Linear UCB uses its history of arms and rewards through
+the Gram matrix $\transp{X}X$ and the vector $\transp{X}y$.  If these
+quantities preserve privacy, then the Linear UCB algorithm must also
+since it is simply post-processing them.
 
 \appendix
 
@@ -810,7 +892,7 @@ with ellipsoidal confidence sets satisfies
 \end{claim}
 
 \bibliographystyle{plainnat}
-\bibliography{references}
+\bibliography{references,zotero-references}
 
 \end{document}
 
