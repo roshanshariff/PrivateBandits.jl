@@ -38,30 +38,22 @@
   author = {Mishra, Nikita and Thakurta, Abhradeep},
   year = {2015},
   pages = {592--601},
-  file = {/Users/roshan/Documents/Zotero/storage/KZNE9W7Q/Mishra and Thakurta - 2015 - (Nearly) Optimal Differentially Private Stochastic.pdf}
+  file = {/Users/roshan/Documents/Zotero/storage/DV2BH6X3/Supplementary Material.pdf;/Users/roshan/Documents/Zotero/storage/KZNE9W7Q/Mishra and Thakurta - 2015 - (Nearly) Optimal Differentially Private Stochastic.pdf}
 }
 
-@article{TossouAlgorithmsDifferentiallyPrivate2015,
+@article{TossouAchievingPrivacyAdversarial2017,
   archivePrefix = {arXiv},
   eprinttype = {arxiv},
-  eprint = {1511.08681},
-  primaryClass = {cs, stat},
-  title = {Algorithms for {{Differentially Private Multi}}-{{Armed Bandits}}},
-  abstract = {We present differentially private algorithms for the stochastic Multi-Armed Bandit (MAB) problem. This is a problem for applications such as adaptive clinical trials, experiment design, and user-targeted advertising where private information is connected to individual rewards. Our major contribution is to show that there exist \$($\backslash$epsilon, $\backslash$delta)\$ differentially private variants of Upper Confidence Bound algorithms which have optimal regret, \$O($\backslash$epsilon\^\{-1\} + $\backslash$log T)\$. This is a significant improvement over previous results, which only achieve poly-log regret \$O($\backslash$epsilon\^\{-2\} $\backslash$log\^\{2\} T)\$, because of our use of a novel interval-based mechanism. We also substantially improve the bounds of previous family of algorithms which use a continual release mechanism. Experiments clearly validate our theoretical bounds.},
-  journal = {arXiv:1511.08681 [cs, stat]},
-  author = {Tossou, Aristide and Dimitrakakis, Christos},
-  month = nov,
-  year = {2015},
-  keywords = {Computer Science - Learning,Statistics - Machine Learning,Computer Science - Cryptography and Security},
-  file = {/Users/roshan/Documents/Zotero/storage/IEP5DCFK/Tossou and Dimitrakakis - 2015 - Algorithms for Differentially Private Multi-Armed .pdf;/Users/roshan/Documents/Zotero/storage/P78WAVKI/1511.html}
-}
-
-@inproceedings{ThakurtaPrivateStochasticMultiarm2014,
-  address = {Beijing, China},
-  title = {Private {{Stochastic Multi}}-Arm {{Bandits}}: {{From Theory}} to {{Practice}}},
-  author = {Thakurta, Abhradeep},
-  year = {2014},
-  file = {/Users/roshan/Documents/Zotero/storage/UCKSFHRJ/Thakurta-PrivateStochasticBandits.pdf}
+  eprint = {1701.04222},
+  primaryClass = {cs},
+  title = {Achieving {{Privacy}} in the {{Adversarial Multi}}-{{Armed Bandit}}},
+  abstract = {In this paper, we improve the previously best known regret bound to achieve \$$\backslash$epsilon\$-differential privacy in oblivious adversarial bandits from \$$\backslash$mathcal\{O\}\{(T\^\{2/3\}/$\backslash$epsilon)\}\$ to \$$\backslash$mathcal\{O\}\{($\backslash$sqrt\{T\} $\backslash$ln T /$\backslash$epsilon)\}\$. This is achieved by combining a Laplace Mechanism with EXP3. We show that though EXP3 is already differentially private, it leaks a linear amount of information in \$T\$. However, we can improve this privacy by relying on its intrinsic exponential mechanism for selecting actions. This allows us to reach \$$\backslash$mathcal\{O\}\{($\backslash$sqrt\{$\backslash$ln T\})\}\$-DP, with a regret of \$$\backslash$mathcal\{O\}\{(T\^\{2/3\})\}\$ that holds against an adaptive adversary, an improvement from the best known of \$$\backslash$mathcal\{O\}\{(T\^\{3/4\})\}\$. This is done by using an algorithm that run EXP3 in a mini-batch loop. Finally, we run experiments that clearly demonstrate the validity of our theoretical analysis.},
+  journal = {arXiv:1701.04222 [cs]},
+  author = {Tossou, Aristide C. Y. and Dimitrakakis, Christos},
+  month = jan,
+  year = {2017},
+  keywords = {Computer Science - Learning,Computer Science - Artificial Intelligence,Computer Science - Cryptography and Security},
+  file = {/Users/roshan/Documents/Zotero/storage/RK4KKWYY/Tossou and Dimitrakakis - 2017 - Achieving Privacy in the Adversarial Multi-Armed B.pdf;/Users/roshan/Documents/Zotero/storage/GIPIES8V/1701.html}
 }
 
 @inproceedings{KearnsMechanismdesignlarge2014,
@@ -120,6 +112,50 @@
   year = {2017},
   keywords = {Computer Science - Learning},
   file = {/Users/roshan/Documents/Zotero/storage/IX255GNW/Jain et al. - 2017 - Differentially Private Matrix Completion, Revisite.pdf;/Users/roshan/Documents/Zotero/storage/CPRI9CZS/1712.html}
+}
+
+@inproceedings{TossouAlgorithmsDifferentiallyPrivate2016,
+  title = {Algorithms for {{Differentially Private Multi}}-{{Armed Bandits}}},
+  copyright = {Authors who publish a paper in this conference agree to the following terms:   Author(s) agree to transfer their copyrights in their article/paper to the Association for the Advancement of Artificial Intelligence (AAAI), in order to deal with future requests for reprints, translations, anthologies, reproductions, excerpts, and other publications. This grant will include, without limitation, the entire copyright in the article/paper in all countries of the world, including all renewals, extensions, and reversions thereof, whether such rights current exist or hereafter come into effect, and also the exclusive right to create electronic versions of the article/paper, to the extent that such right is not subsumed under copyright.  The author(s) warrants that they are the sole author and owner of the copyright in the above article/paper, except for those portions shown to be in quotations; that the article/paper is original throughout; and that the undersigned right to make the grants set forth above is complete and unencumbered.  The author(s) agree that if anyone brings any claim or action alleging facts that, if true, constitute a breach of any of the foregoing warranties, the author(s) will hold harmless and indemnify AAAI, their grantees, their licensees, and their distributors against any liability, whether under judgment, decree, or compromise, and any legal fees and expenses arising out of that claim or actions, and the undersigned will cooperate fully in any defense AAAI may make to such claim or action. Moreover, the undersigned agrees to cooperate in any claim or other action seeking to protect or enforce any right the undersigned has granted to AAAI in the article/paper. If any such claim or action fails because of facts that constitute a breach of any of the foregoing warranties, the undersigned agrees to reimburse whomever brings such claim or action for expenses and attorneys' fees incurred therein.  Author(s) retain all proprietary rights other than copyright (such as patent rights).  Author(s) may make personal reuse of all or portions of the above article/paper in other works of their own authorship.  Author(s) may reproduce, or have reproduced, their article/paper for the author's personal use, or for company use provided that AAAI copyright and the source are indicated, and that the copies are not used in a way that implies AAAI endorsement of a product or service of an employer, and that the copies per se are not offered for sale. The foregoing right shall not permit the posting of the article/paper in electronic or digital form on any computer network, except by the author or the author's employer, and then only on the author's or the employer's own web page or ftp site. Such web page or ftp site, in addition to the aforementioned requirements of this Paragraph, must provide an electronic reference or link back to the AAAI electronic server, and shall not post other AAAI copyrighted materials not of the author's or the employer's creation (including tables of contents with links to other papers) without AAAI's written permission.  Author(s) may make limited distribution of all or portions of their article/paper prior to publication.  In the case of work performed under U.S. Government contract, AAAI grants the U.S. Government royalty-free permission to reproduce all or portions of the above article/paper, and to authorize others to do so, for U.S. Government purposes.  In the event the above article/paper is not accepted and published by AAAI, or is withdrawn by the author(s) before acceptance by AAAI, this agreement becomes null and void.},
+  abstract = {We present differentially private algorithms for the stochastic Multi-Armed Bandit (MAB) problem. This is a problem for applications such as adaptive clinical trials, experiment design, and user-targeted advertising where private information is connected to individual rewards. Our major contribution is to show that there exist ($\epsilon$,$\delta$) differentially private variants of Upper Confidence Bound algorithms which have optimal regret, O($\epsilon$-1 + log T ). This is a significant improvement over previous results, which only achieve poly-log regret O($\epsilon$-2 log3 T), because of our use of a novel interval based mechanism. We also substantially improve the bounds of previous family of algorithms which use a continual release mechanism. Experiments clearly validate our theoretical bounds.},
+  language = {en},
+  booktitle = {Thirtieth {{AAAI Conference}} on {{Artificial Intelligence}}},
+  author = {Tossou, Aristide C. Y. and Dimitrakakis, Christos},
+  month = mar,
+  year = {2016},
+  file = {/Users/roshan/Documents/Zotero/storage/IEP5DCFK/Tossou and Dimitrakakis - 2016 - Algorithms for Differentially Private Multi-Armed .pdf;/Users/roshan/Documents/Zotero/storage/3Y6LSDUC/11906.html;/Users/roshan/Documents/Zotero/storage/P78WAVKI/1511.html}
+}
+
+@inproceedings{DworkCalibratingNoiseSensitivity2006,
+  series = {Lecture Notes in Computer Science},
+  title = {Calibrating {{Noise}} to {{Sensitivity}} in {{Private Data Analysis}}},
+  isbn = {978-3-540-32731-8 978-3-540-32732-5},
+  doi = {10.1007/11681878_14},
+  abstract = {We continue a line of research initiated in [10,11]on privacy-preserving statistical databases. Consider a trusted server that holds a database of sensitive information. Given a query function f mapping databases to reals, the so-called true answer is the result of applying f to the database. To protect privacy, the true answer is perturbed by the addition of random noise generated according to a carefully chosen distribution, and this response, the true answer plus noise, is returned to the user.Previous work focused on the case of noisy sums, in which f = $\sum$ i g(x i ), where x i denotes the ith row of the database and g maps database rows to [0,1]. We extend the study to general functions f, proving that privacy can be preserved by calibrating the standard deviation of the noise according to the sensitivity of the function f. Roughly speaking, this is the amount that any single argument to f can change its output. The new analysis shows that for several particular applications substantially less noise is needed than was previously understood to be the case.The first step is a very clean characterization of privacy in terms of indistinguishability of transcripts. Additionally, we obtain separation results showing the increased value of interactive sanitization mechanisms over non-interactive.},
+  language = {en},
+  booktitle = {Theory of {{Cryptography}}},
+  publisher = {{Springer, Berlin, Heidelberg}},
+  author = {Dwork, Cynthia and McSherry, Frank and Nissim, Kobbi and Smith, Adam},
+  month = mar,
+  year = {2006},
+  pages = {265-284},
+  file = {/Users/roshan/Documents/Zotero/storage/ZFCASH3G/Dwork et al. - 2006 - Calibrating Noise to Sensitivity in Private Data A.pdf;/Users/roshan/Documents/Zotero/storage/Q53U2C83/11681878_14.html}
+}
+
+@inproceedings{DworkDifferentialPrivacy2006,
+  series = {Lecture Notes in Computer Science},
+  title = {Differential {{Privacy}}},
+  isbn = {978-3-540-35907-4 978-3-540-35908-1},
+  doi = {10.1007/11787006_1},
+  abstract = {In 1977 Dalenius articulated a desideratum for statistical databases: nothing about an individual should be learnable from the database that cannot be learned without access to the database. We give a general impossibility result showing that a formalization of Dalenius' goal along the lines of semantic security cannot be achieved. Contrary to intuition, a variant of the result threatens the privacy even of someone not in the database. This state of affairs suggests a new measure, differential privacy, which, intuitively, captures the increased risk to one's privacy incurred by participating in a database. The techniques developed in a sequence of papers [8, 13, 3], culminating in those described in [12], can achieve any desired level of privacy under this measure. In many cases, extremely accurate information about the database can be provided while simultaneously ensuring very high levels of privacy.},
+  language = {en},
+  booktitle = {Automata, {{Languages}} and {{Programming}}},
+  publisher = {{Springer, Berlin, Heidelberg}},
+  author = {Dwork, Cynthia},
+  month = jul,
+  year = {2006},
+  pages = {1-12},
+  file = {/Users/roshan/Documents/Zotero/storage/QUKF48ZZ/Dwork - 2006 - Differential Privacy.pdf;/Users/roshan/Documents/Zotero/storage/7HR82UTF/11787006_1.html}
 }
 
 

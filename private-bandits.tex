@@ -26,6 +26,7 @@
   Or Sheffet
 }
 
+\usepackage{newtxtext}
 %\usepackage[semibold]{libertine} % a bit lighter than Times--no osf in math
 \usepackage[T1]{fontenc} % best for Western European languages
 %\usepackage{textcomp} % required to get special symbols
@@ -34,9 +35,12 @@
 \usepackage{amsthm,thmtools,thm-restate}
 \usepackage{amssymb} % loads amsfonts
 \usepackage{nicefrac}
-%\usepackage[libertine,cmintegrals,bigdelims,vvarbb]{newtxmath} % replaces some amssymb symbols
+%\usepackage[libertine,cmintegrals,bigdelims,vvarbb]{newtxmath} %
+%replaces some amssymb symbols
+\usepackage{newtxmath}
 %\usepackage[scr=rsfso]{mathalfa} % Use rsfso to provide mathscr
 \usepackage{dsfont}
+\usepackage{upgreek}
 \usepackage{bm} % load after all math to give access to bold math
 
 \usepackage{microtype}
@@ -108,7 +112,10 @@
 %% Other symbols
 \newcommand{\A}{\mathcal{A}}
 \newcommand{\C}{\mathcal{C}}
-\newcommand{\transp}[1]{#1^\top}
+\newcommand{\E}{\mathcal{E}}
+\providecommand\transp{\top}
+\let\transpsymbol\transp
+\renewcommand{\transp}[1]{#1^\transpsymbol}
 \newcommand{\Aset}[1]{\mathcal{A}_{#1}}
 \newcommand{\Dset}[1]{\mathcal{D}_{#1}}
 \newcommand{\Cset}[1]{\mathcal{C}_{#1}}
@@ -188,6 +195,22 @@ aggregated information to choose better in the future, but an
 adversary analyzing these ad choices must not be able to learn too
 much about any individual user.
 
+We present algorithms for the contextual bandit problem that are
+\emph{differentially private}, a widely adopted notion of privacy
+preservation in both academia and industry.  In this framework, the
+output of the algorithm does not change in a statistically significant
+way when any single context and reward is changed.  An adversary
+analyzing this output therefore cannot learn the private information
+received by the algorithm on any particular round.  We will see,
+however, that contextual bandit algorithms that are differentially
+private must essentially ignore their context.  We therefore adopt the
+more relaxed notion of \emph{joint differential privacy} which allows
+the algorithm to reveal the provided context, but only via its output
+for the same round.  All future outputs must still maintain the
+privacy of the context and reward.  Intuitively, it is reasonable that
+an advertisement shown to a user reveals their own interests, but
+those shown to other users do not.
+
 \todo[inline]{Consider non-contextual bandits; only the rewards are
   private.  Does this help with the counter-example against optimism
   in Tor's paper?}
@@ -199,16 +222,42 @@ much about any individual user.
 \subsection{Related Work}
 \label{sec:related-work}
 
+Differential privacy was first introduced by
+\citet{DworkCalibratingNoiseSensitivity2006} and its modern
+formulation in \citet{DworkDifferentialPrivacy2006}.
+\Citet{DworkAlgorithmicFoundationsDifferential2014} is a comprehensive
+overview of the field.
+
+\todo[inline]{Finish this section.}
+
+\subsection{Contributions}
+\label{sec:contributions}
+
+\todo[inline]{Finish this section.}
 
 
+\section{Background and Problem Definition}
+\label{sec:background}
 
-\section{Contextual Bandits}
 
-A contextual bandit algorithm receives a \emph{context}
-$c_t\in\Cset{}$ at every round $t$, which it uses to select an action
-$a_t\in\Aset{}$.  It then receives a reward $r_t\in\Real$
-corresponding to the action it selected.  The goal of the algorithm is
-to choose actions that maximize its cumulative reward.  We will
+\subsection{Stochastic Contextual Linear Bandits}
+\label{sec:intro-contextual}
+
+A multi-armed bandit is a sequential decision making task in which, at
+every round $t$, an algorithm selects an action $a_t$ from a set $\A$.
+Usually, $\A = \set{1,\dotsc,K}$ (the $K$-armed bandit) but we do not
+require this; our algorithms can handle other action sets that may be
+infinite or uncountable.  The algorithm then receives a \emph{reward}
+corresponding to the action it chose.  In the (stationary)
+\emph{stochastic multi-armed bandit}, the reward is of the form $r_t =
+\mu_{a_t} + \eta_t$, where $\mu_a$ is the expected reward of action $a$
+and $\eta_t$ is zero-mean noise.  In other words, the reward is sampled
+independently from a distribution that depends only on the selected
+action.
+
+In the contextual bandit problem, the algorithm also receives a
+\emph{context} $c_t\in\C$ at the beginning of each round.  The reward
+is assumed to depend on both the reward and the context.  We will
 represent such an algorithm by a function
 $A : (\Cset{}\times\Aset{}\times\Real)^* \times \Cset{} \to
 \Delta_{\Aset{}}$ whose input is a history of context-action-reward
@@ -217,36 +266,9 @@ probability distribution over actions.  The context usually gives
 additional information about the actions, in a sense that we will
 expand upon below.
 
-\subsection{Privacy for Contextual Bandits}
-
-In many applications, the context and reward may be considered private
-information about the users of the bandit algorithm.  For example, a
-search engine might have a context consisting of a user's search
-query, identity, interests, and physical location, while the reward
-indicates which search result the user clicked on.  The search engine
-should, of course, use the context to answer each query; furthermore,
-it should learn from the reward to better respond to future queries
-from other users.  However, it should also maintain privacy: its
-responses to queries should not reveal \emph{too much} information
-about the context and rewards it has learned from.  More precisely, we
-want algorithms that are \emph{jointly differentially private} in the
-following sense:
-
-\begin{definition}
-  A randomized contextual bandit algorithm $A$ is
-  \emph{$(\varepsilon,\delta)$-differentially private} if the
-  following holds for every $t^*\in\set{1,\dotsc,n}$.  Let
-  $H = (c_t,a_t,r_t)_{t=1}^n$ and $H' = (c'_t,a'_t,r'_t)_{t=1}^n$ be
-  two sequences of context-action-reward triples that differ only on
-  round $t^*$; in other words, $c_t=c'_t$, $a_t=a'_t$, $r_t=r'_t$ for
-  $t\neq t^*$.  \todo[inline]{Complete this definition.  How to
-    construct the probability space?}
-\end{definition}
-
-\subsection{Stochastic Linear Contextual Bandits}
-
-We will assume that the context affects the reward in a linear way, in
-the following sense.  Suppose there is a known \emph{feature function}
+To take advantage of the context while choosing actions, we will
+assume that the context affects the reward in a linear way, in the
+following sense.  Suppose there is a known \emph{feature function}
 $\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
 pair to a $d$-dimensional \emph{feature vector}.  We will assume that
 the reward is a linear function of the feature vector, with some added
@@ -283,20 +305,82 @@ environment which the agent learns so that it can maximize its reward.
   \end{align*}
 \end{assumption}
 
+\subsection{Privacy for Contextual Bandits}
 
-\section{Linear UCB}
+In many applications, the context and reward may be considered private
+information about the users of the bandit algorithm.  For example, a
+search engine might have a context consisting of a user's search
+query, identity, interests, and physical location, while the reward
+indicates which search result the user clicked on.  The search engine
+should, of course, use the context to answer each query; furthermore,
+it should learn from the reward to better respond to future queries
+from other users.  However, it should also maintain privacy: its
+responses to queries should not reveal \emph{too much} information
+about the context and rewards it has learned from.  More precisely, we
+want algorithms that are \emph{jointly differentially private} in the
+following sense:
 
-We start by analyzing the LinUCB algorithm (also known as OFUL ---
-Optimism in the Face of Uncertainty--Linear).  The algorithm is as follows
+\begin{definition}
+  A randomized contextual bandit algorithm $A$ is
+  \emph{$(\varepsilon,\delta)$-differentially private} if the
+  following holds for every $t^*\in\set{1,\dotsc,n}$.  Let
+  $H = (c_t,a_t,r_t)_{t=1}^n$ and $H' = (c'_t,a'_t,r'_t)_{t=1}^n$ be
+  two sequences of context-action-reward triples that differ only on
+  round $t^*$; in other words, $c_t=c'_t$, $a_t=a'_t$, $r_t=r'_t$ for
+  $t\neq t^*$.  \todo[inline]{Complete this definition.}
+\end{definition}
+
+\todo[inline]{Complete this section.}
+
+\subsection{Differentially Private Linear Regression}
+\label{sec:dp-regression}
+
+\subsection{The Tree Mechanism}
+\label{sec:tree-mechanism}
+
+\section{Linear UCB with Changing Regularizers}
+
+\todo[inline]{Clean up notation in this section, including time
+  indexes for $X$, $Y$, and $\hat\theta$.}
+
+The basis for our differentially private contextual linear bandit
+algorithms will be the well-studied LinUCB \todo{citation} algorithm.
+At every round, LinUCB constructs an ellipsoidal \emph{confidence set}
+$\E_t$ that contains the unknown parameter vector $\theta^*$ with high
+probability.  Since $y_t = \innerp{\theta^*}{x_t} + \eta_t$, the center of
+the confidence ellipsoid is taken to be the solution of the
+regularized linear regression problem
+\begin{align*}
+  &\min_{\hat\theta \in \Real^d} \frac{1}{2}\norm{}{X\hat\theta - y}^2 + \frac{1}{2}\norm{H_t}{\hat\theta}^2,
+  && \text{i.e., } \hat\theta = \inv{(\transp{X}X + H_t)}\transp{X}y,
+\end{align*}
+where $y\in\Real^t$ is a vector of observed rewards and
+$X\in\Real^{t\times d}$ is a matrix of actions selected so far.
+Defining $V_t = \transp{X}X + H_t$, the form of the ellipsoid is
+\begin{align*}
+  \E_t &\defeq \set{\theta\in\Real^d \given \norm{\inv{V_t}}{\theta-\hat\theta}^2 < \beta_t}
+\end{align*}
+where $\beta_t$ will be defined later in such a way that the ellipsoid
+contains $\theta^*$ with high probability.
+
+By using a regularizer matrix $H_t$ that changes at each round, we
+allow ourselves to use random regularizers to achieve differential
+privacy (as outlined in \cref{sec:dp-regression}).  We start by
+analyzing the regret of this algorithm.
 
 \begin{algorithm}
-  \caption{Linear UCB}\label{alg:linucb}
+  \caption{Linear UCB with changing regularizers}\label{alg:linucb}
   \begin{algorithmic}
     \For{$t \in 1,2,\dotsc,n$}
-    \State Receive decision set $\Dset{t} \subset \Real^d$
-    \State $\Cset{t} \gets \Cset{t}(X_1,Y_1,\dotsc,X_{t-1},Y_{t-1})$
-    \State $X_t \gets \argmax_{x\in\Dset{t}}
-    \max_{\theta\in\Cset{t}} \innerp{x}{\theta}$
+    \State Receive decision set $\Dset{t} \subset \Real^d$ and
+    regularizer $H_t \in \Real^{d\times d}$.
+    \State $V_t \gets \transp{X}X + H_t$
+    \State $\hat\theta \gets \inv{V_t}\transp{X}y$
+    \State For each $x\in\Dset{t}$, compute
+    \begin{align*}
+      \UCB_t(x) &\defeq \innerp{\hat\theta}{x} + \sqrt{\beta_t}\norm{\inv{V_t}}{x}
+    \end{align*}
+    \State $X_t \gets \argmax_{x\in\Dset{t}} \UCB_t(x)$
     \State Choose action $X_t$ and receive reward $Y_t$
     \EndFor
   \end{algorithmic}
@@ -713,36 +797,36 @@ since it is simply post-processing them.
 
 \appendix
 
-\section{Facts About Random Variables}
+% \section{Facts About Random Variables}
 
-\begin{definition}[Subgaussian random variable]\label{def:subG}
-  A real-valued random variable $X$ is \emph{$\sigma^2$-subgaussian}
-  if its moment-generating function satisfies:
-  \begin{align*}
-    \mgf_X(s) \defeq \Ex{\exp(sX)} &\le \exp(s^2\sigma^2/2).
-  \end{align*}
-\end{definition}
+% \begin{definition}[Subgaussian random variable]\label{def:subG}
+%   A real-valued random variable $X$ is \emph{$\sigma^2$-subgaussian}
+%   if its moment-generating function satisfies:
+%   \begin{align*}
+%     \mgf_X(s) \defeq \Ex{\exp(sX)} &\le \exp(s^2\sigma^2/2).
+%   \end{align*}
+% \end{definition}
 
-\begin{definition}[Subexponential random variable]\label{def:subExp}
-  A real-valued random variable $X$ is \emph{$\lambda$-subexponential}
-  if its moment-generating function satisfies:
-  \begin{align*}
-    \mgf_X(s) \defeq \Ex{\exp(sX)} &\le \exp(s^2\lambda^2/2),
-    &\text{for all } \abs{s}\le 1/\lambda.
-  \end{align*}
-\end{definition}
+% \begin{definition}[Subexponential random variable]\label{def:subExp}
+%   A real-valued random variable $X$ is \emph{$\lambda$-subexponential}
+%   if its moment-generating function satisfies:
+%   \begin{align*}
+%     \mgf_X(s) \defeq \Ex{\exp(sX)} &\le \exp(s^2\lambda^2/2),
+%     &\text{for all } \abs{s}\le 1/\lambda.
+%   \end{align*}
+% \end{definition}
 
-\begin{definition}[Subgaussian/subexponential random vector]
-  A random vector $X\in\Real^b$ is subgaussian (subexponential) if the
-  random variable $\innerp{v}{X}$ is subgaussian (subexponential) for
-  any $v\in\Real^n$ with $\norm{}{v}=1$.
-\end{definition}
+% \begin{definition}[Subgaussian/subexponential random vector]
+%   A random vector $X\in\Real^b$ is subgaussian (subexponential) if the
+%   random variable $\innerp{v}{X}$ is subgaussian (subexponential) for
+%   any $v\in\Real^n$ with $\norm{}{v}=1$.
+% \end{definition}
 
-\begin{definition}[Subgaussian/subexponential random matrix]
-  A random matrix $W\in\Real^{n\times m}$ is subgaussian (subexponential)
-  if the random vector $Wu\in\Real^n$ is subgaussian
-  (subexponential) for any $u\in\Real^m$ with $\norm{}{u}=1$.
-\end{definition}
+% \begin{definition}[Subgaussian/subexponential random matrix]
+%   A random matrix $W\in\Real^{n\times m}$ is subgaussian (subexponential)
+%   if the random vector $Wu\in\Real^n$ is subgaussian
+%   (subexponential) for any $u\in\Real^m$ with $\norm{}{u}=1$.
+% \end{definition}
 
 \section{Proofs}
 
