@@ -75,6 +75,7 @@
 
 %% Macros
 
+\renewcommand{\vec}[1]{\bm{#1}}
 \newcommand{\wildcard}{\mathinner{\,{\cdot}\,}}
 \newcommand{\defeq}{\coloneq}
 \newcommand{\eqdef}{\eqcolon}
@@ -120,6 +121,7 @@
 \newcommand{\Dset}[1]{\mathcal{D}_{#1}}
 \newcommand{\Cset}[1]{\mathcal{C}_{#1}}
 \newcommand{\Eset}[1]{\mathcal{E}_{#1}}
+
 % Theorem environments
 
 \declaretheorem[style=definition]{definition}
@@ -175,7 +177,7 @@ context $C_t$, and the reward is now drawn from a distribution that depends on \
 % the best arms it has found.  The main challenge of bandit strategies
 % is to balance exploration and exploitation.
 
-As a motivating example, consider the problem of online advertisments. The user provides a context (composed of query word, past history of clicks, website visits etc), and in response the site surfaces a potential ad and receives a reward if the user clicks the ad. Ignoring the context and modeling the problem as a standard MAB (with each possible ad as an action) suffers from the drawback of ignoring the variety of users' preferences; whereas modeling the problem as an independent learning task per user prohibits the ability generalize between users. As a result, we model the problem as a contextual linear-bandit problem. Based on the user-given context, each ad (action) is mapped to some feature vector; yet the click-probability is modeled the same way across all users --- it is assumed to be proportional to the inner-product between the action's feature vector and some target vector $\theta^*$.
+As a motivating example, consider the problem of online advertisments. The user provides a context (composed of query word, past history of clicks, website visits etc), and in response the site surfaces a potential ad and receives a reward if the user clicks the ad. Ignoring the context and modeling the problem as a standard MAB (with each possible ad as an action) suffers from the drawback of ignoring the variety of users' preferences; whereas modeling the problem as an independent learning task per user prohibits the ability generalize between users. As a result, we model the problem as a contextual linear-bandit problem. Based on the user-given context, each ad (action) is mapped to some feature vector; yet the click-probability is modeled the same way across all users --- it is assumed to be proportional to the inner-product between the action's feature vector and some target vector $\vec\theta^*$.
 
 The above example motivates the need for privacy in the contextual bandit setting: users' interests, web site visits, and clicks are
 sensitive personal information, yet they are all required for making a reasonable prediction.
@@ -198,7 +200,7 @@ for the output of time $t$ depend arbitrarily on the context of day $t$, yet hav
   in Tor's paper?}
 
 \todo[inline]{Looks like a $d^2$ dependence is necessary: consider
-  $\theta^*=\paren{\pm 1/d, \dotsc}$ and the actions are $e_i$.  Then
+  $\vec\theta^*=\paren{\pm 1/d, \dotsc}$ and the actions are $e_i$.  Then
   you need $d^2\log d$ samples?\\Why? I need further explanation here.}
 
 \subsection{Background and Problem Formulation}
@@ -231,8 +233,8 @@ following sense.  Suppose there is a known \emph{mapping}
 $\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
 pair to a $d$-dimensional \emph{feature vector}.  We will assume that
 the reward is a linear function of the feature vector, with some added
-noise: $r_t = \innerp{\theta^*}{\phi(c_t,a_t)} + \eta_t$ for some
-unknown vector $\theta^*\in\Real^d$. In fact, we simplify the problem statement to include the \emph{decision set}
+noise: $r_t = \innerp{\vec\theta^*}{\phi(c_t,a_t)} + \eta_t$ for some
+unknown vector $\vec\theta^*\in\Real^d$. In fact, we simplify the problem statement to include the \emph{decision set}
 $\Dset{t} \defeq \set{\phi(c_t,a)\given a\in\Aset{}} \subset \Real^d$
 (where the context is implicitly encoded in the decision set), and so, rather than choosing an action out of $\Aset{}$ the algorithm chooses some
 $x_t\in\Dset{t}$.
@@ -241,9 +243,9 @@ Thus, the contextual stochastic linear bandit framework is composed of repeated 
 \item The learner receives an arbitrarily chosen \emph{decision set} $\mathcal{D}_t \subset
   \Real^d$.
 \item The learner chooses an \emph{action} $X_t \in \mathcal{D}_t$.
-\item The learner receives a  stochastically drawn\emph{reward}  $Y_t = \innerp{X_t}{\theta^*} + \eta_t$.
+\item The learner receives a stochastic \emph{reward}  $Y_t = \innerp{X_t}{\vec\theta^*} + \eta_t$.
 \end{enumerate}
-\os{nitpicking comment: do we want to distinguish scalars/coordinates from vectors and make vectors bold or with bars?} The vector $\theta^*\in\Real^d$ is the key unknown parameter of the
+The vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
 environment which the agent aims to learn so that she can maximize reward. The goal of the learner is thus to minimize her expected regret...\os{Define the objective: minimizing expected regret --- perhaps justify why we chose this objective (standard, implies similar objectives etc)}
 
 \begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
@@ -314,37 +316,33 @@ overview of the field.
 
 \section{Differentially Private Linear UCB}
 
-\subsection{Related Work}
-\label{sec:related-work}
-
-
 Our differentially private contextual linear bandit algorithm is based
 on the well-studied LinUCB, an adaptation of the Upper Confidence
 Bound (UCB) algorithm to stochastic linear bandits
 \citep{DaniStochasticLinearOptimization2008,RusmevichientongLinearlyParameterizedBandits2010,AbbasiYadkoriImprovedAlgorithmsLinear2011}.
 At every round, LinUCB constructs a \emph{confidence set} $\E_t$
-containing the unknown parameter vector $\theta^*$ with high
+containing the unknown parameter vector $\vec\theta^*$ with high
 probability.  It then computes a UCB for the reward of each action in
 the decision set $\Dset{t}$, and ``optimistically'' chooses the action
 with the highest UCB:
 \begin{align}\label{eq:def-ucb}
-  x_t &\gets \argmax_{x\in\Dset{t}} \UCB_t(x),
+  \vec x_t &\gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x),
   &\text{where }
-  \UCB_t(x) &\defeq \max_{\theta\in\E_t} \innerp{\theta}{x}.
+  \UCB_t(\vec x) &\defeq \max_{\vec\uptheta\in\E_t} \innerp{\vec\uptheta}{\vec x}.
 \end{align}
 With the rewards being linear with added subgaussian noise (i.e.,
-$y_s = \innerp{\theta^*}{X_s} + \eta_s$ for $s=1,\dotsc,t$) it is
+$y_s = \innerp{\vec\theta^*}{X_s} + \eta_s$ for $s=1,\dotsc,t$) it is
 natural to centre the confidence set $\E_{t+1}$ on the (regularized)
 linear regression estimate:
 \begin{align*}
-  \hat\theta_t &\defeq \min_{\hat\theta \in \Real^d} \norm{}{X_{1:t}\hat\theta - y_{1:t}}^2 + \norm{H_t}{\hat\theta}^2
-  = \inv{(\transp{X_{1:t}}X_{1:t} + H_t)}\transp{X_{1:t}}y_{1:t}.
+  \hat{\vec\theta}_t &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_t \hat{\vec\theta} - \vec y_t}^2 + \norm{H_t}{\hat{\vec\theta}}^2
+  = \inv{(\transp{\vec X_t} \vec X_t + H_t)}\transp{\vec X_t} \vec y_t.
 \end{align*}
 The matrix $V_t \defeq G_t + H_t \in \Real^{d\times d}$ is the regularized
-version of the Gram matrix $G_t \defeq \transp{X_{1:t}}X_{1:t}$.  As
+version of the Gram matrix $G_t \defeq \transp{\vec X_t} \vec X_t$.  As
 with LinUCB, we use ellipsoidal confidence sets of the form
 \begin{align}\label{eq:def-ellip}
-  \E_{t+1} &\defeq \set{\theta\in\Real^d \given \norm{\inv{V_t}}{\theta-\hat\theta_t}^2 \le \beta_t},
+  \E_{t+1} &\defeq \set{\vec\theta\in\Real^d \given \norm{\inv{V_t}}{\vec\theta-\hat{\vec\theta}_t}^2 \le \beta_t},
 \end{align}
 where $\beta_t$ scales the size of the ellipsoid and will be calculated
 later to yield high-probability confidence sets.
@@ -353,10 +351,10 @@ We now discuss our modifications to LinUCB to achieve differential
 privacy.  Notice that the history of actions and rewards up to round
 $t$ is used only via the confidence set $\E_{t+1}$, which is to say
 the Gram matrix $G_t$ and the vector
-$u_t \defeq \transp{X_{1:t}}y_{1:t}$ (these also determine $\beta_t$,
+$\vec u_t \defeq \transp{\vec X_t} \vec y_t$ (these also determine $\beta_t$,
 as we will see).  By recording this history with differential privacy,
 we obtain a linear UCB algorithm that is also differentially private
-because it simply post-processes $G_t$ and $u_t$
+because it simply post-processes $G_t$ and $\vec u_t$
 \citep[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
 
 Our first modification is to use a regularizer matrix $H_t$ that
@@ -365,10 +363,11 @@ in previous work.  If $H_t$ is a noise matrix appropriately chosen to
 ensure differential privacy, then $V_t$ becomes a ``privacy-preserving
 approximation'' of $G_t$.  Similarly, our second modification
 maintains the privacy of the observed rewards (not just the action
-vectors): we replace $u_t \defeq \transp{X_{1:t}}y_{1:t}$ with a
-private approximation $\tilde u_t = u_t + h_t$.  These two
-modifications result in \cref{alg:linucb}, with confidence sets
-$\E_{t+1}$ centered at $\tilde\theta_t \defeq \inv{V_t} \tilde u_t$.
+vectors): we replace $\vec u_t \defeq \transp{\vec X_t} \vec y_t$ with
+a private approximation $\tilde{\vec u}_t = \vec u_t + \vec h_t$.
+These two modifications result in \cref{alg:linucb}, with confidence
+sets $\E_{t+1}$ centered at
+$\tilde{\vec\theta}_t \defeq \inv{V_t} \tilde{\vec u}_t$.
 
 \begin{algorithm}
   \caption{Linear UCB with changing regularizers}\label{alg:linucb}
@@ -377,33 +376,35 @@ $\E_{t+1}$ centered at $\tilde\theta_t \defeq \inv{V_t} \tilde u_t$.
     \State $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
     \State $V_{t-1} \gets G_{t-1} + H_{t-1}$
     \Comment{privacy-preserving ${} \approx G_{t-1}$}
-    \State $\tilde u_{t-1} \gets u_{t-1} + h_{t-1}$
+    \State $\tilde{\vec u_{t-1}} \gets \vec u_{t-1} + \vec h_{t-1}$
     \Comment{privacy-preserving ${} \approx \transp{X}y$}
-    \State $\tilde\theta_{t-1} \gets \inv{V_{t-1}}\tilde u_{t-1}$
-    \Comment{privacy-preserving ${} \approx \hat\theta_{t-1}$}
-    \For{each action $x\in\Dset{t}$}
-    \State $\UCB_t(x) \gets \innerp{\tilde\theta_{t-1}}{x} +
-    \sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x}$
+    \State $\tilde{\vec\theta}_{t-1} \gets \inv{V_{t-1}}\tilde{\vec u}_{t-1}$
+    \Comment{privacy-preserving ${} \approx \hat{\vec\theta}_{t-1}$}
+    \For{each action $\vec x \in \Dset{t}$}
+    \State $\UCB_t(\vec x) \gets \innerp{\tilde{\vec\theta}_{t-1}}{\vec x} +
+    \sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{\vec x}$
     \Comment{closed form of \eqref{eq:def-ucb} for ellipsoids \eqref{eq:def-ellip}}
     \EndFor
-    \State $X_t \gets \argmax_{x\in\Dset{t}} \UCB_t(x)$
+    \State $\vec x_t \gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x)$
     \Comment{Choose action.}
-    \State $G_t \gets G_{t-1} + X_t\transp{X_t},
-    \quad u_t \gets u_{t-1} + X_ty_t$
+    \State $y_t \gets {}$ reward for action $\vec x_t$
+    \Comment{Observe reward.}
+    \State $G_t \gets G_{t-1} + \vec x_t \transp{\vec x_t},
+    \quad \vec u_t \gets \vec u_{t-1} + \vec x_t y_t$
     \Comment{Record in privacy-preserving history.}
     \EndFor
   \end{algorithmic}
 \end{algorithm}
 
 In the rest of this section, we will consider how to choose $H_t$ and
-$h_t$ to ensure differential privacy.  For now, we satisfy ourselves
-with the following claim, which is a straightforward application of
-the post-processing lemma of differential privacy
+$\vec h_t$ to ensure differential privacy.  For now, we satisfy
+ourselves with the following claim, which is a straightforward
+application of the post-processing lemma of differential privacy
 \citep[Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}:
 \begin{claim}
-  If the sequence $(V_t,\tilde u_t)_{t=1}^{T-1}$ is
+  If the sequence $(V_t,\tilde{\vec u}_t)_{t=1}^{n-1}$ is
   $(\varepsilon,\delta)$-differentially private with respect to
-  $(X_t,y_t)_{t=1}^{T-1}$, then \cref{alg:linucb} is
+  $(\vec x_t, y_t)_{t=1}^{n-1}$, then \cref{alg:linucb} is
   $(\varepsilon,\delta)$-jointly differentially private.
 \end{claim}
 
@@ -411,10 +412,10 @@ the post-processing lemma of differential privacy
   \Cref{alg:linucb} is only jointly differentially private even though
   the history maintains full differential privacy.  This is because
   the chosen action depends not only on the past contexts $c_s$
-  ($s < t$, via the differentially private history of $X_s$) but also
+  ($s < t$, via the differentially private $\vec X_{t-1}$) but also
   on the current context $c_t$ via the decision set $\Dset{t}$.  Since
   this use of $c_t$ is not differentially private, it is revealed by
-  the algorithm's chosen $x_t$ (as discussed in
+  the algorithm's chosen $\vec x_t$ (as discussed in
   \cref{sec:priv-contextual}).
 \end{note}
 
@@ -423,26 +424,27 @@ the post-processing lemma of differential privacy
 
 The utility of \cref{alg:linucb} comes from it having a small regret,
 which depends on constructing accurate confidence sets that
-nevertheless tightly concentrate around the unknown $\theta^*$.  In
-other words, the $\beta_t$ should be as small as possible while
+nevertheless tightly concentrate around the unknown $\vec\theta^*$.
+In other words, the $\beta_t$ should be as small as possible while
 accounting for the noise $\eta_t$ and the perturbations caused by
-$H_t$ and $h_t$.  We start by giving a ``generic'' regret bound that
-holds if the confidence sets are accurate.
+$H_t$ and $\vec h_t$.  We start by giving a ``generic'' regret bound
+that holds if the confidence sets are accurate.
 
-\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{thmlinucbregret}
+\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}
   \label{thm:linucb-regret}%
   Suppose the mean rewards are bounded:
-  $\abs{\innerp{\theta^*}{x}} \le B$ for all $x\in\bigcup_t\Dset{t}$;
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ for all $\vec x \in \bigcup_t\Dset{t}$;
   and $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In
   the event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence
-  sets $\Eset{t}$ contain $\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}} \le
+  sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
+  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le
   \sqrt{\beta_{t-1}}$) and each $V_{t-1} = G_{t-1} + H_{t-1}$ for some
   symmetric $H,H_0,\dotsc,H_{n-1} \in \Real^{d\times d}$ with all
   $H_{t-1} \succeq H \succ 0$, the pseudo-regret of \cref{alg:linucb}
   \begin{align*}
     \widehat R_n
-    &\defeq \sum_{t=1}^n \max_{x\in\Dset{t}} \innerp{x}{\theta^*} - \innerp{X_t}{\theta*} \\
+    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
+      - \innerp{\vec x_t}{\vec\theta*} \\
     \shortintertext{satisfies}
     \widehat R_n
     &\le 2B\sqrt{2n \bar\beta_n \log\frac{\det V_n}{\det H}}. \\
@@ -452,18 +454,6 @@ holds if the confidence sets are accurate.
   \end{align*}
 \end{restatable}
 
-
-\section{Privacy-Preserving Linear UCB}
-
-The Linear UCB algorithm records its history of actions vectors and
-rewards, which it uses to select its next action at every round.  We
-will now examine the effects of recording this history in a
-privacy-preserving manner.
-
-In particular, Linear UCB uses its history of arms and rewards through
-the Gram matrix $\transp{X}X$ and the vector $\transp{X}y$.  If these
-quantities preserve privacy, then the Linear UCB algorithm must also
-since it is simply post-processing them.
 
 \bibliographystyle{plainnat}
 \bibliography{references,zotero-references}
@@ -476,72 +466,76 @@ since it is simply post-processing them.
 
 \subsection{Proof of \Cref{thm:linucb-regret}}
 
-\thmlinucbregret*
+\ThmLinUCBRegret*
 
 \begin{lemma}\label{lemma:linucb-regret}
   Suppose the mean rewards are bounded:
-  $\abs{\innerp{\theta^*}{x}} \le B$ for all $x\in\bigcup_t\Dset{t}$;
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ for all $\vec x\in\bigcup_t\Dset{t}$;
   all the $V_t \succ 0$ are symmetric; and
   $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In the
   event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence sets
-  $\Eset{t}$ contain $\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}} \le \sqrt{\beta_{t-1}}$),
+  $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
+  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le \sqrt{\beta_{t-1}}$),
   the pseudo-regret of \cref{alg:linucb} satisfies
   \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n\bar\beta_n \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{x_t}^2}}.
+    \widehat{R}_n &\le \sqrt{4n\bar\beta_n \sum_{t=1}^n \min\set{B^2,
+                   \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
   \end{align*}
 \end{lemma}
 
 \begin{proof}
   At every round $t$, \cref{alg:linucb} selects the ``optimistic''
-  action $x_t$ satisfying
+  action $\vec x_t$ satisfying
   \begin{align}\label{eq:optimistic-action}
-    (x_t,\bar\theta_t) &= \argmax_{x\in\Dset{t},\theta\in\Eset{t}} \innerp{\theta}{x}.
+    (\vec x_t,\bar{\vec\theta}_t)
+    &= \argmax_{\vec x\in\Dset{t},\vec\theta\in\Eset{t}} \innerp{\vec\theta}{\vec x}.
   \end{align}
-  Let $x_t^* = \argmax_{x\in\Dset{t}}\innerp{\theta^*}{x}$ be an optimal
-  action and $r_t = \innerp{\theta^*}{x_t^*-x_t}$ be the immediate
+  Let $\vec x_t^* = \argmax_{\vec x\in\Dset{t}}\innerp{\vec\theta^*}{\vec x}$ be an optimal
+  action and $r_t = \innerp{\vec\theta^*}{\vec x_t^* - \vec x_t}$ be the immediate
   pseudo-regret suffered for round $t$:
   \begin{align*}
-    r_t &= \innerp{\theta^*}{x_t^*} - \innerp{\theta^*}{x_t} \\
-        &\le \innerp{\bar\theta_t}{x_t} - \innerp{\theta^*}{x_t}
+    r_t &= \innerp{\vec\theta^*}{\vec x_t^*} - \innerp{\vec\theta^*}{\vec x_t} \\
+        &\le \innerp{\bar{\vec\theta}_t}{\vec x_t} - \innerp{\vec\theta^*}{\vec x_t}
         &\text{from \eqref{eq:optimistic-action} since }
-          x_t^*\in\Dset{t}, \theta^*\in\Eset{t} \\
-        &= \innerp{\bar\theta_t - \theta^*}{x_t} \\
-        &= \innerp{V_{t-1}^{1/2}(\bar\theta_t - \theta^*)}{V_{t-1}^{-1/2}x_t} \\
-        &\le \norm{V_{t-1}}{\bar\theta_t - \theta^*}\norm{\inv{V_{t-1}}}{x_t}
+          \vec x_t^*\in\Dset{t}, \vec\theta^*\in\Eset{t} \\
+        &= \innerp{\bar{\vec\theta}_t - \vec\theta^*}{\vec x_t} \\
+        &= \innerp{V_{t-1}^{1/2}(\bar{\vec\theta}_t - \vec\theta^*)}{V_{t-1}^{-1/2} \vec x_t} \\
+        &\le \norm{V_{t-1}}{\bar{\vec\theta}_t - \vec\theta^*}\norm{\inv{V_{t-1}}}{\vec x_t}
         &\text{by Cauchy-Schwarz}\\
-        &\le \paren[\big]{\norm{V_{t-1}}{\bar\theta_t - \tilde\theta_{t-1}}
-          + \norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}}}\norm{\inv{V_{t-1}}}{x_t}
+        &\le \paren[\big]{\norm{V_{t-1}}{\bar{\vec\theta}_t - \tilde{\vec\theta}_{t-1}}
+          + \norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}}}
+          \norm{\inv{V_{t-1}}}{\vec x_t}
         &\text{by the triangle inequality}\\
-        &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x_t}
-        &\text{since } \bar\theta_t, \theta^* \in \Eset{t} \\
-        &\le 2\sqrt{\beta_{n-1}}\norm{\inv{V_{t-1}}}{x_t}
-        &\text{since } (\beta_t)_{t=0}^{n-1} \text{ is non-decreasing.}
+        &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{\vec x_t}
+        &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \Eset{t} \\
+        &\le 2\sqrt{\bar\beta_n}\norm{\inv{V_{t-1}}}{\vec x_t}
+        &\text{since } \bar\beta_n \ge \beta_{t-1}.
   \end{align*}
   From our assumptions that the mean absolute reward is bounded by $B$
-  and $\beta_{n-1} \ge 1$, we also get that
-  $r_t \le 2B \le 2B\sqrt{\beta_{n-1}}$.  Putting these together,
+  and $\bar\beta_n \ge 1$, we also get that
+  $r_t \le 2B \le 2B\sqrt{\bar\beta_n}$.  Putting these together,
   \begin{align*}
-    r_t &\le 2\sqrt{\beta_{n-1}} \min\set{B, \norm{\inv{V_{t-1}}}{x_t}}.
+    r_t &\le 2\sqrt{\bar\beta_n} \min\set{B, \norm{\inv{V_{t-1}}}{\vec x_t}}.
   \end{align*}
   Now we apply Jensen's inequality as follows:
   \begin{align*}
     \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
                    \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
     \widehat R_n &\le \sqrt{n\sum_{t=1}^n r_t^2}
-                   = \sqrt{4n\beta_{n-1} \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{x_t}^2}}.
-                   \qedhere
+                  = \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2,
+                  \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
+                  \qedhere
   \end{align*}
 \end{proof}
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
-  Let $x_1,\dotsc,x_n \in \Real^d$ be bounded vectors with
-  $\norm{}{x_t} \le L$, $U_0\in\Real^{d\times d}$ a positive definite
-  matrix, and $B \ge 0$.  Define
-  $U_t \defeq U_0 + \sum_{s=1}^t x_s \transp{x_s}$ for all
+  Let $\vec x_1,\dotsc,\vec x_n \in \Real^d$ be bounded vectors with each
+  $\norm{}{\vec x_t} \le L$, $U_0\in\Real^{d\times d}$ a positive
+  definite matrix, and $B \ge 0$.  Define
+  $U_t \defeq U_0 + \sum_{s=1}^t \vec x_s \transp{\vec x_s}$ for all
   $t\in\set{1,\dotsc,n}$.  Then
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_{t-1}}}{x_t}^2}
+    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_{t-1}}}{\vec x_t}^2}
     &\le 2B^2 \log\frac{\det U_n}{\det U_0}
       \le 2B^2d \log\frac{\tr U_0+nL^2}{d\det^{1/d} U_0}.
   \end{align*}
@@ -551,44 +545,49 @@ since it is simply post-processing them.
   We begin by deriving the first inequality with $B=1$, using the fact
   that $\min\set{1, u} \le 2\log(1+u)$ for any $u \ge 0$:
   \begin{align*}
-    \sum_{t=1}^n\min\set{1, \norm{\inv{U_{t-1}}}{x_t}^2}
-    &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_{t-1}}}{x_t}^2).
+    \sum_{t=1}^n\min\set{1, \norm{\inv{U_{t-1}}}{\vec x_t}^2}
+    &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_{t-1}}}{\vec x_t}^2).
   \end{align*}
   We will show that this last summation is $2\log(\det U_n/\det
   U_0)$.  For $t \ge 1$ we have
   \begin{align*}
-    U_t &= U_{t-1} + x_t\transp{x_t}
+    U_t &= U_{t-1} + \vec x_t \transp{\vec x_t}
          = U_{t-1}^{1/2}
-         \paren[\big]{I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}}
+         \paren[\big]{I + U_{t-1}^{-1/2} \vec x_t \transp{\vec x_t} U_{t-1}^{-1/2}}
          U_{t-1}^{1/2} \\
     \det U_t &=\det U_{t-1}
-              \det\paren[\big]{I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}}.
+              \det\paren[\big]{I +
+              U_{t-1}^{-1/2} \vec x_t \transp{\vec x_t}
+              U_{t-1}^{-1/2}}.
   \end{align*}
-  Consider the eigenvectors of the matrix $I+y\transp{y}$ for an
-  arbitrary vector $y\in\Real^d$.  We know that $y$ itself is an
-  eigenvector with eigenvalue $1+\norm{}{y}^2$:
+  Consider the eigenvectors of the matrix $I + \vec y \transp{\vec y}$
+  for an arbitrary vector $\vec y \in \Real^d$.  We know that $\vec y$
+  itself is an eigenvector with eigenvalue $1+\norm{}{\vec y}^2$:
   \begin{align*}
-    (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{}{y}^2)y.
+    (I + \vec y \transp{\vec y}) \vec y
+    &= \vec y + \vec y \innerp{\vec y}{\vec y} = (1+\norm{}{\vec y}^2)\vec y.
   \end{align*}
-  Moreover, since $I+y\transp{y}$ is symmetric, every other
-  eigenvector $u$ is orthogonal to $y$, so that
+  Moreover, since $I + \vec y \transp{\vec y}$ is symmetric, every
+  other eigenvector $\vec u$ is orthogonal to $\vec y$, so that
   \begin{align*}
-    (I + y\transp{y})u &= u + u\innerp{y}{u} = u.
+    (I + \vec y \transp{\vec y}) \vec u
+    &= \vec u + \vec u \innerp{\vec y}{\vec u} = \vec u.
   \end{align*}
-  Therefore the only eigenvalues of $I+y\transp{y}$ are
-  $1+\norm{}{y}^2$ (with eigenvector $y$) and 1.  In our case
-  $y = U_{t-1}^{-1/2}x_t$ and
-  $\norm{}{y}^2 = \transp{x_t}\inv{U_{t-1}}x_t =
-  \norm{\inv{U_{t-1}}}{x_t}^2$, so we get our first inequality:
+  Therefore the only eigenvalues of $I + \vec y \transp{\vec y}$ are
+  $1+\norm{}{\vec y}^2$ (with eigenvector $\vec y$) and 1.  In our
+  case $\vec y = U_{t-1}^{-1/2} \vec x_t$ and
+  $\norm{}{\vec y}^2 = \transp{\vec x_t} \inv{U_{t-1}} \vec x_t =
+  \norm{\inv{U_{t-1}}}{\vec x_t}^2$, so we get our first inequality:
   \begin{align*}
-    \det U_n &= \det U_0 \prod_{t=1}^n(1 + \norm{\inv{U_{t-1}}}{x_t}^2) \\
-    2\log\frac{\det U_n}{\det U_0} &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_{t-1}}}{x_t}^2).
+    \det U_n &= \det U_0 \prod_{t=1}^n(1 + \norm{\inv{U_{t-1}}}{\vec x_t}^2) \\
+    2\log\frac{\det U_n}{\det U_0}
+            &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_{t-1}}}{\vec x_t}^2).
   \end{align*}
-  For $B \neq 1$, we apply the above result with each $x_t$ scaled by
+  For $B \neq 1$, we apply the above result with each $\vec x_t$ scaled by
   $B^{-1}$ and $U_0,\dotsc,U_n$ scaled by $B^{-2}$:
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{x_t}^2}
-    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_{t-1}}}{B^{-1}x_t}^2}
+    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{\vec x_t}^2}
+    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_{t-1}}}{B^{-1} \vec x_t}^2}
       \le 2B^2 \log\frac{\det(B^{-2}U_n)}{\det(B^{-2}U_0)}.
   \end{align*}
   To get the second inequality, we apply the arithmetic-geometric
@@ -607,7 +606,7 @@ since it is simply post-processing them.
 \begin{lemma}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]
   \label{claim:psd-matrix-props}%
   If $A \succeq B \succeq 0$, then
-  \begin{enumerate}
+  \begin{enumerate}[nolistsep]
   \item $\rank(A) \ge \rank(B)$
   \item $\det A \ge \det B$
   \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
@@ -618,17 +617,18 @@ since it is simply post-processing them.
   From our assumptions and \cref{lemma:linucb-regret}, we know that
   the Linear UCB regret is bounded by
   \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{X_t}^2}}.
+    \widehat{R}_n &\le \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2,
+                   \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
   \end{align*}
   Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
   \cref{claim:psd-matrix-props} it follows that
   $\inv{V_t} \preceq \inv{U_t}$, which means
-  $\norm{\inv{V_{t-1}}}{X_t}^2 \le \norm{\inv{U_{t-1}}}{X_t}^2$.  We
+  $\norm{\inv{V_{t-1}}}{\vec x_t}^2 \le \norm{\inv{U_{t-1}}}{\vec x_t}^2$.  We
   now apply \cref{lemma:elliptical-potential} to the sequence $U_t$ to
   get
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{X_t}^2}
-    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{X_t}^2} \\
+    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{\vec x_t}^2}
+    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{\vec x_t}^2} \\
     &\le 2B^2 \log\det\frac{U_n}{U_0} \\
     &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
   \end{align*}
@@ -672,7 +672,7 @@ Lagrange multipliers:
 \end{align*}
 We have therefore shown that if we construct an ellipsoidal confidence
 set with an appropriate $V$ and $\beta$, then the requirements of
-\cref{assumption:linucb} will be satisfied with the above $\UCB$
+\cref{thm:linucb-regret} will be satisfied with the above $\UCB$
 index.
 
 Let $X_s \in \Real^d$ be the action vector selected by the algorithm at
