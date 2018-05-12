@@ -52,7 +52,7 @@
 \usepackage{algpseudocode}
 %\usepackage{fullpage}
 \usepackage{color}
-\newcommand{\os}[1]{\textcolor{red}{Or's comment:~}#1}
+\newcommand{\os}[1]{\textcolor{red}{Or's comment:~\textbf{#1}}}
 %\usepackage{dblfloatfix}
 
 %% Bibliography/References
@@ -159,16 +159,13 @@
 \section{Introduction}
 \label{sec:introduction}
 
-The \emph{multi-armed bandit} is a well-known sequential
+The \emph{stochastic multi-armed bandit} (MAB) is a well-known sequential
 decision-making task: in every round $t$, an algorithm chooses an
-action (or arm) $a_t\in\A$ and receives a corresponding reward $r_t$.
-The objective is to maximize the cumulative reward $\sum_tr_t$ by
+action (or arm) $a_t\in\A$ and receives a corresponding reward $r_t$ drawn iid from distrbution associate with the action $a_t$.
+The objective is to maximize the cumulative reward $\sum_t r_t$ by
 learning from the past rewards associated with the different actions.
-Many real-world applications, however, are instances of the more
-general \emph{contextual} bandit problem, where an additional piece of
-context $c_t\in\C$ is available at the beginning of each round.  The
-reward is then assumed to depend not only on the selected action but
-also on the context.
+The \emph{contextual} bandit problem is an extension of MAB, where each day we are also given an arbitrary
+context $C_t$, and the reward is now drawn from a distribution that depends on \emph{both} the context and the selected action.
 
 % Since the agent only observes the reward for actions it takes, this
 % is an online learning task with partial information.  Learning the
@@ -178,39 +175,23 @@ also on the context.
 % the best arms it has found.  The main challenge of bandit strategies
 % is to balance exploration and exploitation.
 
-As a motivating example, consider the problem of choosing an
-advertisement to be displayed on a web site.  The algorithm receives a
-reward when a user clicks on an ad.  The probability of this click can
-vary greatly, however, depending on how well the chosen advertisement
-matches the contents of the web page and the expressed interests of
-the user.  Using this additional context allows an algorithm to make
-vastly better decisions than would be possible by observing the
-rewards alone, which can only quantify the effectiveness of each ad
-without regard to any particular situation.
+As a motivating example, consider the problem of online advertisments. The user provides a context (composed of query word, past history of clicks, website visits etc), and in response the site surfaces a potential ad and receives a reward if the user clicks the ad. Ignoring the context and modeling the problem as a standard MAB (with each possible ad as an action) suffers from the drawback of ignoring the variety of users' preferences; whereas modeling the problem as an independent learning task per user prohibits the ability generalize between users. As a result, we model the problem as a contextual linear-bandit problem. Based on the user-given context, each ad (action) is mapped to some feature vector; yet the click-probability is modeled the same way across all users --- it is assumed to be proportional to the inner-product between the action's feature vector and some target vector $\theta^*$.
 
-This example highlights the need to maintain the privacy of the
-context and reward: users' interests, web site visits, and clicks are
-sensitive personal information.  An algorithm may pick an ad for a
-user based on their own information, and it may even learn from
-aggregated information to choose better in the future, but an
-adversary analyzing these ad choices must not be able to learn too
-much about any individual user.
-
-We present algorithms for the contextual bandit problem that are
-\emph{differentially private}, a widely adopted notion of privacy
-preservation in both academia and industry.  In this framework, the
+The above example motivates the need for privacy in the contextual bandit setting: users' interests, web site visits, and clicks are
+sensitive personal information, yet they are all required for making a reasonable prediction.
+% An algorithm may pick an ad for a
+% user based on their own information, and it may even learn from
+% aggregated information to choose better in the future, but an
+% adversary analyzing these ad choices must not be able to learn too
+% much about any individual user.
+In this work, we give the first upper- and lower-bounds for the problem of (joint) \emph{differential private} contextual linear bandits. We present algorithms for the contextual bandit problem that are
+\emph{differentially private}, the de-facto gold-standard of privacy
+preserving data-analysis in both academia and industry. Standard differential privacy (under continuous observation with event-level privacy) states the
 output of the algorithm does not change in a statistically significant
-way when any single context and reward is changed.  An adversary
-analyzing this output therefore cannot learn the private information
-received by the algorithm on any particular round.  We will see,
-however, that contextual bandit algorithms that are differentially
-private must essentially ignore their context.  We therefore adopt the
-more relaxed notion of \emph{joint differential privacy} which allows
-the algorithm to reveal the provided context, but only via its output
-for the same round.  All future outputs must still maintain the
-privacy of the context and reward.  Intuitively, it is reasonable that
-an advertisement shown to a user reveals their own interests, but
-those shown to other users do not.
+way when any single context and reward is changed. However, as illustrate below, in the contextual bandit setting differential
+private states we must essentially ignore each day's context and thus incur linear regret. We therefore adopt the
+more relaxed notion of \emph{joint differential privacy}\cite{KearnsMechanismdesignlarge2014} which allows
+for the output of time $t$ depend arbitrarily on the context of day $t$, yet have only limited dependency with the context or reward of any other day $t'$. Intuitively, we allow the $t$-th user to observe ads corresponding to her prefernces, without revealing (much) about those preferences to all users at times $t'>t$.\footnote{The guarantee of differential privacy under continuous observation assures that the entire sequence of actions and rewards preserse privacy. Hence, even if all later user collude in an effort to learn user $t$'s context, they still have very limited advantage over a random guess.}
 
 \todo[inline]{Consider non-contextual bandits; only the rewards are
   private.  Does this help with the counter-example against optimism
@@ -218,10 +199,98 @@ those shown to other users do not.
 
 \todo[inline]{Looks like a $d^2$ dependence is necessary: consider
   $\theta^*=\paren{\pm 1/d, \dotsc}$ and the actions are $e_i$.  Then
-  you need $d^2\log d$ samples?}
+  you need $d^2\log d$ samples?\\Why? I need further explanation here.}
 
-\subsection{Related Work}
-\label{sec:related-work}
+\subsection{Background and Problem Formulation}
+\label{subsec:intro_background}
+
+\paragraph{Stochastic Contextual Linear Bandits.}
+The classic MAB problem is a sequential decision making task in which, at
+every round $t$, an algorithm selects an action $a_t$ from a fixed set $\A$.
+%Usually, $\A = \set{1,\dotsc,K}$ (the $K$-armed bandit) but we do not
+%require this; our algorithms can handle other action sets that may be
+%infinite or uncountable.
+The algorithm then receives a \emph{reward}
+corresponding to the action it chose.  In the (stationary)
+\emph{stochastic multi-armed bandit}, the reward is of the form $r_t =
+\mu_{a_t} + \eta_t$, where $\mu_a$ is the expected reward of action $a$
+and $\eta_t$ is zero-mean noise.
+%In other words, the reward is sampled independently from a distribution that depends only on the selected action.
+
+In the contextual bandit problem, the algorithm also receives a
+\emph{context} $c_t\in\C$ at the beginning of each round, and the reward
+is assumed to depend on both the reward and the context.
+\os{Is the functional representation necessary?}  We represent such an algorithm by a function
+$A : (\Cset{}\times\Aset{}\times\Real)^* \times \Cset{} \to
+\Delta_{\Aset{}}$ whose input is a history of context-action-reward
+triples along with a current context, and whose output is a
+probability distribution over actions.
+To take advantage of the context while choosing actions, we will
+assume that the context affects the reward in a linear way, in the
+following sense.  Suppose there is a known \emph{mapping}
+$\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
+pair to a $d$-dimensional \emph{feature vector}.  We will assume that
+the reward is a linear function of the feature vector, with some added
+noise: $r_t = \innerp{\theta^*}{\phi(c_t,a_t)} + \eta_t$ for some
+unknown vector $\theta^*\in\Real^d$. In fact, we simplify the problem statement to include the \emph{decision set}
+$\Dset{t} \defeq \set{\phi(c_t,a)\given a\in\Aset{}} \subset \Real^d$
+(where the context is implicitly encoded in the decision set), and so, rather than choosing an action out of $\Aset{}$ the algorithm chooses some
+$x_t\in\Dset{t}$.
+Thus, the contextual stochastic linear bandit framework is composed of repeated rounds in which
+\begin{enumerate}
+\item The learner receives an arbitrarily chosen \emph{decision set} $\mathcal{D}_t \subset
+  \Real^d$.
+\item The learner chooses an \emph{action} $X_t \in \mathcal{D}_t$.
+\item The learner receives a  stochastically drawn\emph{reward}  $Y_t = \innerp{X_t}{\theta^*} + \eta_t$.
+\end{enumerate}
+\os{nitpicking comment: do we want to distinguish scalars/coordinates from vectors and make vectors bold or with bars?} The vector $\theta^*\in\Real^d$ is the key unknown parameter of the
+environment which the agent aims to learn so that she can maximize reward. The goal of the learner is thus to minimize her expected regret...\os{Define the objective: minimizing expected regret --- perhaps justify why we chose this objective (standard, implies similar objectives etc)}
+
+\begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
+  We denote by
+  $\mathcal{F}_t =
+  \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
+  all the information available just before the noise $\eta_t$ is
+  observed.  We assume that $\eta_t$ is \emph{conditionally
+    $\sigma^2$-subgaussian:}
+  $
+    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} \le \exp(\lambda^2\sigma^2/2)$,
+    for all  $\lambda\in\Real$
+\end{assumption}
+
+\paragraph{Joint Differential Privacy.}
+As discussed above, the context and reward may be considered private
+information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation (a combination of the two definitions given in~\cite{KearnsMechanismdesignlarge2014, Dwork-continual observation}). First, we say two sequences $S = \langle (\mathcal{D}_1, Y_1), (\mathcal{D}_2, Y_2), ..., (\mathcal{D}_T, Y_T) \rangle$ and $S' = \langle (\mathcal{D}'_1, Y'_1), ..., (\mathcal{D}'_T, Y'_T) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_t,Y_t) = (\mathcal{D}'_t, Y_t)$.
+\os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
+% For example, a
+% search engine might have a context consisting of a user's search
+% query, identity, interests, and physical location, while the reward
+% indicates which search result the user clicked on.  The search engine
+% should, of course, use the context to answer each query; furthermore,
+% it should learn from the reward to better respond to future queries
+% from other users.  However, it should also maintain privacy: its
+% responses to queries should not reveal \emph{too much} information
+% about the context and rewards it has learned from.  More precisely, we
+% want algorithms that are \emph{jointly differentially private} in the
+% following sense:
+
+\begin{definition}
+\label{def:JDP_continual_observation}
+  A randomized algorithm $A$ for the contextual bandit problem is
+  \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{T}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Pr[A(S)\in \mathcal{S}_{>t}] \leq e^\varepsilon\Pr[A(S')\in \mathcal{S}'_{>t}] +\delta$.
+\end{definition}
+Note that the standard definition of differential privacy requires the distribution proximity to hold for any subset of sequences of actions ranging from day $t$ to the end of sequence. However, in our problem formulation, with given decision sets, this notion isn't not even well-defined --- as the decision set of day $t$ is different under $S$ and under $S'$. Therefore, when we discuss the impossibility of regret-minimization under standard differential privacy, we result back to the setting of different contexts with fixed action set. See further details in Section~\ref{sec:lower_bounds}.
+
+\subsection{Our Contribution}
+\label{sec:contributions}
+
+In this work, in addition to formulating the definition of JDP under continual observation, we also present a framework for implimenting JDP algorithms for the contextual bandit problem. Not surprisingly, our framework combines the tree-based algorithm of.... with the linear upper-confidence bound (UCB) algorithm. However, for modularity, we chose to analyze a family of linear UCB algorithms where in each day one uses a different regularizer, under the premise that all regularizers
+
+
+
+\todo[inline]{Complete this section.}
+\section{Preliminaries and Background}
+\label{sec:background}
 
 Differential privacy was first introduced by
 \citet{DworkCalibratingNoiseSensitivity2006} and its modern
@@ -231,108 +300,9 @@ overview of the field.
 
 \todo[inline]{Finish this section.}
 
-\subsection{Contributions}
-\label{sec:contributions}
 
 \todo[inline]{Finish this section.}
 
-
-\section{Background and Problem Definition}
-\label{sec:background}
-
-
-\subsection{Stochastic Contextual Linear Bandits}
-\label{sec:intro-contextual}
-
-A multi-armed bandit is a sequential decision making task in which, at
-every round $t$, an algorithm selects an action $a_t$ from a set $\A$.
-Usually, $\A = \set{1,\dotsc,K}$ (the $K$-armed bandit) but we do not
-require this; our algorithms can handle other action sets that may be
-infinite or uncountable.  The algorithm then receives a \emph{reward}
-corresponding to the action it chose.  In the (stationary)
-\emph{stochastic multi-armed bandit}, the reward is of the form $r_t =
-\mu_{a_t} + \eta_t$, where $\mu_a$ is the expected reward of action $a$
-and $\eta_t$ is zero-mean noise.  In other words, the reward is sampled
-independently from a distribution that depends only on the selected
-action.
-
-In the contextual bandit problem, the algorithm also receives a
-\emph{context} $c_t\in\C$ at the beginning of each round.  The reward
-is assumed to depend on both the reward and the context.  We will
-represent such an algorithm by a function
-$A : (\Cset{}\times\Aset{}\times\Real)^* \times \Cset{} \to
-\Delta_{\Aset{}}$ whose input is a history of context-action-reward
-triples along with a current context, and whose output is a
-probability distribution over actions.  The context usually gives
-additional information about the actions, in a sense that we will
-expand upon below.
-
-To take advantage of the context while choosing actions, we will
-assume that the context affects the reward in a linear way, in the
-following sense.  Suppose there is a known \emph{feature function}
-$\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
-pair to a $d$-dimensional \emph{feature vector}.  We will assume that
-the reward is a linear function of the feature vector, with some added
-noise: $r_t = \innerp{\theta^*}{\phi(c_t,a_t)} + \eta_t$ for some
-unknown vector $\theta^*\in\Real^d$.
-
-Since all the information the algorithm needs is encoded in the
-feature vector of each action, we can now formulate the contextual
-bandit problem in the following equivalent way.  Define the decision
-set
-$\Dset{t} \defeq \set{\phi(c_t,a)\given a\in\Aset{}} \subset \Real^d$.
-The context is implicitly encoded in the decision set, and choosing
-$x_t\in\Dset{t}$ is equivalent to choosing an action $a_t\in\Aset{}$.
-In the contextual stochastic linear bandit framework, at each round:
-\begin{enumerate}
-\item The agent receives a \emph{decision set} $\mathcal{D}_t \subset
-  \Real^d$.
-\item The agent chooses an \emph{action} $X_t \in \mathcal{D}_t$.
-\item The agent receives a \emph{reward} $Y_t = \innerp{X_t}{\theta^*} + \eta_t$.
-\end{enumerate}
-The vector $\theta^*\in\Real^d$ is an unknown parameter of the
-environment which the agent learns so that it can maximize its reward.
-
-\begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
-  We denote by
-  $\mathcal{F}_t =
-  \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
-  all the information available just before the noise $\eta_t$ is
-  observed.  We assume that $\eta_t$ is \emph{conditionally
-    $\sigma^2$-subgaussian:}
-  \begin{align*}
-    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} &\le \exp(\lambda^2\sigma^2/2),
-    &\text{for all } \lambda\in\Real.
-  \end{align*}
-\end{assumption}
-
-\subsection{Privacy for Contextual Bandits}
-\label{sec:priv-contextual}
-
-In many applications, the context and reward may be considered private
-information about the users of the bandit algorithm.  For example, a
-search engine might have a context consisting of a user's search
-query, identity, interests, and physical location, while the reward
-indicates which search result the user clicked on.  The search engine
-should, of course, use the context to answer each query; furthermore,
-it should learn from the reward to better respond to future queries
-from other users.  However, it should also maintain privacy: its
-responses to queries should not reveal \emph{too much} information
-about the context and rewards it has learned from.  More precisely, we
-want algorithms that are \emph{jointly differentially private} in the
-following sense:
-
-\begin{definition}
-  A randomized contextual bandit algorithm $A$ is
-  \emph{$(\varepsilon,\delta)$-differentially private} if the
-  following holds for every $t^*\in\set{1,\dotsc,n}$.  Let
-  $H = (c_t,a_t,r_t)_{t=1}^n$ and $H' = (c'_t,a'_t,r'_t)_{t=1}^n$ be
-  two sequences of context-action-reward triples that differ only on
-  round $t^*$; in other words, $c_t=c'_t$, $a_t=a'_t$, $r_t=r'_t$ for
-  $t\neq t^*$.  \todo[inline]{Complete this definition.}
-\end{definition}
-
-\todo[inline]{Complete this section.}
 
 \subsection{Differentially Private Linear Regression}
 \label{sec:dp-regression}
@@ -341,6 +311,10 @@ following sense:
 \label{sec:tree-mechanism}
 
 \section{Differentially Private Linear UCB}
+
+\subsection{Related Work}
+\label{sec:related-work}
+
 
 Our differentially private contextual linear bandit algorithm is based
 on the well-studied LinUCB, an adaptation of the Upper Confidence
