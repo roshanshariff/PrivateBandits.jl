@@ -1,3 +1,4 @@
+
 @article{DworkAlgorithmicFoundationsDifferential2014,
   title = {The {{Algorithmic Foundations}} of {{Differential Privacy}}},
   volume = {9},
@@ -155,6 +156,36 @@
   year = {2006},
   pages = {1-12},
   file = {/Users/roshan/Documents/Zotero/storage/QUKF48ZZ/Dwork - 2006 - Differential Privacy.pdf;/Users/roshan/Documents/Zotero/storage/7HR82UTF/11787006_1.html}
+}
+
+@inproceedings{DaniStochasticLinearOptimization2008,
+  title = {Stochastic {{Linear Optimization Under Bandit Feedback}}},
+  abstract = {In the classical stochastic k-armed bandit problem, in each of a sequence of T rounds, a decision maker chooses one of k arms and incurs a cost chosen from an unknown distribution associated with that arm. The goal is to minimize regret, defined as the difference between the cost incurred by the algorithm and the optimal cost. In the linear optimization version of this problem (first considered by Auer [2002]), we view the arms as vectors in Rn, and require that the costs be linear functions of the chosen vector. As before, it is assumed that the cost functions are sampled independently from an unknown distribution. In this setting, the goal is to find algorithms whose running time and regret behave well as functions of the number of rounds T and the dimensionality n (rather than the number of arms, k, which may be exponential in n or even infinite).
+
+We give a nearly complete characterization of this problem in terms of both upper and lower bounds for the regret. In certain special cases (such as when the decision region is a polytope), the regret is polylog(T). In general though, the optimal regret is $\Theta{_\ast}$ ( $\surd$ T) \textemdash{} our lower bounds rule out the possibility of obtaining polylog(T) rates in general.
+
+We present two variants of an algorithm based on the idea of ``upper confidence bounds.'' The first, due to Auer [2002], but not fully analyzed, obtains regret whose dependence on n and T are both essentially optimal, but which may be computationally intractable when the decision set is a polytope. The second version can be efficiently implemented when the decision set is a polytope (given as an intersection of half-spaces), but gives up a factor of $\surd$ n in the regret bound. Our results also extend to the setting where the set of allowed decisions may change over time.},
+  booktitle = {21st {{Annual Conference}} on {{Learning Theory}}},
+  author = {Dani, Varsha and Hayes, Thomas and Kakade, Sham},
+  month = jan,
+  year = {2008},
+  pages = {355-366},
+  file = {/Users/roshan/Documents/Zotero/storage/4MAHCIS8/Dani et al. - 2008 - Stochastic Linear Optimization Under Bandit Feedba.pdf;/Users/roshan/Documents/Zotero/storage/MMYG3UTX/101.html}
+}
+
+@article{RusmevichientongLinearlyParameterizedBandits2010,
+  title = {Linearly {{Parameterized Bandits}}},
+  volume = {35},
+  issn = {0364-765X},
+  doi = {10.1287/moor.1100.0446},
+  abstract = {We consider bandit problems involving a large (possibly infinite) collection of arms, in which the expected reward of each arm is a linear function of an r-dimensional random vector Z $\in$ $\mathbb{R}$r, where r $\geq$ 2. The objective is to minimize the cumulative regret and Bayes risk. When the set of arms corresponds to the unit sphere, we prove that the regret and Bayes risk is of order $\Theta$(r $\surd$T), by establishing a lower bound for an arbitrary policy, and showing that a matching upper bound is obtained through a policy that alternates between exploration and exploitation phases. The phase-based policy is also shown to be effective if the set of arms satisfies a strong convexity condition. For the case of a general set of arms, we describe a near-optimal policy whose regret and Bayes risk admit upper bounds of the form O(r $\surd$T log3/2T).},
+  number = {2},
+  journal = {Mathematics of Operations Research},
+  author = {Rusmevichientong, Paat and Tsitsiklis, John N.},
+  month = apr,
+  year = {2010},
+  pages = {395-411},
+  file = {/Users/roshan/Documents/Zotero/storage/PWIAFXYS/Rusmevichientong and Tsitsiklis - 2010 - Linearly Parameterized Bandits.pdf;/Users/roshan/Documents/Zotero/storage/R5S8I4G8/moor.1100.html}
 }
 
 
