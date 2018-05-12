@@ -453,6 +453,195 @@ holds if the confidence sets are accurate.
 \end{restatable}
 
 
+\section{Privacy-Preserving Linear UCB}
+
+The Linear UCB algorithm records its history of actions vectors and
+rewards, which it uses to select its next action at every round.  We
+will now examine the effects of recording this history in a
+privacy-preserving manner.
+
+In particular, Linear UCB uses its history of arms and rewards through
+the Gram matrix $\transp{X}X$ and the vector $\transp{X}y$.  If these
+quantities preserve privacy, then the Linear UCB algorithm must also
+since it is simply post-processing them.
+
+\bibliographystyle{plainnat}
+\bibliography{references,zotero-references}
+
+\newpage
+
+\appendix
+
+\section{Supplementary Material}
+
+\subsection{Proof of \Cref{thm:linucb-regret}}
+
+\thmlinucbregret*
+
+\begin{lemma}\label{lemma:linucb-regret}
+  Suppose the mean rewards are bounded:
+  $\abs{\innerp{\theta^*}{x}} \le B$ for all $x\in\bigcup_t\Dset{t}$;
+  all the $V_t \succ 0$ are symmetric; and
+  $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In the
+  event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence sets
+  $\Eset{t}$ contain $\theta^*$ (i.e.,
+  $\norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}} \le \sqrt{\beta_{t-1}}$),
+  the pseudo-regret of \cref{alg:linucb} satisfies
+  \begin{align*}
+    \widehat{R}_n &\le \sqrt{4n\bar\beta_n \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{x_t}^2}}.
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+  At every round $t$, \cref{alg:linucb} selects the ``optimistic''
+  action $x_t$ satisfying
+  \begin{align}\label{eq:optimistic-action}
+    (x_t,\bar\theta_t) &= \argmax_{x\in\Dset{t},\theta\in\Eset{t}} \innerp{\theta}{x}.
+  \end{align}
+  Let $x_t^* = \argmax_{x\in\Dset{t}}\innerp{\theta^*}{x}$ be an optimal
+  action and $r_t = \innerp{\theta^*}{x_t^*-x_t}$ be the immediate
+  pseudo-regret suffered for round $t$:
+  \begin{align*}
+    r_t &= \innerp{\theta^*}{x_t^*} - \innerp{\theta^*}{x_t} \\
+        &\le \innerp{\bar\theta_t}{x_t} - \innerp{\theta^*}{x_t}
+        &\text{from \eqref{eq:optimistic-action} since }
+          x_t^*\in\Dset{t}, \theta^*\in\Eset{t} \\
+        &= \innerp{\bar\theta_t - \theta^*}{x_t} \\
+        &= \innerp{V_{t-1}^{1/2}(\bar\theta_t - \theta^*)}{V_{t-1}^{-1/2}x_t} \\
+        &\le \norm{V_{t-1}}{\bar\theta_t - \theta^*}\norm{\inv{V_{t-1}}}{x_t}
+        &\text{by Cauchy-Schwarz}\\
+        &\le \paren[\big]{\norm{V_{t-1}}{\bar\theta_t - \tilde\theta_{t-1}}
+          + \norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}}}\norm{\inv{V_{t-1}}}{x_t}
+        &\text{by the triangle inequality}\\
+        &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x_t}
+        &\text{since } \bar\theta_t, \theta^* \in \Eset{t} \\
+        &\le 2\sqrt{\beta_{n-1}}\norm{\inv{V_{t-1}}}{x_t}
+        &\text{since } (\beta_t)_{t=0}^{n-1} \text{ is non-decreasing.}
+  \end{align*}
+  From our assumptions that the mean absolute reward is bounded by $B$
+  and $\beta_{n-1} \ge 1$, we also get that
+  $r_t \le 2B \le 2B\sqrt{\beta_{n-1}}$.  Putting these together,
+  \begin{align*}
+    r_t &\le 2\sqrt{\beta_{n-1}} \min\set{B, \norm{\inv{V_{t-1}}}{x_t}}.
+  \end{align*}
+  Now we apply Jensen's inequality as follows:
+  \begin{align*}
+    \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
+                   \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
+    \widehat R_n &\le \sqrt{n\sum_{t=1}^n r_t^2}
+                   = \sqrt{4n\beta_{n-1} \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{x_t}^2}}.
+                   \qedhere
+  \end{align*}
+\end{proof}
+
+\begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
+  Let $x_1,\dotsc,x_n \in \Real^d$ be bounded vectors with
+  $\norm{}{x_t} \le L$, $U_0\in\Real^{d\times d}$ a positive definite
+  matrix, and $B \ge 0$.  Define
+  $U_t \defeq U_0 + \sum_{s=1}^t x_s \transp{x_s}$ for all
+  $t\in\set{1,\dotsc,n}$.  Then
+  \begin{align*}
+    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_{t-1}}}{x_t}^2}
+    &\le 2B^2 \log\frac{\det U_n}{\det U_0}
+      \le 2B^2d \log\frac{\tr U_0+nL^2}{d\det^{1/d} U_0}.
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+  We begin by deriving the first inequality with $B=1$, using the fact
+  that $\min\set{1, u} \le 2\log(1+u)$ for any $u \ge 0$:
+  \begin{align*}
+    \sum_{t=1}^n\min\set{1, \norm{\inv{U_{t-1}}}{x_t}^2}
+    &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_{t-1}}}{x_t}^2).
+  \end{align*}
+  We will show that this last summation is $2\log(\det U_n/\det
+  U_0)$.  For $t \ge 1$ we have
+  \begin{align*}
+    U_t &= U_{t-1} + x_t\transp{x_t}
+         = U_{t-1}^{1/2}
+         \paren[\big]{I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}}
+         U_{t-1}^{1/2} \\
+    \det U_t &=\det U_{t-1}
+              \det\paren[\big]{I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}}.
+  \end{align*}
+  Consider the eigenvectors of the matrix $I+y\transp{y}$ for an
+  arbitrary vector $y\in\Real^d$.  We know that $y$ itself is an
+  eigenvector with eigenvalue $1+\norm{}{y}^2$:
+  \begin{align*}
+    (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{}{y}^2)y.
+  \end{align*}
+  Moreover, since $I+y\transp{y}$ is symmetric, every other
+  eigenvector $u$ is orthogonal to $y$, so that
+  \begin{align*}
+    (I + y\transp{y})u &= u + u\innerp{y}{u} = u.
+  \end{align*}
+  Therefore the only eigenvalues of $I+y\transp{y}$ are
+  $1+\norm{}{y}^2$ (with eigenvector $y$) and 1.  In our case
+  $y = U_{t-1}^{-1/2}x_t$ and
+  $\norm{}{y}^2 = \transp{x_t}\inv{U_{t-1}}x_t =
+  \norm{\inv{U_{t-1}}}{x_t}^2$, so we get our first inequality:
+  \begin{align*}
+    \det U_n &= \det U_0 \prod_{t=1}^n(1 + \norm{\inv{U_{t-1}}}{x_t}^2) \\
+    2\log\frac{\det U_n}{\det U_0} &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_{t-1}}}{x_t}^2).
+  \end{align*}
+  For $B \neq 1$, we apply the above result with each $x_t$ scaled by
+  $B^{-1}$ and $U_0,\dotsc,U_n$ scaled by $B^{-2}$:
+  \begin{align*}
+    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{x_t}^2}
+    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_{t-1}}}{B^{-1}x_t}^2}
+      \le 2B^2 \log\frac{\det(B^{-2}U_n)}{\det(B^{-2}U_0)}.
+  \end{align*}
+  To get the second inequality, we apply the arithmetic-geometric
+  mean inequality to the eigenvalues $\lambda_i$ of $U_n$:
+  \begin{align*}
+    \det U_n &= \prod_{i=1}^d \lambda_i
+              \le \paren[\Big]{\frac{1}{d} \sum_{i=1}^d \lambda_i}^d
+              = \paren{(1/d)\tr U_n}^d
+              \le \paren{(\tr U_0 + nL^2)/d}^d \\
+    2B^2 \log\frac{\det U_n}{\det U_0}
+            &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d\det^{1/d}U_0}
+              \qedhere
+  \end{align*}
+\end{proof}
+
+\begin{lemma}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]
+  \label{claim:psd-matrix-props}%
+  If $A \succeq B \succeq 0$, then
+  \begin{enumerate}
+  \item $\rank(A) \ge \rank(B)$
+  \item $\det A \ge \det B$
+  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
+  \end{enumerate}
+\end{lemma}
+
+\begin{proof}[Proof of \Cref{thm:linucb-regret}]
+  From our assumptions and \cref{lemma:linucb-regret}, we know that
+  the Linear UCB regret is bounded by
+  \begin{align*}
+    \widehat{R}_n &\le \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{X_t}^2}}.
+  \end{align*}
+  Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
+  \cref{claim:psd-matrix-props} it follows that
+  $\inv{V_t} \preceq \inv{U_t}$, which means
+  $\norm{\inv{V_{t-1}}}{X_t}^2 \le \norm{\inv{U_{t-1}}}{X_t}^2$.  We
+  now apply \cref{lemma:elliptical-potential} to the sequence $U_t$ to
+  get
+  \begin{align*}
+    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{X_t}^2}
+    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{X_t}^2} \\
+    &\le 2B^2 \log\det\frac{U_n}{U_0} \\
+    &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
+  \end{align*}
+  To get the required bounds, it only remains to see that $U_0 = H$ and
+  that $\det U_n \le \det V_n$ (again by
+  \cref{claim:psd-matrix-props}).
+\end{proof}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\todo[inline]{Remove following material from final version.}
+
 \section{Ellipsoidal Confidence Sets}
 \label{sec:ellips-conf-bounds}
 
@@ -678,192 +867,6 @@ with ellipsoidal confidence sets satisfies
 \end{align*}
 
 
-\section{Privacy-Preserving Linear UCB}
-
-The Linear UCB algorithm records its history of actions vectors and
-rewards, which it uses to select its next action at every round.  We
-will now examine the effects of recording this history in a
-privacy-preserving manner.
-
-In particular, Linear UCB uses its history of arms and rewards through
-the Gram matrix $\transp{X}X$ and the vector $\transp{X}y$.  If these
-quantities preserve privacy, then the Linear UCB algorithm must also
-since it is simply post-processing them.
-
-\bibliographystyle{plainnat}
-\bibliography{references,zotero-references}
-
-\newpage
-
-\appendix
-
-\section{Supplementary Material}
-
-\subsection{Proof of \Cref{thm:linucb-regret}}
-
-\thmlinucbregret*
-
-\begin{lemma}\label{lemma:linucb-regret}
-  Suppose the mean rewards are bounded:
-  $\abs{\innerp{\theta^*}{x}} \le B$ for all $x\in\bigcup_t\Dset{t}$;
-  all the $V_t \succ 0$ are symmetric; and
-  $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In the
-  event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence sets
-  $\Eset{t}$ contain $\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}} \le \sqrt{\beta_{t-1}}$),
-  the pseudo-regret of \cref{alg:linucb} satisfies
-  \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n\bar\beta_n \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{x_t}^2}}.
-  \end{align*}
-\end{lemma}
-
-\begin{proof}
-  At every round $t$, \cref{alg:linucb} selects the ``optimistic''
-  action $x_t$ satisfying
-  \begin{align}\label{eq:optimistic-action}
-    (x_t,\bar\theta_t) &= \argmax_{x\in\Dset{t},\theta\in\Eset{t}} \innerp{\theta}{x}.
-  \end{align}
-  Let $x_t^* = \argmax_{x\in\Dset{t}}\innerp{\theta^*}{x}$ be an optimal
-  action and $r_t = \innerp{\theta^*}{x_t^*-x_t}$ be the immediate
-  pseudo-regret suffered for round $t$:
-  \begin{align*}
-    r_t &= \innerp{\theta^*}{x_t^*} - \innerp{\theta^*}{x_t} \\
-        &\le \innerp{\bar\theta_t}{x_t} - \innerp{\theta^*}{x_t}
-        &\text{from \eqref{eq:optimistic-action} since }
-          x_t^*\in\Dset{t}, \theta^*\in\Eset{t} \\
-        &= \innerp{\bar\theta_t - \theta^*}{x_t} \\
-        &= \innerp{V_{t-1}^{1/2}(\bar\theta_t - \theta^*)}{V_{t-1}^{-1/2}x_t} \\
-        &\le \norm{V_{t-1}}{\bar\theta_t - \theta^*}\norm{\inv{V_{t-1}}}{x_t}
-        &\text{by Cauchy-Schwarz}\\
-        &\le \paren[\big]{\norm{V_{t-1}}{\bar\theta_t - \tilde\theta_{t-1}}
-          + \norm{V_{t-1}}{\theta^* - \tilde\theta_{t-1}}}\norm{\inv{V_{t-1}}}{x_t}
-        &\text{by the triangle inequality}\\
-        &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{x_t}
-        &\text{since } \bar\theta_t, \theta^* \in \Eset{t} \\
-        &\le 2\sqrt{\beta_{n-1}}\norm{\inv{V_{t-1}}}{x_t}
-        &\text{since } (\beta_t)_{t=0}^{n-1} \text{ is non-decreasing.}
-  \end{align*}
-  From our assumptions that the mean absolute reward is bounded by $B$
-  and $\beta_{n-1} \ge 1$, we also get that
-  $r_t \le 2B \le 2B\sqrt{\beta_{n-1}}$.  Putting these together,
-  \begin{align*}
-    r_t &\le 2\sqrt{\beta_{n-1}} \min\set{B, \norm{\inv{V_{t-1}}}{x_t}}.
-  \end{align*}
-  Now we apply Jensen's inequality as follows:
-  \begin{align*}
-    \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
-                   \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
-    \widehat R_n &\le \sqrt{n\sum_{t=1}^n r_t^2}
-                   = \sqrt{4n\beta_{n-1} \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{x_t}^2}}.
-                   \qedhere
-  \end{align*}
-\end{proof}
-
-\begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
-  Let $x_1,\dotsc,x_n \in \Real^d$ be bounded vectors with
-  $\norm{}{x_t} \le L$, $U_0\in\Real^{d\times d}$ a positive definite
-  matrix, and $B \ge 0$.  Define
-  $U_t \defeq U_0 + \sum_{s=1}^t x_s \transp{x_s}$ for all
-  $t\in\set{1,\dotsc,n}$.  Then
-  \begin{align*}
-    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_{t-1}}}{x_t}^2}
-    &\le 2B^2 \log\frac{\det U_n}{\det U_0}
-      \le 2B^2d \log\frac{\tr U_0+nL^2}{d\det^{1/d} U_0}.
-  \end{align*}
-\end{lemma}
-
-\begin{proof}
-  We begin by deriving the first inequality with $B=1$, using the fact
-  that $\min\set{1, u} \le 2\log(1+u)$ for any $u \ge 0$:
-  \begin{align*}
-    \sum_{t=1}^n\min\set{1, \norm{\inv{U_{t-1}}}{x_t}^2}
-    &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_{t-1}}}{x_t}^2).
-  \end{align*}
-  We will show that this last summation is $2\log(\det U_n/\det
-  U_0)$.  For $t \ge 1$ we have
-  \begin{align*}
-    U_t &= U_{t-1} + x_t\transp{x_t}
-         = U_{t-1}^{1/2}
-         \paren[\big]{I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}}
-         U_{t-1}^{1/2} \\
-    \det U_t &=\det U_{t-1}
-              \det\paren[\big]{I + U_{t-1}^{-1/2}x_t\transp{x_t}U_{t-1}^{-1/2}}.
-  \end{align*}
-  Consider the eigenvectors of the matrix $I+y\transp{y}$ for an
-  arbitrary vector $y\in\Real^d$.  We know that $y$ itself is an
-  eigenvector with eigenvalue $1+\norm{}{y}^2$:
-  \begin{align*}
-    (I + y\transp{y})y &= y + y\innerp{y}{y} = (1+\norm{}{y}^2)y.
-  \end{align*}
-  Moreover, since $I+y\transp{y}$ is symmetric, every other
-  eigenvector $u$ is orthogonal to $y$, so that
-  \begin{align*}
-    (I + y\transp{y})u &= u + u\innerp{y}{u} = u.
-  \end{align*}
-  Therefore the only eigenvalues of $I+y\transp{y}$ are
-  $1+\norm{}{y}^2$ (with eigenvector $y$) and 1.  In our case
-  $y = U_{t-1}^{-1/2}x_t$ and
-  $\norm{}{y}^2 = \transp{x_t}\inv{U_{t-1}}x_t =
-  \norm{\inv{U_{t-1}}}{x_t}^2$, so we get our first inequality:
-  \begin{align*}
-    \det U_n &= \det U_0 \prod_{t=1}^n(1 + \norm{\inv{U_{t-1}}}{x_t}^2) \\
-    2\log\frac{\det U_n}{\det U_0} &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_{t-1}}}{x_t}^2).
-  \end{align*}
-  For $B \neq 1$, we apply the above result with each $x_t$ scaled by
-  $B^{-1}$ and $U_0,\dotsc,U_n$ scaled by $B^{-2}$:
-  \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{x_t}^2}
-    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_{t-1}}}{B^{-1}x_t}^2}
-      \le 2B^2 \log\frac{\det(B^{-2}U_n)}{\det(B^{-2}U_0)}.
-  \end{align*}
-  To get the second inequality, we apply the arithmetic-geometric
-  mean inequality to the eigenvalues $\lambda_i$ of $U_n$:
-  \begin{align*}
-    \det U_n &= \prod_{i=1}^d \lambda_i
-              \le \paren[\Big]{\frac{1}{d} \sum_{i=1}^d \lambda_i}^d
-              = \paren{(1/d)\tr U_n}^d
-              \le \paren{(\tr U_0 + nL^2)/d}^d \\
-    2B^2 \log\frac{\det U_n}{\det U_0}
-            &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d\det^{1/d}U_0}
-              \qedhere
-  \end{align*}
-\end{proof}
-
-\begin{lemma}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]
-  \label{claim:psd-matrix-props}%
-  If $A \succeq B \succeq 0$, then
-  \begin{enumerate}
-  \item $\rank(A) \ge \rank(B)$
-  \item $\det A \ge \det B$
-  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
-  \end{enumerate}
-\end{lemma}
-
-\begin{proof}[Proof of \Cref{thm:linucb-regret}]
-  From our assumptions and \cref{lemma:linucb-regret}, we know that
-  the Linear UCB regret is bounded by
-  \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2, \norm{\inv{V_{t-1}}}{X_t}^2}}.
-  \end{align*}
-  Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
-  \cref{claim:psd-matrix-props} it follows that
-  $\inv{V_t} \preceq \inv{U_t}$, which means
-  $\norm{\inv{V_{t-1}}}{X_t}^2 \le \norm{\inv{U_{t-1}}}{X_t}^2$.  We
-  now apply \cref{lemma:elliptical-potential} to the sequence $U_t$ to
-  get
-  \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{X_t}^2}
-    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{X_t}^2} \\
-    &\le 2B^2 \log\det\frac{U_n}{U_0} \\
-    &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
-  \end{align*}
-  To get the required bounds, it only remains to see that $U_0 = H$ and
-  that $\det U_n \le \det V_n$ (again by
-  \cref{claim:psd-matrix-props}).
-\end{proof}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % \section{Facts About Random Variables}
@@ -897,7 +900,7 @@ since it is simply post-processing them.
 %   (subexponential) for any $u\in\Real^m$ with $\norm{}{u}=1$.
 % \end{definition}
 
-\section{Proofs}
+\section{Other Proofs}
 
 \begin{lemma}[{\citealp[Lemma~9]{AbbasiYadkoriImprovedAlgorithmsLinear2011}}]\label{lemma:martingale-mgf}
   Let $X_1, X_2, \dotsc \in \Real$ and
@@ -1033,9 +1036,6 @@ since it is simply post-processing them.
     \end{align*}
   \end{proof}
 \end{lemma}
-
-
-
 
 
 \end{document}
