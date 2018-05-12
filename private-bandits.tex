@@ -190,7 +190,7 @@ preserving data-analysis in both academia and industry. Standard differential pr
 output of the algorithm does not change in a statistically significant
 way when any single context and reward is changed. However, as illustrate below, in the contextual bandit setting differential
 private states we must essentially ignore each day's context and thus incur linear regret. We therefore adopt the
-more relaxed notion of \emph{joint differential privacy}\cite{KearnsMechanismdesignlarge2014} which allows
+more relaxed notion of \emph{joint differential privacy} \citep{KearnsMechanismDesign2014} which allows
 for the output of time $t$ depend arbitrarily on the context of day $t$, yet have only limited dependency with the context or reward of any other day $t'$. Intuitively, we allow the $t$-th user to observe ads corresponding to her prefernces, without revealing (much) about those preferences to all users at times $t'>t$.\footnote{The guarantee of differential privacy under continuous observation assures that the entire sequence of actions and rewards preserse privacy. Hence, even if all later user collude in an effort to learn user $t$'s context, they still have very limited advantage over a random guess.}
 
 \todo[inline]{Consider non-contextual bandits; only the rewards are
@@ -260,7 +260,7 @@ environment which the agent aims to learn so that she can maximize reward. The g
 
 \paragraph{Joint Differential Privacy.}
 As discussed above, the context and reward may be considered private
-information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation (a combination of the two definitions given in~\cite{KearnsMechanismdesignlarge2014, Dwork-continual observation}). First, we say two sequences $S = \langle (\mathcal{D}_1, Y_1), (\mathcal{D}_2, Y_2), ..., (\mathcal{D}_T, Y_T) \rangle$ and $S' = \langle (\mathcal{D}'_1, Y'_1), ..., (\mathcal{D}'_T, Y'_T) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_t,Y_t) = (\mathcal{D}'_t, Y_t)$.
+information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, Y_1), (\mathcal{D}_2, Y_2), ..., (\mathcal{D}_T, Y_T) \rangle$ and $S' = \langle (\mathcal{D}'_1, Y'_1), ..., (\mathcal{D}'_T, Y'_T) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_t,Y_t) = (\mathcal{D}'_t, Y_t)$.
 \os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
 % For example, a
 % search engine might have a context consisting of a user's search
@@ -354,8 +354,8 @@ the Gram matrix $G_t$ and the vector
 $u_t \defeq \transp{X_{1:t}}y_{1:t}$ (these also determine $\beta_t$,
 as we will see).  By recording this history with differential privacy,
 we obtain a linear UCB algorithm that is also differentially private
-because it simply post-processes $G_t$ and $u_t$; see
-\citet[Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
+because it simply post-processes $G_t$ and $u_t$
+\citep[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
 
 Our first modification is to use a regularizer matrix $H_t$ that
 changes at each round, which to our knowledge has not been considered
