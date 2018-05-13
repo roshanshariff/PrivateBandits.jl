@@ -1,5 +1,6 @@
+
 @article{DworkAlgorithmicFoundationsDifferential2014,
-  title = {The {{Algorithmic Foundations}} of {{Differential Privacy}}},
+  title = {The Algorithmic Foundations of Differential Privacy},
   volume = {9},
   issn = {1551-305X, 1551-3068},
   doi = {10.1561/0400000042},
@@ -14,6 +15,21 @@
   file = {/Users/roshan/Documents/Zotero/storage/3F3JEV8K/privacybook.pdf;/Users/roshan/Documents/Zotero/storage/TIR3JKCH/TCS-042.html}
 }
 
+@article{SheffetPrivateApproxRegression2015,
+  archivePrefix = {arXiv},
+  eprinttype = {arxiv},
+  eprint = {1507.00056},
+  primaryClass = {cs},
+  title = {Private Approximations of the 2nd-Moment Matrix Using Existing Techniques in Linear Regression},
+  abstract = {We introduce three differentially-private algorithms that approximates the 2nd-moment matrix of the data. These algorithm, which in contrast to existing algorithms output positive-definite matrices, correspond to existing techniques in linear regression literature. Specifically, we discuss the following three techniques. (i) For Ridge Regression, we propose setting the regularization coefficient so that by approximating the solution using Johnson-Lindenstrauss transform we preserve privacy. (ii) We show that adding a small batch of random samples to our data preserves differential privacy. (iii) We show that sampling the 2nd-moment matrix from a Bayesian posterior inverse-Wishart distribution is differentially private provided the prior is set correctly. We also evaluate our techniques experimentally and compare them to the existing "Analyze Gauss" algorithm of Dwork et al.},
+  journal = {arXiv:1507.00056 [cs]},
+  author = {Sheffet, Or},
+  month = jun,
+  year = {2015},
+  keywords = {Computer Science - Data Structures and Algorithms},
+  file = {/Users/roshan/Documents/Zotero/storage/RYD8W43B/Sheffet - 2015 - Private Approximations of the 2nd-Moment Matrix Us.pdf;/Users/roshan/Documents/Zotero/storage/QWBQPVQU/1507.html}
+}
+
 @inproceedings{AbbasiYadkoriImprovedAlgorithmsLinear2011,
   title = {Improved Algorithms for Linear Stochastic Bandits},
   volume = {24},
@@ -26,10 +42,10 @@
   file = {/Users/roshan/Documents/Zotero/storage/JMZWP5VH/Abbasi-Yadkori et al. - 2011 - Improved Algorithms for Linear Stochastic Bandits.pdf;/Users/roshan/Documents/Zotero/storage/HB5KANLU/4417-improved-algorithms-for-linear-stochastic-bandits.html}
 }
 
-@inproceedings{MishraNearlyOptimalDifferentially2015,
+@inproceedings{MishraNearlyOptimalDPBandits2015,
   address = {Arlington, Virginia, United States},
   series = {UAI'15},
-  title = {({{Nearly}}) {{Optimal Differentially Private Stochastic Multi}}-Arm {{Bandits}}},
+  title = {({{Nearly}}) Optimal Differentially Private Stochastic Multi-Arm Bandits},
   isbn = {978-0-9966431-0-8},
   abstract = {We study the problem of private stochastic multi-arm bandits. Our notion of privacy is the same as some of the earlier works in the general area of private online learning [13, 17, 24]. We design algorithms that are i) differentially private, and ii) have regret guarantees that (almost) match the regret guarantees for the best non-private algorithms (e.g., upper confidence bound sampling and Thompson sampling). Moreover, through our experiments, we empirically show the effectiveness of our algorithms.},
   booktitle = {Proceedings of the {{Thirty}}-{{First Conference}} on {{Uncertainty}} in {{Artificial Intelligence}}},
@@ -45,13 +61,13 @@
   eprinttype = {arxiv},
   eprint = {1701.04222},
   primaryClass = {cs},
-  title = {Achieving {{Privacy}} in the {{Adversarial Multi}}-{{Armed Bandit}}},
+  title = {Achieving Privacy in the Adversarial Multi-Armed Bandit},
   abstract = {In this paper, we improve the previously best known regret bound to achieve \$$\backslash$epsilon\$-differential privacy in oblivious adversarial bandits from \$$\backslash$mathcal\{O\}\{(T\^\{2/3\}/$\backslash$epsilon)\}\$ to \$$\backslash$mathcal\{O\}\{($\backslash$sqrt\{T\} $\backslash$ln T /$\backslash$epsilon)\}\$. This is achieved by combining a Laplace Mechanism with EXP3. We show that though EXP3 is already differentially private, it leaks a linear amount of information in \$T\$. However, we can improve this privacy by relying on its intrinsic exponential mechanism for selecting actions. This allows us to reach \$$\backslash$mathcal\{O\}\{($\backslash$sqrt\{$\backslash$ln T\})\}\$-DP, with a regret of \$$\backslash$mathcal\{O\}\{(T\^\{2/3\})\}\$ that holds against an adaptive adversary, an improvement from the best known of \$$\backslash$mathcal\{O\}\{(T\^\{3/4\})\}\$. This is done by using an algorithm that run EXP3 in a mini-batch loop. Finally, we run experiments that clearly demonstrate the validity of our theoretical analysis.},
   journal = {arXiv:1701.04222 [cs]},
   author = {Tossou, Aristide C. Y. and Dimitrakakis, Christos},
   month = jan,
   year = {2017},
-  keywords = {Computer Science - Learning,Computer Science - Artificial Intelligence,Computer Science - Cryptography and Security},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Cryptography and Security,Computer Science - Learning},
   file = {/Users/roshan/Documents/Zotero/storage/RK4KKWYY/Tossou and Dimitrakakis - 2017 - Achieving Privacy in the Adversarial Multi-Armed B.pdf;/Users/roshan/Documents/Zotero/storage/GIPIES8V/1701.html}
 }
 
@@ -68,18 +84,18 @@
   file = {/Users/roshan/Documents/Zotero/storage/9L39FJ8H/Kearns et al. - 2014 - Mechanism design in large games incentives and pr.pdf}
 }
 
-@article{KarwaFiniteSampleDifferentially2017,
+@article{KarwaVadhanFiniteSampleDP2017,
   archivePrefix = {arXiv},
   eprinttype = {arxiv},
   eprint = {1711.03908},
   primaryClass = {cs, math, stat},
-  title = {Finite {{Sample Differentially Private Confidence Intervals}}},
+  title = {Finite Sample Differentially Private Confidence Intervals},
   abstract = {We study the problem of estimating finite sample confidence intervals of the mean of a normal population under the constraint of differential privacy. We consider both the known and unknown variance cases and construct differentially private algorithms to estimate confidence intervals. Crucially, our algorithms guarantee a finite sample coverage, as opposed to an asymptotic coverage. Unlike most previous differentially private algorithms, we do not require the domain of the samples to be bounded. We also prove lower bounds on the expected size of any differentially private confidence set showing that our the parameters are optimal up to polylogarithmic factors.},
   journal = {arXiv:1711.03908 [cs, math, stat]},
   author = {Karwa, Vishesh and Vadhan, Salil},
   month = nov,
   year = {2017},
-  keywords = {Mathematics - Statistics Theory,Computer Science - Cryptography and Security},
+  keywords = {Computer Science - Cryptography and Security,Mathematics - Statistics Theory},
   file = {/Users/roshan/Documents/Zotero/storage/7GQIQHH4/Karwa and Vadhan - 2017 - Finite Sample Differentially Private Confidence In.pdf;/Users/roshan/Documents/Zotero/storage/7D2N9BV8/1711.html}
 }
 
@@ -98,12 +114,12 @@
   file = {/Users/roshan/Documents/Zotero/storage/YM8YMGLV/Zhang - 2011 - Matrix theory basic results and techniques.pdf}
 }
 
-@article{JainDifferentiallyPrivateMatrix2017,
+@article{JainDPMatrixCompletion2017,
   archivePrefix = {arXiv},
   eprinttype = {arxiv},
   eprint = {1712.09765},
   primaryClass = {cs},
-  title = {Differentially {{Private Matrix Completion}}, {{Revisited}}},
+  title = {Differentially Private Matrix Completion, Revisited},
   abstract = {We study the problem of privacy-preserving collaborative filtering where the objective is to reconstruct the entire users-items preference matrix using a few observed preferences of users for some of the items. Furthermore, the collaborative filtering algorithm should reconstruct the preference matrix while preserving the privacy of each user. We study this problem in the setting of joint differential privacy where each user computes her own preferences for all the items, without violating privacy of other users' preferences. We provide the first provably differentially private algorithm with formal utility guarantees for this problem. Our algorithm is based on the Frank-Wolfe (FW) method, and consistently estimates the underlying preference matrix as long as the number of users \$m\$ is \$$\backslash$omega(n\^\{5/4\})\$, where \$n\$ is the number of items, and each user provides her preference for at least \$$\backslash$sqrt\{n\}\$ randomly selected items. We also empirically evaluate our FW-based algorithm on a suite of datasets, and show that our method provides nearly same accuracy as the state-of-the-art non-private algorithm, and outperforms the state-of-the-art private algorithm by as much as 30\%.},
   journal = {arXiv:1712.09765 [cs]},
   author = {Jain, Prateek and Thakkar, Om and Thakurta, Abhradeep},
@@ -113,8 +129,8 @@
   file = {/Users/roshan/Documents/Zotero/storage/IX255GNW/Jain et al. - 2017 - Differentially Private Matrix Completion, Revisite.pdf;/Users/roshan/Documents/Zotero/storage/CPRI9CZS/1712.html}
 }
 
-@inproceedings{TossouAlgorithmsDifferentiallyPrivate2016,
-  title = {Algorithms for {{Differentially Private Multi}}-{{Armed Bandits}}},
+@inproceedings{TossouAlgDPBandits2016,
+  title = {Algorithms for Differentially Private Multi-Armed Bandits},
   copyright = {Authors who publish a paper in this conference agree to the following terms:   Author(s) agree to transfer their copyrights in their article/paper to the Association for the Advancement of Artificial Intelligence (AAAI), in order to deal with future requests for reprints, translations, anthologies, reproductions, excerpts, and other publications. This grant will include, without limitation, the entire copyright in the article/paper in all countries of the world, including all renewals, extensions, and reversions thereof, whether such rights current exist or hereafter come into effect, and also the exclusive right to create electronic versions of the article/paper, to the extent that such right is not subsumed under copyright.  The author(s) warrants that they are the sole author and owner of the copyright in the above article/paper, except for those portions shown to be in quotations; that the article/paper is original throughout; and that the undersigned right to make the grants set forth above is complete and unencumbered.  The author(s) agree that if anyone brings any claim or action alleging facts that, if true, constitute a breach of any of the foregoing warranties, the author(s) will hold harmless and indemnify AAAI, their grantees, their licensees, and their distributors against any liability, whether under judgment, decree, or compromise, and any legal fees and expenses arising out of that claim or actions, and the undersigned will cooperate fully in any defense AAAI may make to such claim or action. Moreover, the undersigned agrees to cooperate in any claim or other action seeking to protect or enforce any right the undersigned has granted to AAAI in the article/paper. If any such claim or action fails because of facts that constitute a breach of any of the foregoing warranties, the undersigned agrees to reimburse whomever brings such claim or action for expenses and attorneys' fees incurred therein.  Author(s) retain all proprietary rights other than copyright (such as patent rights).  Author(s) may make personal reuse of all or portions of the above article/paper in other works of their own authorship.  Author(s) may reproduce, or have reproduced, their article/paper for the author's personal use, or for company use provided that AAAI copyright and the source are indicated, and that the copies are not used in a way that implies AAAI endorsement of a product or service of an employer, and that the copies per se are not offered for sale. The foregoing right shall not permit the posting of the article/paper in electronic or digital form on any computer network, except by the author or the author's employer, and then only on the author's or the employer's own web page or ftp site. Such web page or ftp site, in addition to the aforementioned requirements of this Paragraph, must provide an electronic reference or link back to the AAAI electronic server, and shall not post other AAAI copyrighted materials not of the author's or the employer's creation (including tables of contents with links to other papers) without AAAI's written permission.  Author(s) may make limited distribution of all or portions of their article/paper prior to publication.  In the case of work performed under U.S. Government contract, AAAI grants the U.S. Government royalty-free permission to reproduce all or portions of the above article/paper, and to authorize others to do so, for U.S. Government purposes.  In the event the above article/paper is not accepted and published by AAAI, or is withdrawn by the author(s) before acceptance by AAAI, this agreement becomes null and void.},
   abstract = {We present differentially private algorithms for the stochastic Multi-Armed Bandit (MAB) problem. This is a problem for applications such as adaptive clinical trials, experiment design, and user-targeted advertising where private information is connected to individual rewards. Our major contribution is to show that there exist ($\epsilon$,$\delta$) differentially private variants of Upper Confidence Bound algorithms which have optimal regret, O($\epsilon$-1 + log T ). This is a significant improvement over previous results, which only achieve poly-log regret O($\epsilon$-2 log3 T), because of our use of a novel interval based mechanism. We also substantially improve the bounds of previous family of algorithms which use a continual release mechanism. Experiments clearly validate our theoretical bounds.},
   language = {en},
@@ -127,7 +143,7 @@
 
 @inproceedings{DworkCalibratingNoiseSensitivity2006,
   series = {Lecture Notes in Computer Science},
-  title = {Calibrating {{Noise}} to {{Sensitivity}} in {{Private Data Analysis}}},
+  title = {Calibrating Noise to Sensitivity in Private Data Analysis},
   isbn = {978-3-540-32731-8 978-3-540-32732-5},
   doi = {10.1007/11681878_14},
   abstract = {We continue a line of research initiated in [10,11]on privacy-preserving statistical databases. Consider a trusted server that holds a database of sensitive information. Given a query function f mapping databases to reals, the so-called true answer is the result of applying f to the database. To protect privacy, the true answer is perturbed by the addition of random noise generated according to a carefully chosen distribution, and this response, the true answer plus noise, is returned to the user.Previous work focused on the case of noisy sums, in which f = $\sum$ i g(x i ), where x i denotes the ith row of the database and g maps database rows to [0,1]. We extend the study to general functions f, proving that privacy can be preserved by calibrating the standard deviation of the noise according to the sensitivity of the function f. Roughly speaking, this is the amount that any single argument to f can change its output. The new analysis shows that for several particular applications substantially less noise is needed than was previously understood to be the case.The first step is a very clean characterization of privacy in terms of indistinguishability of transcripts. Additionally, we obtain separation results showing the increased value of interactive sanitization mechanisms over non-interactive.},
@@ -143,7 +159,7 @@
 
 @inproceedings{DworkDifferentialPrivacy2006,
   series = {Lecture Notes in Computer Science},
-  title = {Differential {{Privacy}}},
+  title = {Differential Privacy},
   isbn = {978-3-540-35907-4 978-3-540-35908-1},
   doi = {10.1007/11787006_1},
   abstract = {In 1977 Dalenius articulated a desideratum for statistical databases: nothing about an individual should be learnable from the database that cannot be learned without access to the database. We give a general impossibility result showing that a formalization of Dalenius' goal along the lines of semantic security cannot be achieved. Contrary to intuition, a variant of the result threatens the privacy even of someone not in the database. This state of affairs suggests a new measure, differential privacy, which, intuitively, captures the increased risk to one's privacy incurred by participating in a database. The techniques developed in a sequence of papers [8, 13, 3], culminating in those described in [12], can achieve any desired level of privacy under this measure. In many cases, extremely accurate information about the database can be provided while simultaneously ensuring very high levels of privacy.},
@@ -158,7 +174,7 @@
 }
 
 @inproceedings{DaniStochasticLinearOptimization2008,
-  title = {Stochastic {{Linear Optimization Under Bandit Feedback}}},
+  title = {Stochastic Linear Optimization under Bandit Feedback},
   abstract = {In the classical stochastic k-armed bandit problem, in each of a sequence of T rounds, a decision maker chooses one of k arms and incurs a cost chosen from an unknown distribution associated with that arm. The goal is to minimize regret, defined as the difference between the cost incurred by the algorithm and the optimal cost. In the linear optimization version of this problem (first considered by Auer [2002]), we view the arms as vectors in Rn, and require that the costs be linear functions of the chosen vector. As before, it is assumed that the cost functions are sampled independently from an unknown distribution. In this setting, the goal is to find algorithms whose running time and regret behave well as functions of the number of rounds T and the dimensionality n (rather than the number of arms, k, which may be exponential in n or even infinite).
 
 We give a nearly complete characterization of this problem in terms of both upper and lower bounds for the regret. In certain special cases (such as when the decision region is a polytope), the regret is polylog(T). In general though, the optimal regret is $\Theta{_\ast}$ ( $\surd$ T) \textemdash{} our lower bounds rule out the possibility of obtaining polylog(T) rates in general.
@@ -173,7 +189,7 @@ We present two variants of an algorithm based on the idea of ``upper confidence 
 }
 
 @article{RusmevichientongLinearlyParameterizedBandits2010,
-  title = {Linearly {{Parameterized Bandits}}},
+  title = {Linearly Parameterized Bandits},
   volume = {35},
   issn = {0364-765X},
   doi = {10.1287/moor.1100.0446},
@@ -190,7 +206,7 @@ We present two variants of an algorithm based on the idea of ``upper confidence 
 @inproceedings{DworkContinualObservation2010,
   address = {New York, NY, USA},
   series = {STOC '10},
-  title = {Differential {{Privacy Under Continual Observation}}},
+  title = {Differential Privacy under Continual Observation},
   isbn = {978-1-4503-0050-6},
   doi = {10.1145/1806689.1806787},
   abstract = {Differential privacy is a recent notion of privacy tailored to privacy-preserving data analysis [11]. Up to this point, research on differentially private data analysis has focused on the setting of a trusted curator holding a large, static, data set; thus every computation is a "one-shot" object: there is no point in computing something twice, since the result will be unchanged, up to any randomness introduced for privacy. However, many applications of data analysis involve repeated computations, either because the entire goal is one of monitoring, e.g., of traffic conditions, search trends, or incidence of influenza, or because the goal is some kind of adaptive optimization, e.g., placement of data to minimize access costs. In these cases, the algorithm must permit continual observation of the system's state. We therefore initiate a study of differential privacy under continual observation. We identify the problem of maintaining a counter in a privacy preserving manner and show its wide applicability to many different problems.},
@@ -201,6 +217,38 @@ We present two variants of an algorithm based on the idea of ``upper confidence 
   keywords = {privacy,private data analysis},
   pages = {715--724},
   file = {/Users/roshan/Documents/Zotero/storage/7IVE235R/Dwork et al. - 2010 - Differential Privacy Under Continual Observation.pdf}
+}
+
+@inproceedings{DworkAnalyzeGauss2014,
+  address = {New York, NY, USA},
+  series = {STOC '14},
+  title = {Analyze {{Gauss}}: Optimal Bounds for Privacy-Preserving Principal Component Analysis},
+  isbn = {978-1-4503-2710-7},
+  shorttitle = {Analyze {{Gauss}}},
+  doi = {10.1145/2591796.2591883},
+  abstract = {We consider the problem of privately releasing a low dimensional approximation to a set of data records, represented as a matrix A in which each row corresponds to an individual and each column to an attribute. Our goal is to compute a subspace that captures the covariance of A as much as possible, classically known as principal component analysis (PCA). We assume that each row of A has $\mathscr{l}$2 norm bounded by one, and the privacy guarantee is defined with respect to addition or removal of any single row. We show that the well-known, but misnamed, randomized response algorithm, with properly tuned parameters, provides nearly optimal additive quality gap compared to the best possible singular subspace of A. We further show that when ATA has a large eigenvalue gap -- a reason often cited for PCA -- the quality improves significantly. Optimality (up to logarithmic factors) is proved using techniques inspired by the recent work of Bun, Ullman, and Vadhan on applying Tardos's fingerprinting codes to the construction of hard instances for private mechanisms for 1-way marginal queries. Along the way we define a list culling game which may be of independent interest. By combining the randomized response mechanism with the well-known following the perturbed leader algorithm of Kalai and Vempala we obtain a private online algorithm with nearly optimal regret. The regret of our algorithm even outperforms all the previously known online non-private algorithms of this type. We achieve this better bound by, satisfyingly, borrowing insights and tools from differential privacy!},
+  booktitle = {Proceedings of the {{Forty}}-Sixth {{Annual ACM Symposium}} on {{Theory}} of {{Computing}}},
+  publisher = {{ACM}},
+  author = {Dwork, Cynthia and Talwar, Kunal and Thakurta, Abhradeep and Zhang, Li},
+  year = {2014},
+  pages = {11--20},
+  file = {/Users/roshan/Documents/Zotero/storage/K3LKSJ9H/Dwork et al. - 2014 - Analyze Gauss Optimal Bounds for Privacy-preservi.pdf}
+}
+
+@inproceedings{HardtTalwarGeometryDP2010,
+  address = {New York, NY, USA},
+  series = {STOC '10},
+  title = {On the Geometry of Differential Privacy},
+  isbn = {978-1-4503-0050-6},
+  doi = {10.1145/1806689.1806786},
+  abstract = {We consider the noise complexity of differentially private mechanisms in the setting where the user asks d linear queries f:Rn -$>$ R non-adaptively. Here, the database is represented by a vector in R and proximity between databases is measured in the l1-metric. We show that the noise complexity is determined by two geometric parameters associated with the set of queries. We use this connection to give tight upper and lower bounds on the noise complexity for any d $\leq$ n. We show that for d random linear queries of sensitivity 1, it is necessary and sufficient to add l2-error $\Theta$(min d$\surd$d/$\epsilon$,d$\surd$(log (n/d))/$\epsilon$) to achieve $\epsilon$-differential privacy. Assuming the truth of a deep conjecture from convex geometry, known as the Hyperplane conjecture, we can extend our results to arbitrary linear queries giving nearly matching upper and lower bounds. Our bound translates to error \$O(min d/$\epsilon$,$\surd$(d log(n/d)/$\epsilon$)) per answer. The best previous upper bound (Laplacian mechanism) gives a bound of O(min (d/$\epsilon$,$\surd$n/$\epsilon$)) per answer, while the best known lower bound was $\Omega$($\surd$d/$\epsilon$). In contrast, our lower bound is strong enough to separate the concept of differential privacy from the notion of approximate differential privacy where an upper bound of O($\surd$\{d\}/$\epsilon$) can be achieved.},
+  booktitle = {Proceedings of the {{Forty}}-Second {{ACM Symposium}} on {{Theory}} of {{Computing}}},
+  publisher = {{ACM}},
+  author = {Hardt, Moritz and Talwar, Kunal},
+  year = {2010},
+  keywords = {complexity,differential privacy,geometry,histogram,privacy,statistical data analysis},
+  pages = {705--714},
+  file = {/Users/roshan/Documents/Zotero/storage/R63TTRJN/Hardt and Talwar - 2010 - On the Geometry of Differential Privacy.pdf}
 }
 
 
