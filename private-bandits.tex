@@ -164,14 +164,12 @@
 \label{sec:introduction}
 
 The \emph{stochastic multi-armed bandit} (MAB) is a well-known
-sequential decision-making task: in every round $t$, an algorithm
-chooses an action (or arm) $a_t\in\A$ and receives a corresponding
-reward $r_t$ drawn iid from a distribution associated with the action
-$a_t$.  The objective is to maximize the cumulative reward
-$\sum_t r_t$ by learning from the past rewards associated with the
+sequential decision-making task: in every round, a learner
+chooses an action (or arm) and receives a corresponding
+reward drawn iid from an unknown distribution associated with the chosen action action.  The objective is to maximize the cumulative reward by learning from the past rewards associated with the
 different actions.  The \emph{contextual} bandit problem is an
-extension of MAB, where each day we are also given an arbitrary
-context $c_t\in\C$, and the reward is now drawn from a distribution
+extension of MAB, where in each round we are also given an arbitrary
+context, and the reward is now drawn from a distribution
 that depends on \emph{both} the context and the selected action.
 
 % Since the agent only observes the reward for actions it takes, this
@@ -190,7 +188,7 @@ ad.  Ignoring the context and modeling the problem as a standard MAB
 (with each possible ad as an action) suffers from the drawback of
 ignoring the variety of users' preferences; whereas modeling the
 problem as an independent learning task per user prevents
-generalization between users.  As a result, we model the problem as a
+generalization between users.  As a result, it is common to model the problem as a
 contextual linear-bandit problem.  Based on the user-given context,
 each ad (action) is mapped to some feature vector; yet the
 click-probability is modeled the same way across all users --- it is
@@ -206,14 +204,12 @@ sensitive personal information, yet they are all required for making a reasonabl
 % much about any individual user.
 In this work, we give the first upper- and lower-bounds for the
 problem of (joint) \emph{differentially private} contextual linear
-bandits.  We present algorithms for the contextual bandit problem that
-are \emph{differentially private}, the de-facto gold-standard of
-privacy preserving data-analysis in both academia and industry.
-Standard differential privacy (under continuous observation with
-event-level privacy) states the output of the algorithm does not
-change in a statistically significant way when any single context and
-reward is changed.  However, as illustrate below, in the contextual
-bandit setting differential private states we must essentially ignore
+bandits.  
+\emph{Differential privacy}, the de-facto gold-standard of
+privacy preserving data-analysis in both academia and industry,
+states that the algorithm's performance has a very limited dependency on any interaction with one single user (one context and one
+reward).  However, as we later illustrate, in the contextual
+bandit setting adhering to the standard notion of differential privacy (under continual observation) implies we must essentially ignore
 each day's context and thus incur linear regret.  We therefore adopt
 the more relaxed notion of \emph{joint differential privacy}
 \citep{KearnsMechanismDesign2014} which allows for the output of round
@@ -253,10 +249,10 @@ and $\eta_t$ is zero-mean noise.
 
 In the contextual bandit problem, the algorithm also receives a
 \emph{context} $c_t\in\C$ at the beginning of each round, and the
-reward is assumed to depend on both the reward and the context.  To
+reward is assumed to depend on both the context and the choset action $a_t$.  To
 take advantage of the context while choosing actions, we will assume
 that the context affects the reward in a linear way, in the following
-sense.  Suppose there is a known \emph{mapping}
+sense.  We assume the existance of a known \emph{mapping}
 $\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
 pair to a $d$-dimensional \emph{feature vector}.  We will assume that
 the reward is a linear function of the feature vector, with some added
@@ -278,21 +274,22 @@ framework is composed of repeated rounds in which
 The vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
 environment which the agent aims to learn so that she can maximize reward. The goal of the learner is thus to minimize her expected regret...\os{Define the objective: minimizing expected regret --- perhaps justify why we chose this objective (standard, implies similar objectives etc)}
 
-% \begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
-%   We denote by
-%   $\mathcal{F}_t =
-%   \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
-%   all the information available just before the noise $\eta_t$ is
-%   observed.  We assume that $\eta_t$ is \emph{conditionally
-%     $\sigma^2$-subgaussian:}
-%   $
-%     \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} \le \exp(\lambda^2\sigma^2/2)$,
-%     for all  $\lambda\in\Real$
-% \end{assumption}
+\begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
+  We denote by
+  $\mathcal{F}_t =
+  \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
+  all the information available just before the noise $\eta_t$ is
+  observed.  We assume that $\eta_t$ is \emph{conditionally
+    $\sigma^2$-subgaussian:}
+  $
+    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} \le \exp(\lambda^2\sigma^2/2)$,
+    for all  $\lambda\in\Real$
+    \os{So we don't assume the reward is bounded?!? Do we project it onto a likely interval then? Or do we assume sub-gaussianity for the first part, then for privacy, we assume bounded noise?}
+\end{assumption}
 
 \paragraph{Joint Differential Privacy.}
 As discussed above, the context and reward may be considered private
-information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, Y_1), (\mathcal{D}_2, Y_2), ..., (\mathcal{D}_T, Y_T) \rangle$ and $S' = \langle (\mathcal{D}'_1, Y'_1), ..., (\mathcal{D}'_T, Y'_T) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_t,Y_t) = (\mathcal{D}'_t, Y_t)$.
+information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, Y_1), (\mathcal{D}_2, Y_2), ..., (\mathcal{D}_n, Y_n) \rangle$ and $S' = \langle (\mathcal{D}'_1, Y'_1), ..., (\mathcal{D}'_n, Y'_n) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_t,Y_t) = (\mathcal{D}'_t, Y_t)$.
 \os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
 % For example, a
 % search engine might have a context consisting of a user's search
@@ -313,34 +310,34 @@ information about the users which we wish to keep private from all \emph{other} 
 \end{definition}
 Note that the standard definition of differential privacy requires the distribution proximity to hold for any subset of sequences of actions ranging from day $t$ to the end of sequence. However, in our problem formulation, with given decision sets, this notion isn't not even well-defined --- as the decision set of day $t$ is different under $S$ and under $S'$. Therefore, when we discuss the impossibility of regret-minimization under standard differential privacy, we result back to the setting of different contexts with fixed action set. See further details in Section~\ref{sec:lower_bounds}.
 
-\subsection{Our Contribution}
-\label{sec:contributions}
+\subsection{Our Contribution and Paper Organization}
+\label{subsec:contributions}
 
 In this work, in addition to formulating the definition of JDP under
 continual observation, we also present a framework for implementing
 JDP algorithms for the contextual bandit problem. Not surprisingly,
-our framework combines the tree-based algorithm of.... with the linear
-upper-confidence bound (LinUCB) algorithm.  However, for modularity,
+our framework combines the tree-based algorithm~\cite{DworkContinualObservation2010}  with the linear
+upper-confidence bound (LinUCB) algorithm~\cite{???????}.  However, for modularity,
 we choose to analyze a family of linear UCB algorithms where in each
 day one uses a different regularizer, under the premise that all
 regularizers' singular values are bounded. \os{above and below?!?}
 Moreover, we repeat our analysis twice. Once in a general framework,
 obtaining an upper bound on the regret which is proportional to
-$\sqrt T$; and once in an instance dependent setting, where in each
-day there's a significant gap between the best arm and any other
-arms. (The analysis carries through to $k-1$ gaps between the $i$th
+$\sqrt n$; and once in an instance dependent setting, where in each
+day there's a significant gap of at least $\Delta$ between the best arm of each round and any other
+arms, obtaining a regret upper bound of $O(\log(n)/\Delta)$.\footnote{The analysis carries through to $k-1$ gaps between the $i$th
 arm and the leading one, yet its result is too cumbersome so we omit
-this analysis.)  Our leading application of course is privacy, though
+this analysis.} Our leading application of course is privacy, though
 one could postulate other reasons why such a change in regularizers
 would be useful (e.g., updating the regularizer when an initial upper
-bound of a parameter turns out to be wrong). We then plug in two
+bound of a parameter turns out to be wrong). This analysis is given in Section~\ref{}. We then plug in two
 particular regularizers into our scheme: one based on additive Wishart
 noise \citep{SheffetPrivateApproxRegression2015} which always results
 in a PSD; and one based on additive Gaussian
-noise \citep{DworkAnalyzeGauss2014} which doesn't result in a PSD, so
+noise \citep{DworkAnalyzeGauss2014} which doesn't have to result in a PSD, so
 we shift it by $\rho I$ so that w.h.p.\ (over all days in the sequence)
-the shifted eigenvalues of the noise are all positive. We also present
-empirical evidence showing our analysis is in fact optimal.
+the shifted eigenvalues of the noise are all positive. The details of the two techniques are given in Section~\ref{}. We also present
+empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
 We also give lower bound for the $\varepsilon$-differentially private
 MAB problem. Whereas all previous work on the private MAB problem uses
@@ -352,9 +349,9 @@ standard packing arguments \citep[see, for
 example,][]{HardtTalwarGeometryDP2010} seeing as the input for the
 problem is stochastic rather than adversarial.  Instead, we apply a
 new result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
-that the effective group-privacy between two possible inputs of $T$
+that the effective group-privacy between two possible inputs of $n$
 samples drawn iid from distributions $P$ and $Q$ respectively is about
-$n\cdot d_{\rm TV}(P,Q)$.
+$n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lowerbound}.
 
 
 
