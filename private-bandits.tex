@@ -101,6 +101,7 @@
 \DeclarePairedDelimiter{\paren}()
 \DeclarePairedDelimiter{\brck}{[}{]}
 \DeclarePairedDelimiterX{\set}[1]\lbrace\rbrace{#1}
+\DeclarePairedDelimiter{\floor}\lfloor\rfloor
 \DeclarePairedDelimiter{\ceil}\lceil\rceil
 \DeclarePairedDelimiterX{\innerp}[2]\langle\rangle{#1,#2}
 \DeclarePairedDelimiterXPP{\Prob}[1]{\mathds{P}}(){}{#1}
@@ -123,6 +124,10 @@
 \newcommand{\Cset}[1]{\mathcal{C}_{#1}}
 \newcommand{\Eset}[1]{\mathcal{E}_{#1}}
 \newcommand{\scrF}{\mathscr{F}}
+\newcommand{\Wishart}{\mathcal{W}}
+\newcommand{\Normal}{\mathcal{N}}
+\newcommand{\Eye}[1]{\bm{I}_{#1 \times #1}}
+\newcommand{\XtX}[1]{\transp{#1}{#1}}
 
 % Theorem environments
 
@@ -377,10 +382,6 @@ overview of the field.
 \subsection{Differentially Private Linear Regression}
 \label{sec:dp-regression}
 
-\subsection{The Tree Mechanism}
-\label{sec:tree-mechanism}
-
-
 \begin{multicols}{2}[\subsection{Notation}\label{sec:notation}]
   \nolinenumbers
   \begin{description}[style=sameline,leftmargin=5em]
@@ -632,6 +633,117 @@ $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}$ into three terms:
 In the following sections, we will derive high-probability bounds for
 the latter two terms for specific choices of $H_t$ and $\vec h_t$.
 
+\subsection{Pan-Privacy with Tree-Based Aggregation}
+\label{sec:tree-mechanism}
+
+\todo[inline]{Expand this section, keeping the results below.}  For a horizon
+of $n$, the pan-private tree mechanism composes $m = \ceil{1+\log_2n}$
+mechanisms.  Suppose we want to achieve a target of
+$(\varepsilon,\delta)$-differential privacy after composing these $m$
+mechanisms.  Then it is sufficient for each mechanism to be
+$(\varepsilon',\delta')$-differentially private where:
+\begin{align*}
+  \varepsilon' &= \frac{\varepsilon}{2\sqrt{2m\ln\frac{1}{\delta - m\delta'}}} \\
+  \delta' &< \delta/m.
+\end{align*}
+
+\subsection{Differential Privacy via Additive Wishart Noise}
+\label{sec:dp-wishart}
+
+To simplify calculations, we construct the matrices
+$A_t \defeq \begin{bmatrix} \vec X_t & \vec y_t \end{bmatrix} \in
+\Real^{t\times(d+1)}$.  The top-left $d\times d$ submatrix of
+$\XtX{A_t}$ is the Gram matrix $G_t$ and the last column contains the
+vector $\vec u_t = \transp{\vec X_t}\vec y_t$.  It therefore suffices
+to maintain a differentially private approximation of $M_t$.  We have
+assumed before that each action vector is bounded:
+$\norm{}{\vec x_t} \le L$; further assume that the rewards are also
+bounded: $\abs{y_t} \le \tilde B$ for all $t$.  Then each row of $A_t$
+is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
+
+\begin{theorem}%
+  \label{thm:wishart-cont-dp}
+  Fix $\varepsilon$ and a sufficiently small $\delta$, let $A\in\Real^{n\times p}$ be a
+  matrix with each row having $\norm{}{A_{t,:}} \le \tilde L$, and let
+  $m \defeq 1 + \ceil{\log_2n}$.  Generate the sequence of matrices
+  $(W_t)_{t=1}^n$ using the tree mechanism (\cref{sec:tree-mechanism})
+  with Wishart noise distributed according to
+  \begin{align*}
+    &\Wishart_p(\tilde L^2\Eye{p}, k),
+    &\text{ where } k
+    &\defeq p + \floor*{\frac{224}{\varepsilon^2} \cdot m\ln^2\paren*{\frac{4m+1}{\delta}}}.
+  \end{align*}
+  Then releasing the sequence $(\XtX{A_{1:t,:}} + W_t)_{t=1}^n$ is
+  $(\varepsilon,\delta)$-differentially private with respect to
+  changing a single row of $A$.
+
+  Furthermore, each $W_t$ is distributed identically, but not
+  independently, according to $\Wishart_p(\tilde L^2\Eye{p}, mk)$.
+\end{theorem}
+
+\todo[inline]{Be explicit about how to get $H_t$ and $\vec h_t$ from $W_t$.}
+
+\begin{corollary}%
+  \label{cor:wishart-alg}
+  \Cref{alg:linucb} is $(\varepsilon,\delta)$-jointly differentially
+  private when run using the differentially private histories
+  described in \cref{thm:wishart-cont-dp}.  Now fix
+  $\alpha\in(0,1)$ and define
+  \begin{align*}
+    H
+    &\defeq \tilde L^2\paren*{\sqrt{mk} - \sqrt{d} - \sqrt{2\ln\frac{4n}{\alpha}}}^2\Eye{d} \\
+    \sqrt{\beta_t}
+    &\defeq \sigma\sqrt{2\ln\frac{n}{\alpha} + \log\frac{\det V_t}{\det H}}
+      + S \tilde L \paren*{\sqrt{mk} + \sqrt{d} + \sqrt{2\ln\frac{4n}{\alpha}}}
+      + \tilde L \sqrt{d + 2\sqrt{d\ln\frac{2n}{\alpha}} + 2\ln\frac{2n}{\alpha}}.
+  \end{align*}
+  With probability at least $1-\alpha$, the following hold for rounds
+  $t = 1,\dotsc,n-1$: $H_t \succeq H$ and
+  $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
+  \sqrt{\beta_t}$.
+\end{corollary}
+
+\subsection{Differential Privacy via Additive Gaussian Noise}
+\label{sec:dp-gauss}
+
+\begin{theorem}%
+  \label{thm:analyze-gauss}
+  Fix $\varepsilon\in(0,1)$ and $\delta\in(0,1/e)$.  Let
+  $A\in\Real^{n\times p}$ be a matrix whose rows have $l_2$-norm
+  bounded by $\tilde L$.  Let $N\in\Real^{p\times p}$ be a symmetric
+  random Gaussian matrix with each entry having variance
+  $\tilde L^4\ln(1/\delta)/\varepsilon^2$;
+  i.e.\,$N_{i,j}\sim\Normal(0,\tilde L^4\ln(1/\delta)/\varepsilon^2)$
+  independently for $i \le j$ and $N_{i,j} = N_{j,i}$ for $i > j$.
+  Then outputting $\XtX{A} + N$ is
+  $(\varepsilon,\delta)$-differentially private with respect to
+  changing a single row of $A$.
+\end{theorem}
+
+\begin{theorem}%
+  \label{thm:analyze-gauss-cont}
+  Fix $\varepsilon$ and a sufficiently small $\delta$, let
+  $A\in\Real^{n\times p}$ be a matrix with each row having
+  $\norm{}{A_{t,:}} \le \tilde L$, and let
+  $m \defeq 1 + \ceil{\log_2n}$.  Generate the sequence of matrices
+  $(N_t)_{t=1}^n$ using the tree mechanism (\cref{sec:tree-mechanism})
+  with symmetric Gaussian noise; i.e., having equal $(i,j)$ and
+  $(j,i)$ entries independently drawn (for each $i \le j$) from the
+  distribution
+  \begin{align*}
+    &\Normal(0, \sigma^2),
+    &\text{ where } \sigma^2
+    &\defeq \frac{\tilde L^4 \ln(1/\delta)}{\varepsilon^2}.
+  \end{align*}
+  Then releasing the sequence $(\XtX{A_{1:t,:}} + N_t)_{t=1}^n$ is
+  $(\varepsilon,\delta)$-differentially private with respect to
+  changing a single row of $A$.
+
+  Furthermore, each entry of $N_t$ is distributed identically, but not
+  independently, according to $\Normal(0, m\sigma^2)$.
+\end{theorem}
+
+
 \bibliographystyle{plainnat}
 \bibliography{references,zotero-references}
 
@@ -780,16 +892,6 @@ the latter two terms for specific choices of $H_t$ and $\vec h_t$.
   \end{align*}
 \end{proof}
 
-\begin{claim}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]
-  \label{claim:psd-matrix-props}%
-  If $A \succeq B \succeq 0$, then
-  \begin{enumerate}[nolistsep]
-  \item $\rank(A) \ge \rank(B)$
-  \item $\det A \ge \det B$
-  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
-  \end{enumerate}
-\end{claim}
-
 \begin{proof}[Proof of \Cref{thm:linucb-regret}]
   From our assumptions and \cref{lemma:linucb-regret}, we know that
   the Linear UCB regret is bounded by
@@ -814,6 +916,64 @@ the latter two terms for specific choices of $H_t$ and $\vec h_t$.
   \cref{claim:psd-matrix-props}).
 \end{proof}
 
+\section{Privacy Proofs}
+
+\begin{theorem}[{\citealp[Theorem~4.1]{SheffetPrivateApproxRegression2015}}]%
+  \label{thm:wishart-dp}%
+  Fix $\varepsilon\in(0,1)$ and $\delta\in(0,1/e)$.  Let
+  $A\in\Real^{n\times p}$ be a matrix whose rows have $l_2$-norm
+  bounded by $\tilde L$.  Let $W$ be a matrix sampled from the
+  $d$-dimensional Wishart distribution with $k$ degrees of freedom
+  using the scale matrix $\tilde L^2\Eye{p}$ (i.e.\
+  $W \sim \Wishart_p(\tilde L^2\Eye{p}, k)$) for
+  $k \ge p + \floor[\big]{\frac{14}{\varepsilon^2}\cdot 2\log(4/\delta)}$.
+  Then outputting $\XtX{A} + N$ is
+  $(\varepsilon,\delta)$-differentially private with respect to
+  changing a single row of $A$.
+\end{theorem}
+
+\section{Useful Results}
+
+\begin{claim}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]%
+  \label{claim:psd-matrix-props}%
+  If $A \succeq B \succeq 0$, then
+  \begin{enumerate}[nolistsep]
+  \item $\rank(A) \ge \rank(B)$
+  \item $\det A \ge \det B$
+  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
+  \end{enumerate}
+\end{claim}
+
+\begin{claim}[{\citealp[Corollary to
+    Lemma~1,][p.~1325]{LaurentAdaptiveEstimation2000}}]%
+  \label{claim:chi2-tails}
+  If $U\sim\chi^2(d)$ and $\alpha\in(0,1)$,
+  \begin{align*}
+    \Prob[\bigg]{U \ge d + 2\sqrt{d\ln\frac{1}{\alpha}} + 2\ln\frac{1}{\alpha}} &\le \alpha,
+    & \Prob[\bigg]{U \le d - 2\sqrt{d\ln\frac{1}{\alpha}}} &\le \alpha.
+  \end{align*}
+\end{claim}
+
+\begin{claim}[{\citealp[Adaptation
+    of][Corollary~5.35]{VershyninRandomMatrices2010}}]%
+  \label{claim:gaussian-matrix-tails}
+  Let $A$ be an $n\times d$ matrix whose entries are independent
+  standard normal variables.  Then for every $\alpha\in(0,1)$, with
+  probability at least $1-\alpha$ it holds that
+  \begin{align*}
+    \sigma_{\min}(A), \sigma_{\max}(A) &\in \sqrt{n} \pm (\sqrt{d} + \sqrt{2\ln(2/\alpha)})
+  \end{align*}
+\end{claim}
+
+\begin{claim}[{\citealp[Lemma~A.3]{SheffetPrivateApproxRegression2015}}]%
+  \label{claim:wishart-tails}
+  Fix $\alpha\in(0,1/e)$ and let $W\sim\Wishart_d(V, k)$ with $\sqrt{m}
+  > \sqrt{d} + \sqrt{2\ln(2/\alpha)}$.  Then with probability at least
+  $1-\alpha$ it holds that for every $j = 1,2,\dotsc,d$:
+  \begin{align*}
+    \sigma_j(W) &\in \paren*{\sqrt{m} \pm \paren[\Big]{\sqrt{d} + \sqrt{2\ln(2/\alpha)}}}^2 \sigma_j(V).
+  \end{align*}
+\end{claim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

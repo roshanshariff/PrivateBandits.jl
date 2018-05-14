@@ -1,4 +1,28 @@
 
+@book{TaoRandomMatrixTheory2012,
+  title = {Topics in Random Matrix Theory},
+  volume = {132},
+  publisher = {{American Mathematical Society Providence, RI}},
+  author = {Tao, Terence},
+  year = {2012},
+  file = {/Users/roshan/Documents/Zotero/storage/MSPU8UY4/matrix-book.pdf}
+}
+
+@article{VershyninRandomMatrices2010,
+  archivePrefix = {arXiv},
+  eprinttype = {arxiv},
+  eprint = {1011.3027},
+  primaryClass = {cs, math},
+  title = {Introduction to the Non-Asymptotic Analysis of Random Matrices},
+  abstract = {This is a tutorial on some basic non-asymptotic methods and concepts in random matrix theory. The reader will learn several tools for the analysis of the extreme singular values of random matrices with independent rows or columns. Many of these methods sprung off from the development of geometric functional analysis since the 1970's. They have applications in several fields, most notably in theoretical computer science, statistics and signal processing. A few basic applications are covered in this text, particularly for the problem of estimating covariance matrices in statistics and for validating probabilistic constructions of measurement matrices in compressed sensing. These notes are written particularly for graduate students and beginning researchers in different areas, including functional analysts, probabilists, theoretical statisticians, electrical engineers, and theoretical computer scientists.},
+  journal = {arXiv:1011.3027 [cs, math]},
+  author = {Vershynin, Roman},
+  month = nov,
+  year = {2010},
+  keywords = {60B20; 46B09,Computer Science - Numerical Analysis,Mathematics - Functional Analysis,Mathematics - Probability},
+  file = {/Users/roshan/Documents/Zotero/storage/IJHH6KJN/Vershynin - 2010 - Introduction to the non-asymptotic analysis of ran.pdf;/Users/roshan/Documents/Zotero/storage/H52RCB9Z/1011.html}
+}
+
 @article{DworkAlgorithmicFoundationsDifferential2014,
   title = {The Algorithmic Foundations of Differential Privacy},
   volume = {9},
@@ -249,6 +273,70 @@ We present two variants of an algorithm based on the idea of ``upper confidence 
   keywords = {complexity,differential privacy,geometry,histogram,privacy,statistical data analysis},
   pages = {705--714},
   file = {/Users/roshan/Documents/Zotero/storage/R63TTRJN/Hardt and Talwar - 2010 - On the Geometry of Differential Privacy.pdf}
+}
+
+@article{LaurentAdaptiveEstimation2000,
+  title = {Adaptive Estimation of a Quadratic Functional by Model Selection},
+  volume = {28},
+  issn = {0090-5364, 2168-8966},
+  doi = {10.1214/aos/1015957395},
+  abstract = {We consider the problem of estimating $\Vert$s$\Vert$2$\Vert$s$\Vert$2$\backslash$|s$\backslash$|\^2 when sss belongs to some separable Hilbert space and one observes the Gaussian process Y(t)=$\backslash$langles,t\rangle+$\backslash$sigmaL(t)Y(t)=$\backslash$langles,t\rangle+$\backslash$sigmaL(t)Y(t) = $\backslash$langles, t$\backslash$rangle + $\backslash$sigmaL(t), for all t$\epsilon\mathbb{H}$t$\epsilon$Ht $\backslash$epsilon $\backslash$mathbb\{H\},where LLL is some Gaussian isonormal process. This framework allows us in particular to consider the classical ``Gaussian sequence model'' for which $\mathbb{H}$=l2($\mathbb{N}{_\ast}$)H=l2(N${_\ast}$)$\backslash$mathbb\{H\} = l\_2($\backslash$mathbb\{N\}*) and L(t)=$\sum\lambda\geq$1t$\lambda\epsilon\lambda$L(t)=$\sum\lambda\geq$1t$\lambda\epsilon\lambda$L(t) = $\backslash$sum\_\{$\backslash$lambda$\backslash$geq1\}t\_\{$\backslash$lambda\}$\backslash$varepsilon\_\{$\backslash$lambda\}, where ($\epsilon\lambda$)$\lambda\geq$1($\epsilon\lambda$)$\lambda\geq$1($\backslash$varepsilon\_\{$\backslash$lambda\})\_\{$\backslash$lambda$\backslash$geq1\} is a sequence of i.i.d. standard normal variables. Our approach consists in considering some at most countable families of finite-dimensional linear subspaces of $\mathbb{H}$H$\backslash$mathbb\{H\} (the models) and then using model selection via some conveniently penalized least squares criterion to build new estimators of $\Vert$s$\Vert$2$\Vert$s$\Vert$2$\backslash$|s$\backslash$|\^2. We prove a general nonasymptotic risk bound which allows us to show that such penalized estimators are adaptive on a variety of collections of sets for the parameter sss, depending on the family of models from which they are built.In particular, in the context of the Gaussian sequence model, a convenient choice of the family of models allows defining estimators which are adaptive over collections of hyperrectangles, ellipsoids, lplpl\_p-bodies or Besov bodies.We take special care to describe the conditions under which the penalized estimator is efficient when the level of noise $\sigma\sigma\backslash$sigma tends to zero. Our construction is an alternative to the one by Efro{\"\i}movich and Low for hyperrectangles and provides new results otherwise.},
+  language = {en},
+  number = {5},
+  journal = {The Annals of Statistics},
+  author = {Laurent, B. and Massart, P.},
+  month = oct,
+  year = {2000},
+  keywords = {$l_p$-bodies,Adaptive estimation,Besov bodies,efficient estimation,Gaussian sequence model,model selection,quadratic functionals},
+  pages = {1302-1338},
+  file = {/Users/roshan/Documents/Zotero/storage/28RHKBY5/Laurent and Massart - 2000 - Adaptive estimation of a quadratic functional by m.pdf;/Users/roshan/Documents/Zotero/storage/3JGHM4LI/1015957395.html}
+}
+
+@inproceedings{DworkComplexityDPRelease2009,
+  address = {New York, NY, USA},
+  series = {STOC '09},
+  title = {On the Complexity of Differentially Private Data Release: Efficient Algorithms and Hardness Results},
+  isbn = {978-1-60558-506-2},
+  shorttitle = {On the {{Complexity}} of {{Differentially Private Data Release}}},
+  doi = {10.1145/1536414.1536467},
+  abstract = {We consider private data analysis in the setting in which a trusted and trustworthy curator, having obtained a large data set containing private information, releases to the public a "sanitization" of the data set that simultaneously protects the privacy of the individual contributors of data and offers utility to the data analyst. The sanitization may be in the form of an arbitrary data structure, accompanied by a computational procedure for determining approximate answers to queries on the original data set, or it may be a "synthetic data set" consisting of data items drawn from the same universe as items in the original data set; queries are carried out as if the synthetic data set were the actual input. In either case the process is non-interactive; once the sanitization has been released the original data and the curator play no further role. For the task of sanitizing with a synthetic dataset output, we map the boundary between computational feasibility and infeasibility with respect to a variety of utility measures. For the (potentially easier) task of sanitizing with unrestricted output format, we show a tight qualitative and quantitative connection between hardness of sanitizing and the existence of traitor tracing schemes.},
+  booktitle = {Proceedings of the {{Forty}}-First {{Annual ACM Symposium}} on {{Theory}} of {{Computing}}},
+  publisher = {{ACM}},
+  author = {Dwork, Cynthia and Naor, Moni and Reingold, Omer and Rothblum, Guy N. and Vadhan, Salil},
+  year = {2009},
+  keywords = {cryptography,differential privacy,exponential mechanism,privacy,traitor tracing},
+  pages = {381--390},
+  file = {/Users/roshan/Documents/Zotero/storage/A8BCVAU5/Dwork et al. - 2009 - On the complexity of differentially private data r 2.pdf}
+}
+
+@inproceedings{ChanPrivateContinualRelease2010,
+  series = {Lecture Notes in Computer Science},
+  title = {Private and Continual Release of Statistics},
+  isbn = {978-3-642-14161-4 978-3-642-14162-1},
+  doi = {10.1007/978-3-642-14162-1_34},
+  abstract = {We ask the question \textendash{} how can websites and data aggregators continually release updated statistics, and meanwhile preserve each individual user's privacy? Given a stream of 0's and 1's, we propose a differentially private continual counter that outputs at every time step the approximate number of 1's seen thus far. Our counter construction has error that is only poly-log in the number of time steps. We can extend the basic counter construction to allow websites to continually give top-k and hot items suggestions while preserving users' privacy.},
+  language = {en},
+  booktitle = {Automata, {{Languages}} and {{Programming}}},
+  publisher = {{Springer, Berlin, Heidelberg}},
+  author = {Chan, T.-H. Hubert and Shi, Elaine and Song, Dawn},
+  month = jul,
+  year = {2010},
+  pages = {405-417},
+  file = {/Users/roshan/Documents/Zotero/storage/PBST4MI9/Chan et al. - 2010 - Private and Continual Release of Statistics.pdf;/Users/roshan/Documents/Zotero/storage/2YJ8EP94/978-3-642-14162-1_34.html}
+}
+
+@inproceedings{DworkDifferentialPrivacyNewSettings2010,
+  address = {Philadelphia, PA, USA},
+  series = {SODA '10},
+  title = {Differential Privacy in New Settings},
+  isbn = {978-0-89871-698-6},
+  abstract = {Differential privacy is a recent notion of privacy tailored to the problem of statistical disclosure control: how to release statistical information about a set of people without compromising the the privacy of any individual [7]. We describe new work [10, 9] that extends differentially private data analysis beyond the traditional setting of a trusted curator operating, in perfect isolation, on a static dataset. We ask \textbullet{} How can we guarantee differential privacy, even against an adversary that has access to the algorithm's internal state, eg, by subpoena? An algorithm that achives this is said to be pan-private. \textbullet{} How can we guarantee differential privacy when the algorithm must continually produce outputs? We call this differential privacy under continual observation. We also consider these requirements in conjunction.},
+  booktitle = {Proceedings of the {{Twenty}}-First {{Annual ACM}}-{{SIAM Symposium}} on {{Discrete Algorithms}}},
+  publisher = {{Society for Industrial and Applied Mathematics}},
+  author = {Dwork, Cynthia},
+  year = {2010},
+  pages = {174--183},
+  file = {/Users/roshan/Documents/Zotero/storage/LQRZK2TV/Dwork - 2010 - Differential Privacy in New Settings.pdf}
 }
 
 
