@@ -8,7 +8,7 @@
 
 % ready for submission
 \usepackage{nips_2018}
-
+ 
 % to compile a preprint version, e.g., for submission to arXiv, add
 % add the [preprint] option:
 % \usepackage[preprint]{nips_2018}
@@ -455,26 +455,27 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t} \tilde{\vec u}_t$.
 \begin{algorithm}
   \caption{Linear UCB with changing regularizers}\label{alg:linucb}
   \begin{algorithmic}
+  	\State \textbf{Initialize:} $G_1 \gets 0_{d\times d}$, $u_1\gets \vec 0_{d}$.
     \For{each round $t \in 1,2,\dotsc,n$}
-    \State $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
-    \State $V_{t-1} \gets G_{t-1} + H_{t-1}$
-    \Comment{privacy-preserving ${} \approx G_{t-1}$}
-    \State $\tilde{\vec u_{t-1}} \gets \vec u_{t-1} + \vec h_{t-1}$
-    \Comment{privacy-preserving ${} \approx \transp{X}y$}
-    \State $\tilde{\vec\theta}_{t-1} \gets \inv{V_{t-1}}\tilde{\vec u}_{t-1}$
-    \Comment{privacy-preserving ${} \approx \hat{\vec\theta}_{t-1}$}
-    \For{each action $\vec x \in \Dset{t}$}
-    \State $\UCB_t(\vec x) \gets \innerp{\tilde{\vec\theta}_{t-1}}{\vec x} +
-    \sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{\vec x}$
-    \Comment{closed form of \eqref{eq:def-ucb} for ellipsoids \eqref{eq:def-ellip}}
-    \EndFor
-    \State $\vec x_t \gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x)$
-    \Comment{Choose action.}
-    \State $y_t \gets {}$ reward for action $\vec x_t$
-    \Comment{Observe reward.}
-    \State $G_t \gets G_{t-1} + \vec x_t \transp{\vec x_t},
-    \quad \vec u_t \gets \vec u_{t-1} + \vec x_t y_t$
-    \Comment{Record in privacy-preserving history.}
+    \State Receive $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
+    \State Receive regularizers $H_t$ and $\vec h_t$ and set $V_{t} \gets G_{t} + H_{t}$ and
+    %\Comment{privacy-preserving ${} \approx G_{t-1}$}
+    $\tilde{\vec u_{t}} \gets \vec u_{t} + \vec h_{t}$
+    %\Comment{privacy-preserving ${} \approx \transp{X}y$}
+    \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{V_{t}}\tilde{\vec u}_{t}$
+    %\Comment{privacy-preserving ${} \approx \hat{\vec\theta}_{t-1}$}
+    \State \textbf{for} each action $\vec x \in \Dset{t}$ compute
+    $\UCB_t(\vec x) \gets \innerp{\tilde{\vec\theta}_{t}}{\vec x} +
+    \sqrt{\beta_{t}}\norm{\inv{V_{t}}}{\vec x}$
+    %\Comment{closed form of \eqref{eq:def-ucb} for ellipsoids \eqref{eq:def-ellip}}
+    %\EndFor
+    \State Pick action $\vec x_t \gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x)$
+    %\Comment{Choose action.}
+    \State Observe $y_t \gets {}$ reward for action $\vec x_t$
+    %\Comment{Observe reward.}
+    \State Update: $G_{t+1} \gets G_{t} + \vec x_t \transp{\vec x_t},
+    \quad \vec u_{t+1} \gets \vec u_{t} + \vec x_t y_t$
+    %\Comment{Record in privacy-preserving history.}
     \EndFor
   \end{algorithmic}
 \end{algorithm}
@@ -739,6 +740,9 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   Furthermore, each entry of $N_t$ is distributed identically, but not
   independently, according to $\Normal(0, m\sigma^2)$.
 \end{theorem}
+
+\section
+
 
 
 \bibliographystyle{plainnat}
