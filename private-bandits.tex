@@ -247,7 +247,9 @@ preferences to all users at times $t'>t$.\footnote{The guarantee of
 \subsection{Background and Problem Formulation}
 \label{subsec:intro_background}
 
-\paragraph{Stochastic Contextual Linear Bandits.}
+\subsubsection{Stochastic Contextual Linear Bandits.}%
+\label{sec:contextual-bandits}
+
 The classic MAB problem is a sequential decision making task in which, at
 every round $t$, an algorithm selects an action $a_t$ from a fixed set $\A$.
 %Usually, $\A = \set{1,\dotsc,K}$ (the $K$-armed bandit) but we do not
@@ -287,7 +289,8 @@ framework is composed of repeated rounds in which
 The vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
 environment which the agent aims to learn so that she can maximize reward. The goal of the learner is thus to minimize her expected regret...\os{Define the objective: minimizing expected regret --- perhaps justify why we chose this objective (standard, implies similar objectives etc)}
 
-\paragraph{Joint Differential Privacy.}
+\subsubsection{Joint Differential Privacy.}\label{sec:joint-dp}
+
 As discussed above, the context and reward may be considered private
 information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, y_1), (\mathcal{D}_2, y_2), ..., (\mathcal{D}_n, y_n) \rangle$ and $S' = \langle (\mathcal{D}'_1, y'_1), ..., (\mathcal{D}'_n, y'_n) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
 %\os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
@@ -304,7 +307,7 @@ information about the users which we wish to keep private from all \emph{other} 
 % following sense:
 
 \begin{definition}
-\label{def:JDP_continual_observation}
+\label{def:joint-dp}
   A randomized algorithm $A$ for the contextual bandit problem is
   \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{T}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Pr[A(S)\in \mathcal{S}_{>t}] \leq e^\varepsilon\Pr[A(S')\in \mathcal{S}'_{>t}] +\delta$.
 \end{definition}
@@ -401,31 +404,33 @@ chooses the action with the highest UCB:
   \UCB_t(\vec x) &\defeq \max_{\vec\theta\in\E_t} \innerp{\vec\theta}{\vec x}.
 \end{align}
 We assume the rewards are linear with added subgaussian noise (i.e.,
-$y_s = \innerp{\vec\theta^*}{\vec x_s} + \eta_s$ for $s=1,\dotsc,t$), so it
-is natural to center the confidence set $\E_{t+1}$ on the
-(regularized) linear regression estimate:
+$y_s = \innerp{\vec\theta^*}{\vec x_s} + \eta_s$ for $s<t$), so it is
+natural to center the confidence set $\E_t$ on the (regularized)
+linear regression estimate:
 \begin{align*}
-  \hat{\vec\theta}_t &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_t \hat{\vec\theta} - \vec y_t}^2 + \norm{H_t}{\hat{\vec\theta}}^2
-  = \inv{(\XtX{\vec X_t} + H_t)} \transp{\vec X_t} \vec y_t.
+  \hat{\vec\theta}_t
+  &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_{t-1} \hat{\vec\theta}
+    - \vec y_{t-1}}^2 + \norm{H_t}{\hat{\vec\theta}}^2
+    = \inv{(G_t + H_t)} \transp{\vec X_{t-1}} \vec y_{t-1}.
+    &\text{where } G_t \defeq \XtX{\vec X_{t-1}}
 \end{align*}
-The matrix $V_t \defeq G_t + H_t \in \Real^{d\times d}$ is the regularized
-version of the Gram matrix $G_t \defeq \XtX{\vec X_{t-1}}$.  Whenever
-the learner chooses an action vector, the corresponding reward gives
-it some information about the projection of $\vec\theta^*$ onto that
-vector.  In other words, the estimate $\hat{\vec\theta}$ is probably
-closer to $\vec\theta^*$ along directions of $\Real^d$ where many
-actions have been taken.  This motivates the use of ellipsoidal
-confidence sets that are smaller in these directions, inversely
-related to the corresponding eigenvalues of $G_t$ (and $V_t$). The
-ellipsoid is uniformly scaled by $\beta_t$ to achieve the desired
-confidence level, as prescribed by \cref{prop:calc-beta}.
+The matrix $V_t \defeq G_t + H_t \in \Real^{d\times d}$ is a regularized
+version of the Gram matrix $G_t$.  Whenever the learner chooses an
+action vector, the corresponding reward gives it some information
+about the projection of $\vec\theta^*$ onto that vector.  In other
+words, the estimate $\hat{\vec\theta}$ is probably closer to
+$\vec\theta^*$ along directions of $\Real^d$ where many actions have
+been taken.  This motivates the use of ellipsoidal confidence sets
+that are smaller in these directions, inversely related to the
+corresponding eigenvalues of $G_t$ (and ideally $V_t$). The ellipsoid
+is uniformly scaled by $\beta_t$ to achieve the desired confidence
+level, as prescribed by \cref{prop:calc-beta}.
 \begin{align}\label{eq:def-ellip}
   \E_t &\defeq \set{\vec\theta\in\Real^d \given
         \norm{V_t}{\vec\theta-\hat{\vec\theta}_t} \le \beta_t},
   &\text{ for which }
     \UCB_t(\vec x) &= \innerp{\hat{\vec\theta}}{\vec x} + \beta_t\norm{\inv{V_t}}{\vec x}.
 \end{align}
-
 Just as the changing regularizer $H_t$ perturbs the Gram matrix $G_t$,
 our algorithm allows for the vector
 $\vec u_t \defeq \transp{\vec X_t} \vec y_t$ to be perturbed by a
@@ -531,23 +536,15 @@ $H_t$ and $\vec h_t$.
 \subsection{Achieving Differential Privacy}
 \label{sec:alg-dp}
 
-\todo[inline]{Rewrite this section.}
-
 Notice that \cref{alg:linucb} uses its history of actions and rewards
-up to round $t$ only via the confidence set $\E_{t+1}$, which is to
-say the Gram matrix $G_t$ and the vector
-$\vec u_t \defeq \transp{\vec X_t} \vec y_t$ (these also determine
-$\beta_t$, as we will see).  By recording this history with
-differential privacy, we obtain a linear UCB algorithm that is also
-differentially private because it simply post-processes $G_t$ and
+up to round $t$ only via the confidence set $\E_t$, which is to say
+the Gram matrix $G_t\defeq\XtX{\vec X_{t-1}}$ and the vector
+$\vec u_t \defeq \transp{\vec X_t} \vec y_t$; these also determine
+$\beta_t$.  By recording this history with differential privacy, we
+obtain a Linear UCB algorithm that is jointly differentially private
+(\cref{def:joint-dp}) because it simply post-processes $G_t$ and
 $\vec u_t$
 \citep[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
-
-In the following sectionssection, we will consider how to choose $H_t$ and
-$\vec h_t$ to ensure differential privacy.  For now, we satisfy
-ourselves with the following claim, which is a straightforward
-application of the post-processing lemma of differential privacy
-\citep[Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}:
 \begin{claim}
   If the sequence $(V_t,\tilde{\vec u}_t)_{t=1}^{n-1}$ is
   $(\varepsilon,\delta)$-differentially private with respect to
@@ -559,23 +556,30 @@ application of the post-processing lemma of differential privacy
   \Cref{alg:linucb} is only jointly differentially private even though
   the history maintains full differential privacy.  This is because
   the chosen action depends not only on the past contexts $c_s$
-  ($s < t$, via the differentially private $\vec X_{t-1}$) but also
-  on the current context $c_t$ via the decision set $\Dset{t}$.  Since
+  ($s < t$, via the differentially private $\vec X_{t-1}$) but also on
+  the current context $c_t$ via the decision set $\Dset{t}$.  Since
   this use of $c_t$ is not differentially private, it is revealed by
   the algorithm's chosen $\vec x_t$ (as discussed in
-  \cref{sec:priv-contextual}).
+  \cref{sec:joint-dp}).
 \end{remark}
 
-To simplify calculations, we construct the matrices
-$A_t \defeq \begin{bmatrix} \vec X_t & \vec y_t \end{bmatrix} \in
-\Real^{t\times(d+1)}$.  The top-left $d\times d$ submatrix of
-$\XtX{A_t}$ is the Gram matrix $G_t$ and the last column contains the
-vector $\vec u_t = \transp{\vec X_t}\vec y_t$.  It therefore suffices
-to maintain a differentially private approximation of $M_t$.  We have
-assumed before that each action vector is bounded:
-$\norm{}{\vec x_t} \le L$; further assume that the rewards are also
-bounded: $\abs{y_t} \le \tilde B$ for all $t$.  Then each row of $A_t$
-is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
+To make the following exposition simpler, define the matrix
+$A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
+\Real^{n\times(d+1)}$, with $A_t$ being the top $t-1$ rows of $A$
+(and $A_1 = \vec 0_{1\times(d+1)}$).  Then the top-left $d\times d$
+submatrix of $M_t \defeq \XtX{A_t}$ is the Gram matrix $G_t$ and the
+first $d$ entries of its last column are
+$\vec u_t = \transp{\vec X_{t-1}}\vec y_{t-1}$.  It therefore suffices
+to maintain a differentially private approximation of $M_t$.
+
+\begin{assumption}\label{ass:bounded-data}
+  Each row of $A$ is bounded:
+  $\sqrt{\norm{}{\vec x_t}^2 + y_t^2} \le \tilde L$ for all rounds
+  $t$.  In particular, this holds if $\vec x_t \le L$
+  (\cref{ass:x-bound}) and the actual rewards are bounded (not just
+  their means as in \cref{ass:meanreward-bound}):
+  $\abs{y_t} \le \tilde B$.
+\end{assumption}
 
 \subsection{Pan-Privacy with Tree-Based Aggregation}
 \label{sec:tree-mechanism}
