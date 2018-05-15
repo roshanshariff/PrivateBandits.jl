@@ -8,7 +8,7 @@
 
 % ready for submission
 \usepackage{nips_2018}
- 
+
 % to compile a preprint version, e.g., for submission to arXiv, add
 % add the [preprint] option:
 % \usepackage[preprint]{nips_2018}
@@ -209,7 +209,7 @@ sensitive personal information, yet they are all required for making a reasonabl
 % much about any individual user.
 In this work, we give the first upper- and lower-bounds for the
 problem of (joint) \emph{differentially private} contextual linear
-bandits.  
+bandits.
 \emph{Differential privacy}, the de-facto gold-standard of
 privacy preserving data-analysis in both academia and industry,
 states that the algorithm's performance has a very limited dependency on any interaction with one single user (one context and one
@@ -455,7 +455,7 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t} \tilde{\vec u}_t$.
 \begin{algorithm}
   \caption{Linear UCB with changing regularizers}\label{alg:linucb}
   \begin{algorithmic}
-  	\State \textbf{Initialize:} $G_1 \gets 0_{d\times d}$, $u_1\gets \vec 0_{d}$.
+        \State \textbf{Initialize:} $G_1 \gets 0_{d\times d}$, $u_1\gets \vec 0_{d}$.
     \For{each round $t \in 1,2,\dotsc,n$}
     \State Receive $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
     \State Receive regularizers $H_t$ and $\vec h_t$ and set $V_{t} \gets G_{t} + H_{t}$ and
@@ -631,6 +631,46 @@ $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}$ into three terms:
 In the following sections, we will derive high-probability bounds for
 the latter two terms for specific choices of $H_t$ and $\vec h_t$.
 
+\subsection{Problem-Dependent Regret Bound}%
+\label{sec:prob-dep-regret}
+
+\todo[inline]{Move this to more appropriate place}
+
+\begin{theorem}
+  Suppose that at every round $t$ the decision set has a unique optimal
+  action and every other action incurs a regret at least $\Delta_t$.
+  Let $\Delta$ be a lower bound on all the $\Delta_t$.  We now give a
+  \emph{problem-dependent} regret bound that depends on the $\Delta$.
+\end{theorem}
+
+\begin{proof}
+  Consider the set of rounds up to $t$ on which the learner chooses a
+  sub-optimal action: $B_t = \set{s \le t \given r_t > 0}$ and let
+  $b_t = |B_t|$ be the number of times this happened.  Let $F_t$ be
+  the Gram matrix for just the actions on those rounds:
+  \begin{align*}
+    F_t &\defeq \sum_{s\in B_t} \XtX{\vec x_s}.
+  \end{align*}
+  Now $V_t = G_t + H_t \succeq G_t + H \succeq E_t + H \eqdef U_t$, and
+  $\inv{V_t} \preceq \inv{U_t}$.  We now decompose the regret into the
+  sum of per-round regrets $r_t$ but in a different way than we did in
+  \cref{lemma:linucb-regret}:
+  \begin{align*}
+    \widehat R_n
+    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
+    &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
+    &\le \frac{4\bar\beta_n}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
+    &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
+    &\le \frac{4\bar\beta_n}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
+    &\le \frac{8B^2\bar\beta_n}{\Delta} \log\frac{\det(E_n+H)}{\det H}
+    &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
+    \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
+    \rho_{\min}\Eye{d}$, the regret is bounded by}
+    \widehat R_n &\le \frac{8B^2\bar\beta_n}{\Delta} d\log\frac{L^2b_t + \rho_{\min}}{\rho_{\min}}.
+  \end{align*}
+
+\end{proof}
+
 \subsection{Pan-Privacy with Tree-Based Aggregation}
 \label{sec:tree-mechanism}
 
@@ -641,7 +681,7 @@ $(\varepsilon,\delta)$-differential privacy after composing these $m$
 mechanisms.  Then it is sufficient for each mechanism to be
 $(\varepsilon',\delta')$-differentially private where:
 \begin{align*}
-  \varepsilon' &= \frac{\varepsilon}{2\sqrt{2m\ln\frac{1}{\delta - m\delta'}}} \\
+  \varepsilon'' &= \frac{\varepsilon}{2\sqrt{2m\ln\frac{1}{\delta - m\delta'}}} \\
   \delta' &< \delta/m.
 \end{align*}
 
@@ -665,7 +705,7 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   matrix with each row having $\norm{}{A_{t,:}} \le \tilde L$, and let
   $m \defeq 1 + \ceil{\log_2n}$.  Generate the sequence of matrices
   $(W_t)_{t=1}^n$ using the tree mechanism (\cref{sec:tree-mechanism})
-  with Wishart noise distributed according to
+  with Wishart noise distributed according to \todo{Make sure $k$ below is correct!}
   \begin{align*}
     &\Wishart_p(\tilde L^2\Eye{p}, k),
     &\text{ where } k
@@ -727,7 +767,7 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   $(N_t)_{t=1}^n$ using the tree mechanism (\cref{sec:tree-mechanism})
   with symmetric Gaussian noise; i.e., having equal $(i,j)$ and
   $(j,i)$ entries independently drawn (for each $i \le j$) from the
-  distribution
+  distribution\todo{Make sure the variance below is correct!}
   \begin{align*}
     &\Normal(0, \sigma^2),
     &\text{ where } \sigma^2
@@ -740,8 +780,6 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   Furthermore, each entry of $N_t$ is distributed identically, but not
   independently, according to $\Normal(0, m\sigma^2)$.
 \end{theorem}
-
-\section
 
 
 
@@ -804,9 +842,9 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   From our assumptions that the mean absolute reward is bounded by $B$
   and $\bar\beta_n \ge 1$, we also get that
   $r_t \le 2B \le 2B\sqrt{\bar\beta_n}$.  Putting these together,
-  \begin{align*}
-    r_t &\le 2\sqrt{\bar\beta_n} \min\set{B, \norm{\inv{V_{t-1}}}{\vec x_t}}.
-  \end{align*}
+  \begin{align}\label{eq:regret-bound-oneround}
+    r_t &\le 2\sqrt{\bar\beta_n} \min\set{B, \norm{\inv{V_{t-1}}}{\vec x_t}}
+  \end{align}
   Now we apply Jensen's inequality as follows:
   \begin{align*}
     \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
