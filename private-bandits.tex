@@ -139,10 +139,10 @@
 \declaretheorem[style=definition]{assumption}
 \declaretheorem[style=remark,numbered=no]{remark}
 
-\declaretheorem[style=definition,numbered=no,name=Assumptions]{assumptions*}
+\declaretheorem[style=definition,numbered=no]{assumptions}
 
-\newenvironment{assumptions}[2][]{%
-  \begin{assumptions*}[#1]
+\newenvironment{assumptions*}[2][]{%
+  \begin{assumptions}[#1]
     #2
     \begin{enumerate}[nosep]
       \setcounter{enumi}{\theassumption}
@@ -150,7 +150,7 @@
     }{
       \setcounter{assumption}{\theenumi}
     \end{enumerate}
-  \end{assumptions*}%
+  \end{assumptions}%
 }
 
 \Crefname{assumption}{Assumption}{Assumptions}
@@ -464,7 +464,7 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
 
 We now collect our assumptions about the environment and inputs to the
 algorithm; we will indicate where each of these is used.
-\begin{assumptions}[\Cref{alg:linucb}]{%
+\begin{assumptions*}[\Cref{alg:linucb}]{%
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:}
   \assume[ass:x-bound] $\norm{}{\vec x} \le L$.
   \assume[ass:meanreward-bound]
@@ -479,7 +479,7 @@ algorithm; we will indicate where each of these is used.
     \Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
     &\le \exp(\lambda^2\sigma^2/2), &\text{for all } \lambda\in\Real.
   \end{align*}
-\end{assumptions}
+\end{assumptions*}
 \cref{ass:x-bound,ass:meanreward-bound} are not needed for the
 correctness of the algorithm itself (i.e.\ the accuracy of its
 confidence sets), only for the regret bounds in
@@ -527,7 +527,7 @@ $H_t$ and $\vec h_t$.
   \begin{align*}
     \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
              + S\sqrt{\rho_{\max}} + \gamma. \\
-    \shortintertext{Furthermore, if all $\vec x_s \le L$
+    \shortintertext{Furthermore, if each $\norm{}{\vec x_s} \le L$
     (\cref{ass:x-bound}), then}
     \beta_t &\le \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{tL^2}{d\rho_{\min}}}}
              + S\sqrt{\rho_{\max}} + \gamma.
@@ -674,30 +674,22 @@ $(\varepsilon',\delta')$-differentially private where:
 \subsection{Regret Bounds}
 \label{sec:regret-bounds}
 
-We start by giving a ``generic'' regret bound
-that holds if the confidence sets are accurate.
-
-\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}
-  \label{thm:linucb-regret}%
-  Suppose the mean rewards are bounded:
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ for all $\vec x \in \bigcup_t\Dset{t}$;
-  and $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In
-  the event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence
-  sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le
-  \beta_{t-1}$) and each $V_{t-1} = G_{t-1} + H_{t-1}$ for some
-  symmetric $H,H_0,\dotsc,H_{n-1} \in \Real^{d\times d}$ with all
-  $H_{t-1} \succeq H \succ 0$, the pseudo-regret of \cref{alg:linucb}
+\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
+  \label{thm:linucb-regret}%\
+  Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
+    ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
+  $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
+  probability at least $1-\alpha$ the pseudo-regret of
+  \cref{alg:linucb}
   \begin{align*}
     \widehat R_n
-    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
-      - \innerp{\vec x_t}{\vec\theta*} \\
+    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t} \\
     \shortintertext{satisfies}
     \widehat R_n
-    &\le 2B\bar\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
-    \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
-    \widehat R_n
-    &\le 2B\bar\beta_n \sqrt{2dn \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
+    &\le B\sqrt{8n}\brck*{
+      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      }
   \end{align*}
 \end{restatable}
 
@@ -729,10 +721,10 @@ that holds if the confidence sets are accurate.
     \widehat R_n
     &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
     &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
-    &\le \frac{4\sqrt{\bar\beta_n}}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
+    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
     &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
-    &\le \frac{4\sqrt{\bar\beta_n}}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
-    &\le \frac{8B^2\sqrt{\bar\beta_n}}{\Delta} \log\frac{\det(E_n+H)}{\det H}
+    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
+    &\le \frac{8B^2\beta_n^2d}{\Delta} \log\paren*{1 + \frac{b_n L^2}{d\rho_{\min}}}
     &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
     \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
     \rho_{\min}\Eye{d}$, the regret is bounded by}
