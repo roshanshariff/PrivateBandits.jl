@@ -294,8 +294,8 @@ environment which the agent aims to learn so that she can maximize reward. The g
 
 \paragraph{Joint Differential Privacy.}
 As discussed above, the context and reward may be considered private
-information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, Y_1), (\mathcal{D}_2, Y_2), ..., (\mathcal{D}_n, Y_n) \rangle$ and $S' = \langle (\mathcal{D}'_1, Y'_1), ..., (\mathcal{D}'_n, Y'_n) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_t,Y_t) = (\mathcal{D}'_t, Y_t)$.
-\os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
+information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, y_1), (\mathcal{D}_2, y_2), ..., (\mathcal{D}_n, y_n) \rangle$ and $S' = \langle (\mathcal{D}'_1, y'_1), ..., (\mathcal{D}'_n, y'_n) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
+%\os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
 % For example, a
 % search engine might have a context consisting of a user's search
 % query, identity, interests, and physical location, while the reward
@@ -741,10 +741,43 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   independently, according to $\Normal(0, m\sigma^2)$.
 \end{theorem}
 
-\section
+\section{Lower Bounds}
+\label{sec:lower_bounds}
+
+In this section, we present lower bounds for two versions of the problem we deal with in this work. The first, and probably the more obvious of the two, deals with the impossibility of obtaining sub-linear regret for the contextual bandit problem under the standard notion of differential privacy under continual observation. Here, we assume user $t$ provides a context $c_t$ which actually determines the mapping of the arms into feature vectors: $\phi(c_t, a) \in \Real^d$. The sequence of choice thus made by the learner is $a_1,..., a_n \in \Aset{}^n$ which we aim to maintain private. Formally, two sequences $S = \langle (c_1, y_1),..., (c_n,y_n)\rangle$ and $S' = \langle (c'_1, y'_1),..., (c'_n,y'_n)\rangle$ are called neighbors if there exists a single $t$ such that for any $t'\neq t$ we have $(c_{t'},y_{t'}) = (c'_{t'},y'_{t'})$); and an algorithm $A$ is $(\varepsilon,\delta)$-differentially private if for any two neigboring sequences $S$ and $S'$ and any subsets of sequences of actions ${\cal S}\subset \Aset{}^n$ it holds that $\Pr[A(S)\in\mathcal{S}] \leq e^\varepsilon \Pr[A(S')\in \mathcal{S}] +\delta$. 
+
+\begin{claim}
+\label{clm:standard_contextual_DP_implies_linear_regret}
+For any $\varepsilon < \ln(2)$ and $\delta < 0.25$, any $(\varepsilon,\delta)$-differentially private algorithm $A$ for the contextual bandit problem must incur psuedo-regret of $\Omega(n)$.
+\end{claim}
+\begin{proof}
+We consider a setting with two arms $\Aset{}=\{a^1,a^2\}$ and two possible contexts: $c^1$ which maps $a^1\mapsto \vec\theta^*$ and $a^2 \mapsto -\vec\theta^*$; and $c^2$ which flips the mapping; assuming $\|\vec\theta^*\|=1$ it is evident we incur a psuedo-regret of $2$ when pulling arm $a^1$ is under context $c^2$ or pulling arm $a^2$ under $c^2$. Fix a day $t$ and a history of previous inputs and arm pulls $H_{t-1}$. Consider a pair of neighboring sequences that agree on the history $H_{t-1}$ and differ just on day $t$ --- in $S$ the context $c_t =c^1$ whereas in $S'$ it is $c^2$. Denote $\mathcal{S}$ as the subset of action sequences that are fixed on the first $t-1$ days according to $H_{t-1}$, thet $t$-th action is $a^1$ and have all possible actions on days $>t$. Differential privacy w.r.t to $\mathcal{S}$ gives thus that $\Pr[a_t = a^1 |~S] = \Pr[A(S)\in \mathcal{S}] \leq e^\varepsilon \Pr[a_t=a^1 |~S'] + \delta$. Consider an adversary that sets the context of day $t$ to be either $c^1$ or $c^2$ uniformly and independently of other days. The psuedo-regret incured on day $t$ is thus: $2\cdot \tfrac 1 2 \left( \Pr[a_t=a^2|~S] + \Pr[a_t=a^1|~S'] \right)  = (1- \Pr[a_t=a^1|~S]) + e^{-\varepsilon}(\Pr[a_t=a^1|~S]-\delta) > 1 + \Pr[a_t=a^2|~S](e^{-\varepsilon}-1) - \delta > 1 - 1\cdot \tfrac 1 2 - \tfrac 1 4 = \tfrac 1 4$. Thus our algorithm incurs a psuedo-regret cost of $\tfrac n 4$.
+\end{proof}
+
+The second lower bound we show is more challenging. Here we show that any $\varepsilon$-differentially private algorithm for the classic MAB problem must incur \emph{an additional} psuedo-regret of $\Omega( k\log(n)/\epsilon)$ on top of the standard (non-private) regret bounds. 	We consider an instance of the MAB where the leading arm is $a^1$, the rewards are drawn from a distribution over $\{-1,1\}$, and the gap between the means of arm $a^1$ and arm $a^i$ is $\Delta_i$. Simple calculation shows that for such distributions, the total-variation distance between two distributions whose means are $\mu$ and $\mu-\Delta$ is $\Delta/2$. Fix $\Delta_2, \Delta_3,...,\Delta_k$ as some small constants, and we now argue the following.
+\begin{claim}
+\label{clm:LB_pulling_any_arms_many_times}
+Let $A$ be any $\varepsilon$-differentially private algorithm for the MAB problems with $k$ arms whose expected regret is at most $n^{3/4}$. Fix any arm $a\neq a^1$, whose difference between it and the optimal arm $a^1$ is $\Delta_a$. Then, for sufficiently large $n$s, $A$ pulls arm $a$ at least $\tfrac {\log(n)}{100\varepsilon\Delta_a}$ many times w.p. $\geq \nicefrac 1 2$.
+\end{claim}
+We comment that the constant $3/4$ was chosen arbitrarily, and we only require a regret upper bound of $n^{1-c}$ for some $c>0$. Of course, we could have used standard assumptions, where the regret is asymptotically smaller than \emph{any} polynomial, yet our goal was to separate the standard consistency assumption of utility from a much weaker requirement needed for the private regret bound.
+As an immediate corollary we obtain the following \emph{private} regret bound:
+\begin{corollary}
+\label{cor:LB_private_MAB}
+The expected psuedo-regret of any $\varepsilon$-differentially private algorithm from the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\left( \sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$ we get that the private regret bound of the $\max$ of the two terms, i.e.: $\Omega\left( \tfrac {k\log(n)}{\varepsilon}+\sum\limits_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$.
+\end{corollary}
+\begin{proof}
+Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected psuedo-regret is $\geq \sum\limits_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
+\end{proof}
+\begin{proof}[Proof of Claim~\ref{clm:LB_pulling_any_arms_many_times}]
+Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions of the arms. Denote $E$ as the event that arm $a$ is pulled $<\tfrac{\log(n)}{100\varepsilon\Delta_a} \stackrel{\rm def}= t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
+
+To that end, we postulate a different distribution for the rewards of arm $a$ -- a new distribution whose mean is \emph{greater} by $\Delta_a$ than the mean reward of arm $a^1$. The total-variation distance between the given distribution and the postulate distribution is thus $\Delta_a$. Denote $\bar Q$ as the vector of distributions of arm-rewards (where only $P_a \neq Q_a$). We now argue that should the rewards be drawn from $\bar Q$, then the event $E$ is highly-unlikely: $\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \tfrac 2{\Delta_a}n^{-1/4}$. Indeed, the argument is based on a standard Markov-like argument: the expected pseudo-regret of $A$ is $<n^{3/4}$, yet it is $\geq \Pr_{A;~{\rm rewards}\sim \bar Q}[E]\cdot (n-t_a) \Delta_a \geq n\tfrac{\Delta_a}2\Pr_{A;~{\rm rewards}\sim \bar Q}[E]$.
 
 
+We now apply a beautiful result of~\cite{KarwaVadhanFiniteSampleDP2017} (Lemma 6.1), stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or distribution $Q$ is proportional to $\epsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is $t_a$, and the elegant coupling arguming of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. Maybe to better illustrate the point, let us consider an algorithm that, using the~\cite{KarwaVadhanFiniteSampleDP2017} argument, generates a collection of $t_a$ pairs of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$ and, in expectation, in $(1-\Delta_a)$ fraction of them the right- and the left-samples are identical. This algorithm declares {\tt success} when it never runs out of samples and {\tt failure} otherwise. Due to group privacy, oracle invocations coming from $A$ to this algorithm that either always ask for the left sample or always ask for the right sample should therefore trigger {\tt success} with similar probability, different only up to a factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as {\tt success} is quite unlikely when asked only for right-samples, it is only fairly unlikely when asked only for left-samples. 
 
+In conclusion we get that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\varepsilon\Delta_a t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot \tfrac 2{\Delta_a}n^{-1/4} = n^{-0.19}\tfrac 2{\Delta_a} \leq \nicefrac 1 2$ for sufficiently large $n$s, proving the required.
+\end{proof}
 \bibliographystyle{plainnat}
 \bibliography{references,zotero-references}
 
