@@ -139,6 +139,20 @@
 \declaretheorem[style=definition]{assumption}
 \declaretheorem[style=remark,numbered=no]{remark}
 
+\declaretheorem[style=definition,numbered=no,name=Assumptions]{assumptions*}
+
+\newenvironment{assumptions}[2][]{%
+  \begin{assumptions*}[#1]
+    #2
+    \begin{enumerate}[nosep]
+      \setcounter{enumi}{\theassumption}
+      \newcommand{\assume}[1][]{\item\label[assumption]{##1}}
+    }{
+      \setcounter{assumption}{\theenumi}
+    \end{enumerate}
+  \end{assumptions*}%
+}
+
 \Crefname{assumption}{Assumption}{Assumptions}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,14 +243,6 @@ preferences to all users at times $t'>t$.\footnote{The guarantee of
   entire sequence of actions and rewards preserve privacy.  Hence, even
   if all later user collude in an effort to learn user $t$'s context,
   they still have very limited advantage over a random guess.}
-
-\todo[inline]{Consider non-contextual bandits; only the rewards are
-  private.  Does this help with the counter-example against optimism
-  in Tor's paper?}
-
-\todo[inline]{Looks like a $d^2$ dependence is necessary: consider
-  $\vec\theta^*=\paren{\pm 1/d, \dotsc}$ and the actions are $e_i$.  Then
-  you need $d^2\log d$ samples?\\Why? I need further explanation here.}
 
 \subsection{Background and Problem Formulation}
 \label{subsec:intro_background}
@@ -403,9 +409,9 @@ is natural to center the confidence set $\E_{t+1}$ on the
   = \inv{(\XtX{\vec X_t} + H_t)} \transp{\vec X_t} \vec y_t.
 \end{align*}
 The matrix $V_t \defeq G_t + H_t \in \Real^{d\times d}$ is the regularized
-version of the Gram matrix $G_t \defeq \XtX{\vec X_t}$.  Whenever the
-learner chooses an action vector, the corresponding reward gives it
-some information about the projection of $\vec\theta^*$ onto that
+version of the Gram matrix $G_t \defeq \XtX{\vec X_{t-1}}$.  Whenever
+the learner chooses an action vector, the corresponding reward gives
+it some information about the projection of $\vec\theta^*$ onto that
 vector.  In other words, the estimate $\hat{\vec\theta}$ is probably
 closer to $\vec\theta^*$ along directions of $\Real^d$ where many
 actions have been taken.  This motivates the use of ellipsoidal
@@ -417,15 +423,15 @@ confidence level, as prescribed by \cref{prop:calc-beta}.
   \E_t &\defeq \set{\vec\theta\in\Real^d \given
         \norm{V_t}{\vec\theta-\hat{\vec\theta}_t} \le \beta_t},
   &\text{ for which }
-    \UCB_t(\vec x) &= \innerp{\hat{\vec\theta}}{\vec x} + \sqrt{\beta_t}\norm{\inv{V_t}}{\vec x}.
+    \UCB_t(\vec x) &= \innerp{\hat{\vec\theta}}{\vec x} + \beta_t\norm{\inv{V_t}}{\vec x}.
 \end{align}
 
 Just as the changing regularizer $H_t$ perturbs the Gram matrix $G_t$,
 our algorithm allows for the vector
 $\vec u_t \defeq \transp{\vec X_t} \vec y_t$ to be perturbed by a
 changing $\vec h_t$ to get
-$\tilde{\vec u}_t \defeq \vec u_t + \vec h_t$.  Instead of the
-estimate $\hat{\vec\theta}_t$, it uses
+$\tilde{\vec u}_t \defeq \vec u_t + \vec h_t$.  The estimate
+$\hat{\vec\theta}_t$ is replaced by
 $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
 
 \begin{algorithm}
@@ -452,35 +458,33 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
 \end{algorithm}
 
 We now collect our assumptions about the environment and inputs to the
-algorithm; we will indicate where each of these is used.  It is
-important to note that of these, only \cref{ass:x-bound} is needed for
-the algorithm to be differentially private (see \cref{sec:alg-dp}).
-
-\paragraph*{Assumptions.}
-For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:
-\begin{enumerate}[nosep]
-  \setcounter{enumi}{\theassumption}
-\item\label[assumption]{ass:x-bound} $\norm{}{\vec x} \le L$.
-\item\label[assumption]{ass:thetastar-bound} $\norm{}{\vec\theta^*} \le S$.
-\item\label[assumption]{ass:meanreward-bound}
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$.
-\item\label[assumption]{ass:linear-reward}
-  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
-\item\label[assumption]{ass:subgaussian} $\sigma^2$-conditionally
-  subgaussian reward noise $\eta_t$ given actions and previous
-  rewards:
+algorithm; we will indicate where each of these is used.
+\begin{assumptions}[\Cref{alg:linucb}]{%
+    For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:}
+  \assume[ass:x-bound] $\norm{}{\vec x} \le L$.
+  \assume[ass:meanreward-bound] $\abs{\innerp{\vec\theta^*}{\vec x}}
+  \le B$.
+  \assume[ass:thetastar-bound] $\norm{}{\vec\theta^*} \le S$.
+  \assume[ass:linear-reward] $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
+  \assume[ass:psd-reg] $H_t \succ 0$ is symmetric.
+    \assume[ass:subgaussian] $\sigma^2$-conditionally subgaussian reward
+  noise $\eta_t$ given actions and previous rewards:
   \begin{align*}
     \Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
     &\le \exp(\lambda^2\sigma^2/2), &\text{for all } \lambda\in\Real.
   \end{align*}
-  \setcounter{assumption}{\theenumi}
-\end{enumerate}
+\end{assumptions}
+\cref{ass:x-bound,ass:meanreward-bound} are not needed for the
+correctness of the algorithm itself, only for the regret bounds in
+\cref{sec:regret-bounds}.  Conversely, it is important to note that of
+these, only \cref{ass:x-bound} is needed for the algorithm to be
+differentially private (see \cref{sec:alg-dp}).
 
-\Cref{alg:linucb} relies on accurate confidence sets that nevertheless
-tightly concentrate around the unknown $\vec\theta^*$.  In other
-words, the $\beta_t$ should be as small as possible while accounting
-for the noise $\eta_t$ and the perturbations caused by $H_t$ and
-$\vec h_t$.
+The algorithm relies upon the confidence ellipsoids to be accurate but
+nevertheless tightly concentrated around the unknown $\vec\theta^*$.
+In other words, the $\beta_t$ should be as small as possible while
+accounting for the noise $\eta_t$ and the perturbations caused by
+$H_t$ and $\vec h_t$.
 
 \begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
   A sequence $(\beta_t)_{t=1}^n$ is $(\alpha, n)$-\emph{accurate} for
@@ -492,9 +496,9 @@ $\vec h_t$.
 
 \begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
   $\gamma$]\label{def:accurate-params}
-  The parameters $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
-  $\alpha$-accurate for some $H_t$ and $\vec h_t$ if the following hold
-  with probability at least $1-\alpha$:
+  The tail bounds $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
+  $\alpha$-\emph{accurate} for some $H_t$ and $\vec h_t$ if the
+  following hold with probability at least $1-\alpha$:
   \begin{align*}
     \norm{}{H_t} &\le \rho_{\max},
     &\norm{}{\inv{H_t}} &\le \rho_{\min},
@@ -504,14 +508,16 @@ $\vec h_t$.
 
 \begin{restatable}[Calculating $\beta_t$]{proposition}{CalcBeta}%
   \label{prop:calc-beta}
-  Suppose \cref{ass:thetastar-bound,ass:linear-reward,ass:subgaussian}
-  hold, i.e.\ $\norm{}{\vec\theta^*} \le S$ and the reward is linear
-  with $\sigma^2$-subgaussian noise.  For some $\alpha\in(0,1)$,
-  horizon $n$, and sequences $(H_t)_{t=1}^n$ and $(\vec h_t)_{t=1}^n$,
-  let $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ be
-  $\alpha/(2n)$-accurate according to \cref{def:accurate-params} for
-  each round separately.  Then the sequence $(\beta_t)_{t=1}^n$ is
-  $(\alpha,n)$-accurate according to \cref{def:accurate-beta}:
+  Suppose
+  \cref{ass:thetastar-bound,ass:linear-reward,ass:psd-reg,ass:subgaussian}
+  hold, i.e.\ $\norm{}{\vec\theta^*} \le S$, $H_t \succeq 0$, and the
+  rewards are linear with $\sigma^2$-subgaussian noise.  For some
+  $\alpha\in(0,1)$, horizon $n$, and sequences $(H_t)_{t=1}^n$ and
+  $(\vec h_t)_{t=1}^n$, let $0 < \rho_{\min} \le \rho_{\max}$ and
+  $\gamma$ be $\alpha/(2n)$-accurate tail bounds according to
+  \cref{def:accurate-params} for each round separately.  Then the
+  sequence $(\beta_t)_{t=1}^n$ is $(\alpha,n)$-accurate according to
+  \cref{def:accurate-beta}:
   \begin{align*}
     \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
              + S\sqrt{\rho_{\max}} + \gamma. \\
@@ -778,6 +784,18 @@ We now apply a beautiful result of~\cite{KarwaVadhanFiniteSampleDP2017} (Lemma 6
 
 Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFiniteSampleDP2017} to infer that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\varepsilon\Delta_a t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot \tfrac 2{\Delta_a}n^{-1/4} = n^{-0.19}\tfrac 2{\Delta_a} \leq \nicefrac 1 2$ for sufficiently large $n$s, proving the required.
 \end{proof}
+
+\section{Conclusions and Future Work}
+\label{sec:conclusions}
+
+\subsection{Future Work}
+\label{sec:future-work}
+
+\todo[inline]{Consider non-contextual bandits; only the rewards are
+  private.  Does this help with the counter-example against optimism
+  in Tor's paper?}
+
+
 \bibliographystyle{plainnat}
 \bibliography{references,zotero-references}
 
