@@ -467,20 +467,22 @@ algorithm; we will indicate where each of these is used.
 \begin{assumptions}[\Cref{alg:linucb}]{%
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:}
   \assume[ass:x-bound] $\norm{}{\vec x} \le L$.
-  \assume[ass:meanreward-bound] $\abs{\innerp{\vec\theta^*}{\vec x}}
-  \le B$.
+  \assume[ass:meanreward-bound]
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$.
   \assume[ass:thetastar-bound] $\norm{}{\vec\theta^*} \le S$.
-  \assume[ass:linear-reward] $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
+  \assume[ass:linear-reward]
+  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
   \assume[ass:psd-reg] $H_t \succ 0$ is symmetric.
-    \assume[ass:subgaussian] $\sigma^2$-conditionally subgaussian reward
-  noise $\eta_t$ given actions and previous rewards:
+  \assume[ass:subgaussian] $\eta_t$ is $\sigma^2$-conditionally
+  subgaussian given actions and previous rewards:
   \begin{align*}
     \Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
     &\le \exp(\lambda^2\sigma^2/2), &\text{for all } \lambda\in\Real.
   \end{align*}
 \end{assumptions}
 \cref{ass:x-bound,ass:meanreward-bound} are not needed for the
-correctness of the algorithm itself, only for the regret bounds in
+correctness of the algorithm itself (i.e.\ the accuracy of its
+confidence sets), only for the regret bounds in
 \cref{sec:regret-bounds}.  Conversely, it is important to note that of
 these, only \cref{ass:x-bound} is needed for the algorithm to be
 differentially private (see \cref{sec:alg-dp}).
@@ -515,14 +517,13 @@ $H_t$ and $\vec h_t$.
   \label{prop:calc-beta}
   Suppose
   \cref{ass:thetastar-bound,ass:linear-reward,ass:psd-reg,ass:subgaussian}
-  hold, i.e.\ $\norm{}{\vec\theta^*} \le S$, $H_t \succeq 0$, and the
+  hold, i.e.\ $\norm{}{\vec\theta^*} \le S$, $H_t \succ 0$, and the
   rewards are linear with $\sigma^2$-subgaussian noise.  For some
-  $\alpha\in(0,1)$, horizon $n$, and sequences $(H_t)_{t=1}^n$ and
-  $(\vec h_t)_{t=1}^n$, let $0 < \rho_{\min} \le \rho_{\max}$ and
-  $\gamma$ be $\alpha/(2n)$-accurate tail bounds according to
-  \cref{def:accurate-params} for each round separately.  Then the
-  sequence $(\beta_t)_{t=1}^n$ is $(\alpha,n)$-accurate according to
-  \cref{def:accurate-beta}:
+  $\alpha\in(0,1)$ and horizon $n$, let
+  $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ be
+  $\alpha/(2n)$-accurate tail bounds for each round separately
+  (\cref{def:accurate-params}).  Then the sequence $(\beta_t)_{t=1}^n$
+  is $(\alpha,n)$-accurate (\cref{def:accurate-beta}):
   \begin{align*}
     \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
              + S\sqrt{\rho_{\max}} + \gamma. \\
@@ -538,14 +539,15 @@ $H_t$ and $\vec h_t$.
 
 Notice that \cref{alg:linucb} uses its history of actions and rewards
 up to round $t$ only via the confidence set $\E_t$, which is to say
-the Gram matrix $G_t\defeq\XtX{\vec X_{t-1}}$ and the vector
-$\vec u_t \defeq \transp{\vec X_t} \vec y_t$; these also determine
-$\beta_t$.  By recording this history with differential privacy, we
-obtain a Linear UCB algorithm that is jointly differentially private
-(\cref{def:joint-dp}) because it simply post-processes $G_t$ and
-$\vec u_t$
-\citep[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
-\begin{claim}
+$V_t$ and $\tilde{\vec u}_t$, which are perturbations of the Gram
+matrix $G_t\defeq\XtX{\vec X_{t-1}}$ and the vector
+$\vec u_t \defeq \transp{\vec X_t} \vec y_t$, respectively; these also
+determine $\beta_t$.  By recording this history with differential
+privacy, we obtain a Linear UCB algorithm that is jointly
+differentially private (\cref{def:joint-dp}) because it simply
+post-processes $G_t$ and $\vec u_t$.
+
+\begin{claim}[{\citealp[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}}]
   If the sequence $(V_t,\tilde{\vec u}_t)_{t=1}^{n-1}$ is
   $(\varepsilon,\delta)$-differentially private with respect to
   $(\vec x_t, y_t)_{t=1}^{n-1}$, then \cref{alg:linucb} is
@@ -565,20 +567,23 @@ $\vec u_t$
 
 To make the following exposition simpler, define the matrix
 $A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
-\Real^{n\times(d+1)}$, with $A_t$ being the top $t-1$ rows of $A$
-(and $A_1 = \vec 0_{1\times(d+1)}$).  Then the top-left $d\times d$
-submatrix of $M_t \defeq \XtX{A_t}$ is the Gram matrix $G_t$ and the
+\Real^{n\times(d+1)}$, with $A_t$ being the top $t-1$ rows of $A$ (and
+$A_1 = \vec 0_{1\times(d+1)}$).  Then the top-left $d\times d$
+sub-matrix of $M_t \defeq \XtX{A_t}$ is the Gram matrix $G_t$ and the
 first $d$ entries of its last column are
 $\vec u_t = \transp{\vec X_{t-1}}\vec y_{t-1}$.  It therefore suffices
-to maintain a differentially private approximation of $M_t$.
+to maintain a differentially private approximation of $M_t$. Since
+\cref{alg:linucb} allows for additive perturbations $H_t$ and $h_t$,
+we can use any privacy mechanism that uses additive noise, releasing
+$M_t + N_t$.  The top-left $d\times d$ sub-matrix of $N_t$ becomes
+$H_t$ and the first $d$ entries of its last column become $\vec h_t$.
 
 \begin{assumption}\label{ass:bounded-data}
   Each row of $A$ is bounded:
-  $\sqrt{\norm{}{\vec x_t}^2 + y_t^2} \le \tilde L$ for all rounds
-  $t$.  In particular, this holds if $\vec x_t \le L$
-  (\cref{ass:x-bound}) and the actual rewards are bounded (not just
-  their means as in \cref{ass:meanreward-bound}):
-  $\abs{y_t} \le \tilde B$.
+  $\norm{}{\vec x_t}^2 + y_t^2 \le \tilde L^2$ for all rounds $t$.  In
+  particular, this holds if $\vec x_t \le L$ (\cref{ass:x-bound}) and
+  the rewards are bounded: $\abs{y_t} \le \tilde B$ (not just their
+  means as in \cref{ass:meanreward-bound}).
 \end{assumption}
 
 \subsection{Pan-Privacy with Tree-Based Aggregation}
@@ -595,50 +600,36 @@ $(\varepsilon',\delta')$-differentially private where:
   \delta' &< \delta/m.
 \end{align*}
 
-\subsection{Differential Privacy via Additive Wishart Noise}
+\subsection{Differential Privacy via Wishart Noise}
 \label{sec:dp-wishart}
 
 \begin{theorem}%
   \label{thm:wishart-cont-dp}
-  Fix $\varepsilon$ and a sufficiently small $\delta$, let $A\in\Real^{n\times p}$ be a
-  matrix with each row having $\norm{}{A_{t,:}} \le \tilde L$, and let
-  $m \defeq 1 + \ceil{\log_2n}$.  Generate the sequence of matrices
-  $(W_t)_{t=1}^n$ using the tree mechanism (\cref{sec:tree-mechanism})
-  with Wishart noise distributed according to \todo{Make sure $k$ below is correct!}
+  Fix $\varepsilon$ and a sufficiently small $\delta$, let
+  $A\in\Real^{n\times p}$ be a matrix satisfying
+  \cref{ass:bounded-data}, and define $m \defeq 1 + \ceil{\log_2n}$.
+  Generate the sequence of matrices $(W_t)_{t=1}^n$ using the tree
+  mechanism of \cref{sec:tree-mechanism} with Wishart noise distributed
+  according to \todo{Make sure $k$ below is correct!}
   \begin{align*}
     &\Wishart_p(\tilde L^2\Eye{p}, k),
     &\text{ where } k
     &\defeq p + \floor*{\frac{224}{\varepsilon^2} \cdot m\ln^2\paren*{\frac{4m+1}{\delta}}}.
   \end{align*}
-  Then releasing the sequence $(\XtX{A_{1:t,:}} + W_t)_{t=1}^n$ is
+  Then the sequence $(M_t + W_t)_{t=1}^n$ is
   $(\varepsilon,\delta)$-differentially private with respect to
   changing a single row of $A$.
 
   Furthermore, each $W_t$ is distributed identically, but not
-  independently, according to $\Wishart_p(\tilde L^2\Eye{p}, mk)$.
-\end{theorem}
-
-\todo[inline]{Be explicit about how to get $H_t$ and $\vec h_t$ from $W_t$.}
-
-\begin{corollary}%
-  \label{cor:wishart-alg}
-  \Cref{alg:linucb} is $(\varepsilon,\delta)$-jointly differentially
-  private when run using the differentially private histories
-  described in \cref{thm:wishart-cont-dp}.  Now fix
-  $\alpha\in(0,1)$ and define
+  independently, according to $\Wishart_p(\tilde L^2\Eye{p}, mk)$, which
+  gives the following $\alpha/(2n)$-accurate tail bounds for each
+  round separately:
   \begin{align*}
-    H
-    &\defeq \tilde L^2\paren*{\sqrt{mk} - \sqrt{d} - \sqrt{2\ln\frac{4n}{\alpha}}}^2\Eye{d} \\
-    \beta_t
-    &\defeq \sigma\sqrt{2\ln\frac{n}{\alpha} + \log\frac{\det V_t}{\det H}}
-      + S \tilde L \paren*{\sqrt{mk} + \sqrt{d} + \sqrt{2\ln\frac{4n}{\alpha}}}
-      + \tilde L \sqrt{d + 2\sqrt{d\ln\frac{2n}{\alpha}} + 2\ln\frac{2n}{\alpha}}.
+    \rho_{\min}, \rho_{\max} &\defeq \tilde L^2 \paren*{\sqrt{mk}
+                             \pm \paren*{\sqrt{d} + \sqrt{2\ln\frac{8n}{\alpha}}}}^2,
+    &\gamma &\defeq \sqrt{d} + \sqrt{2\ln\frac{2n}{\alpha}}.
   \end{align*}
-  With probability at least $1-\alpha$, the following hold for rounds
-  $t = 1,\dotsc,n-1$: $H_t \succeq H$ and
-  $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
-  \beta_t$.
-\end{corollary}
+\end{theorem}
 
 \subsection{Differential Privacy via Additive Gaussian Noise}
 \label{sec:dp-gauss}
