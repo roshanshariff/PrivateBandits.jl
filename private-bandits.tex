@@ -48,8 +48,7 @@
 \usepackage{setspace}
 \usepackage{tikz-cd}
 \usepackage{booktabs}
-\usepackage[boxed]{algorithm}
-\usepackage{algpseudocode}
+\usepackage{algpseudocode,algorithm}
 \usepackage{multicol}
 %\usepackage{fullpage}
 \usepackage{color}
@@ -134,6 +133,7 @@
 \declaretheorem[style=plain]{theorem}
 \declaretheorem[style=plain,sibling=theorem]{lemma}
 \declaretheorem[style=plain,sibling=theorem]{corollary}
+\declaretheorem[style=plain,sibling=theorem]{proposition}
 \declaretheorem[style=remark,sibling=theorem]{claim}
 \declaretheorem[style=definition]{definition}
 \declaretheorem[style=definition]{assumption}
@@ -169,13 +169,15 @@
 \label{sec:introduction}
 
 The \emph{stochastic multi-armed bandit} (MAB) is a well-known
-sequential decision-making task: in every round, a learner
-chooses an action (or arm) and receives a corresponding
-reward drawn iid from an unknown distribution associated with the chosen action action.  The objective is to maximize the cumulative reward by learning from the past rewards associated with the
-different actions.  The \emph{contextual} bandit problem is an
-extension of MAB, where in each round we are also given an arbitrary
-context, and the reward is now drawn from a distribution
-that depends on \emph{both} the context and the selected action.
+sequential decision-making task: in every round, a learner chooses an
+action (or arm) and receives a corresponding reward drawn i.i.d.\ from
+an unknown distribution associated with the chosen action action.  The
+objective is to maximize the cumulative reward by learning from the
+past rewards associated with the different actions.  The
+\emph{contextual} bandit problem is an extension of MAB, where in each
+round we are also given an arbitrary context, and the reward is now
+drawn from a distribution that depends on \emph{both} the context and
+the selected action.
 
 % Since the agent only observes the reward for actions it takes, this
 % is an online learning task with partial information.  Learning the
@@ -191,7 +193,7 @@ past history of clicks, website visits etc), and in response the site
 surfaces a potential ad and receives a reward if the user clicks the
 ad.  Ignoring the context and modeling the problem as a standard MAB
 (with each possible ad as an action) suffers from the drawback of
-ignoring the variety of users' preferences; whereas modeling the
+ignoring the variety of users' preferences; whereas mode-ling the
 problem as an independent learning task per user prevents
 generalization between users.  As a result, it is common to model the problem as a
 contextual linear-bandit problem.  Based on the user-given context,
@@ -257,7 +259,7 @@ In the contextual bandit problem, the algorithm also receives a
 reward is assumed to depend on both the context and the choset action $a_t$.  To
 take advantage of the context while choosing actions, we will assume
 that the context affects the reward in a linear way, in the following
-sense.  We assume the existance of a known \emph{mapping}
+sense.  We assume the existence of a known \emph{mapping}
 $\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
 pair to a $d$-dimensional \emph{feature vector}.  We will assume that
 the reward is a linear function of the feature vector, with some added
@@ -278,19 +280,6 @@ framework is composed of repeated rounds in which
 \end{enumerate}
 The vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
 environment which the agent aims to learn so that she can maximize reward. The goal of the learner is thus to minimize her expected regret...\os{Define the objective: minimizing expected regret --- perhaps justify why we chose this objective (standard, implies similar objectives etc)}
-
-\begin{assumption}[Subgaussian noise]\label{assumption:subgaussian-noise}
-  We denote by
-  $\mathcal{F}_t =
-  \sigma(\mathcal{D}_1,X_1,Y_1,\dotsc,\mathcal{D}_{t-1},X_{t-1},Y_{t-1},\mathcal{D}_t,X_t)$
-  all the information available just before the noise $\eta_t$ is
-  observed.  We assume that $\eta_t$ is \emph{conditionally
-    $\sigma^2$-subgaussian:}
-  $
-    \Ex{\exp(\lambda\eta_t)\given \mathcal{F}_t} \le \exp(\lambda^2\sigma^2/2)$,
-    for all  $\lambda\in\Real$
-    \os{So we don't assume the reward is bounded?!? Do we project it onto a likely interval then? Or do we assume sub-gaussianity for the first part, then for privacy, we assume bounded noise?}
-\end{assumption}
 
 \paragraph{Joint Differential Privacy.}
 As discussed above, the context and reward may be considered private
@@ -400,76 +389,66 @@ overview of the field.
 \section{Differentially Private Linear UCB}
 
 Our differentially private contextual linear bandit algorithm is based
-on the well-studied LinUCB, an adaptation of the Upper Confidence
-Bound (UCB) algorithm to stochastic linear bandits
+on the well-studied LinUCB algorithm, an application of the Upper
+Confidence Bound (UCB) idea to stochastic linear bandits
 \citep{DaniStochasticLinearOptimization2008,RusmevichientongLinearlyParameterizedBandits2010,AbbasiYadkoriImprovedAlgorithmsLinear2011}.
-At every round, LinUCB constructs a \emph{confidence set} $\E_t$
+At every round $t$, LinUCB constructs a \emph{confidence set} $\E_t$
 containing the unknown parameter vector $\vec\theta^*$ with high
-probability.  It then computes a UCB for the reward of each action in
-the decision set $\Dset{t}$, and ``optimistically'' chooses the action
-with the highest UCB:
+probability.  It then computes an upper confidence bound on the reward
+of each action in the decision set $\Dset{t}$, and ``optimistically''
+chooses the action with the highest UCB:
 \begin{align}\label{eq:def-ucb}
   \vec x_t &\gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x),
   &\text{where }
-  \UCB_t(\vec x) &\defeq \max_{\vec\uptheta\in\E_t} \innerp{\vec\uptheta}{\vec x}.
+  \UCB_t(\vec x) &\defeq \max_{\vec\theta\in\E_t} \innerp{\vec\theta}{\vec x}.
 \end{align}
-With the rewards being linear with added subgaussian noise (i.e.,
-$y_s = \innerp{\vec\theta^*}{X_s} + \eta_s$ for $s=1,\dotsc,t$) it is
-natural to centre the confidence set $\E_{t+1}$ on the (regularized)
-linear regression estimate:
+We assume the rewards are linear with added subgaussian noise (i.e.,
+$y_s = \innerp{\vec\theta^*}{\vec x_s} + \eta_s$ for $s=1,\dotsc,t$), so it
+is natural to center the confidence set $\E_{t+1}$ on the
+(regularized) linear regression estimate:
 \begin{align*}
   \hat{\vec\theta}_t &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_t \hat{\vec\theta} - \vec y_t}^2 + \norm{H_t}{\hat{\vec\theta}}^2
-  = \inv{(\transp{\vec X_t} \vec X_t + H_t)}\transp{\vec X_t} \vec y_t.
+  = \inv{(\XtX{\vec X_t} + H_t)} \transp{\vec X_t} \vec y_t.
 \end{align*}
 The matrix $V_t \defeq G_t + H_t \in \Real^{d\times d}$ is the regularized
-version of the Gram matrix $G_t \defeq \transp{\vec X_t} \vec X_t$.  As
-with LinUCB, we use ellipsoidal confidence sets of the form
+version of the Gram matrix $G_t \defeq \XtX{\vec X_t}$.  Whenever the
+learner chooses an action vector, the corresponding reward gives it
+some information about the projection of $\vec\theta^*$ onto that
+vector.  In other words, the estimate $\hat{\vec\theta}$ is probably
+closer to $\vec\theta^*$ along directions of $\Real^d$ where many
+actions have been taken.  This motivates the use of ellipsoidal
+confidence sets that are smaller in these directions, inversely
+related to the corresponding eigenvalues of $G_t$ (and $V_t$). The
+ellipsoid is uniformly scaled by $\beta_t$ to achieve the desired
+confidence level, as prescribed by \cref{prop:calc-beta}.
 \begin{align}\label{eq:def-ellip}
-  \E_{t+1} &\defeq \set{\vec\theta\in\Real^d \given \norm{\inv{V_t}}{\vec\theta-\hat{\vec\theta}_t}^2 \le \beta_t},
+  \E_t &\defeq \set{\vec\theta\in\Real^d \given
+        \norm{V_t}{\vec\theta-\hat{\vec\theta}_t} \le \beta_t},
+  &\text{ for which }
+    \UCB_t(\vec x) &= \innerp{\hat{\vec\theta}}{\vec x} + \sqrt{\beta_t}\norm{\inv{V_t}}{\vec x}.
 \end{align}
-where $\beta_t$ scales the size of the ellipsoid and will be calculated
-later to yield high-probability confidence sets.
 
-We now discuss our modifications to LinUCB to achieve differential
-privacy.  Notice that the history of actions and rewards up to round
-$t$ is used only via the confidence set $\E_{t+1}$, which is to say
-the Gram matrix $G_t$ and the vector
-$\vec u_t \defeq \transp{\vec X_t} \vec y_t$ (these also determine $\beta_t$,
-as we will see).  By recording this history with differential privacy,
-we obtain a linear UCB algorithm that is also differentially private
-because it simply post-processes $G_t$ and $\vec u_t$
-\citep[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
-
-Our first modification is to use a regularizer matrix $H_t$ that
-changes at each round, which to our knowledge has not been considered
-in previous work.  If $H_t$ is a noise matrix appropriately chosen to
-ensure differential privacy, then $V_t$ becomes a ``privacy-preserving
-approximation'' of $G_t$.  Similarly, our second modification
-maintains the privacy of the observed rewards (not just the action
-vectors): we replace $\vec u_t \defeq \transp{\vec X_t} \vec y_t$ with
-a private approximation $\tilde{\vec u}_t = \vec u_t + \vec h_t$.
-These two modifications result in \cref{alg:linucb}, with confidence
-sets $\E_{t+1}$ centered at
-$\tilde{\vec\theta}_t \defeq \inv{V_t} \tilde{\vec u}_t$.
+Just as the changing regularizer $H_t$ perturbs the Gram matrix $G_t$,
+our algorithm allows for the vector
+$\vec u_t \defeq \transp{\vec X_t} \vec y_t$ to be perturbed by a
+changing $\vec h_t$ to get
+$\tilde{\vec u}_t \defeq \vec u_t + \vec h_t$.  Instead of the
+estimate $\hat{\vec\theta}_t$, it uses
+$\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
 
 \begin{algorithm}
-  \caption{Linear UCB with changing regularizers}\label{alg:linucb}
+  \caption{Linear UCB with Changing Perturbations}\label{alg:linucb}
   \begin{algorithmic}
-        \State \textbf{Initialize:} $G_1 \gets 0_{d\times d}$, $u_1\gets \vec 0_{d}$.
-    \For{each round $t \in 1,2,\dotsc,n$}
+    \State \textbf{Initialize:} $G_1 \gets 0_{d\times d}$,
+    $u_1\gets \vec 0_{d}$.
+    \For{each round $t = 1,2,\dotsc,n$}
     \State Receive $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
-    \State Receive regularizers $H_t$ and $\vec h_t$ and set $V_{t} \gets G_{t} + H_{t}$ and
-    %\Comment{privacy-preserving ${} \approx G_{t-1}$}
-    $\tilde{\vec u_{t}} \gets \vec u_{t} + \vec h_{t}$
-    %\Comment{privacy-preserving ${} \approx \transp{X}y$}
+    \State Receive regularized $V_t \gets G_t + H_t$.
+    \State Receive perturbed $\tilde{\vec u}_t \gets \vec u_t + \vec h_t$
     \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{V_{t}}\tilde{\vec u}_{t}$
-    %\Comment{privacy-preserving ${} \approx \hat{\vec\theta}_{t-1}$}
-    \State \textbf{for} each action $\vec x \in \Dset{t}$ compute
-    $\UCB_t(\vec x) \gets \innerp{\tilde{\vec\theta}_{t}}{\vec x} +
-    \sqrt{\beta_{t}}\norm{\inv{V_{t}}}{\vec x}$
-    %\Comment{closed form of \eqref{eq:def-ucb} for ellipsoids \eqref{eq:def-ellip}}
-    %\EndFor
-    \State Pick action $\vec x_t \gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x)$
+    \State Pick action $\vec x_t \gets \argmax_{\vec x\in\Dset{t}}
+    \innerp{\tilde{\vec \theta}_t}{\vec x} +
+    \beta_t\norm{\inv{V_t}}{\vec x}$.
     %\Comment{Choose action.}
     \State Observe $y_t \gets {}$ reward for action $\vec x_t$
     %\Comment{Observe reward.}
@@ -480,7 +459,93 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t} \tilde{\vec u}_t$.
   \end{algorithmic}
 \end{algorithm}
 
-In the rest of this section, we will consider how to choose $H_t$ and
+We now collect our assumptions about the environment and inputs to the
+algorithm; we will indicate where each of these is used.  It is
+important to note that of these, only \cref{ass:x-bound} is needed for
+the algorithm to be differentially private (see \cref{sec:alg-dp}).
+
+\paragraph*{Assumptions.}
+For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:
+\begin{enumerate}[nosep]
+  \setcounter{enumi}{\theassumption}
+\item\label[assumption]{ass:x-bound} $\norm{}{\vec x} \le L$.
+\item\label[assumption]{ass:thetastar-bound} $\norm{}{\vec\theta^*} \le S$.
+\item\label[assumption]{ass:meanreward-bound}
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$.
+\item\label[assumption]{ass:linear-reward}
+  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
+\item\label[assumption]{ass:subgaussian} $\sigma^2$-conditionally
+  subgaussian reward noise $\eta_t$ given actions and previous
+  rewards:
+  \begin{align*}
+    \Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
+    &\le \exp(\lambda^2\sigma^2/2), &\text{for all } \lambda\in\Real.
+  \end{align*}
+  \setcounter{assumption}{\theenumi}
+\end{enumerate}
+
+\Cref{alg:linucb} relies on accurate confidence sets that nevertheless
+tightly concentrate around the unknown $\vec\theta^*$.  In other
+words, the $\beta_t$ should be as small as possible while accounting
+for the noise $\eta_t$ and the perturbations caused by $H_t$ and
+$\vec h_t$.
+
+\begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
+  A sequence $(\beta_t)_{t=1}^n$ is $(\alpha, n)$-\emph{accurate} for
+  $(H_t)_{t=1}^n$ and $(\vec h_t)_{t=1}^n$ if, with probability at
+  least $1-\alpha$, it satisfies
+  $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le \beta_t$
+  for all rounds $t=1,\dotsc,n$ simultaneously.
+\end{definition}
+
+\begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
+  $\gamma$]\label{def:accurate-params}
+  The parameters $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
+  $\alpha$-accurate for some $H_t$ and $\vec h_t$ if the following hold
+  with probability at least $1-\alpha$:
+  \begin{align*}
+    \norm{}{H_t} &\le \rho_{\max},
+    &\norm{}{\inv{H_t}} &\le \rho_{\min},
+    &\norm{\inv{H_t}}{\vec h_t} &\le \gamma.
+  \end{align*}
+\end{definition}
+
+\begin{restatable}[Calculating $\beta_t$]{proposition}{CalcBeta}%
+  \label{prop:calc-beta}
+  Suppose \cref{ass:thetastar-bound,ass:linear-reward,ass:subgaussian}
+  hold, i.e.\ $\norm{}{\vec\theta^*} \le S$ and the reward is linear
+  with $\sigma^2$-subgaussian noise.  For some $\alpha\in(0,1)$,
+  horizon $n$, and sequences $(H_t)_{t=1}^n$ and $(\vec h_t)_{t=1}^n$,
+  let $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ be
+  $\alpha/(2n)$-accurate according to \cref{def:accurate-params} for
+  each round separately.  Then the sequence $(\beta_t)_{t=1}^n$ is
+  $(\alpha,n)$-accurate according to \cref{def:accurate-beta}:
+  \begin{align*}
+    \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
+             + S\sqrt{\rho_{\max}} + \gamma. \\
+    \shortintertext{Furthermore, if all $\vec x_s \le L$
+    (\cref{ass:x-bound}), then}
+    \beta_t &\le \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{tL^2}{d\rho_{\min}}}}
+             + S\sqrt{\rho_{\max}} + \gamma.
+  \end{align*}
+\end{restatable}
+
+\subsection{Achieving Differential Privacy}
+\label{sec:alg-dp}
+
+\todo[inline]{Rewrite this section.}
+
+Notice that \cref{alg:linucb} uses its history of actions and rewards
+up to round $t$ only via the confidence set $\E_{t+1}$, which is to
+say the Gram matrix $G_t$ and the vector
+$\vec u_t \defeq \transp{\vec X_t} \vec y_t$ (these also determine
+$\beta_t$, as we will see).  By recording this history with
+differential privacy, we obtain a linear UCB algorithm that is also
+differentially private because it simply post-processes $G_t$ and
+$\vec u_t$
+\citep[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}.
+
+In the following sectionssection, we will consider how to choose $H_t$ and
 $\vec h_t$ to ensure differential privacy.  For now, we satisfy
 ourselves with the following claim, which is a straightforward
 application of the post-processing lemma of differential privacy
@@ -503,173 +568,16 @@ application of the post-processing lemma of differential privacy
   \cref{sec:priv-contextual}).
 \end{remark}
 
-\subsection{Regret Bounds}
-\label{sec:regret-bounds}
-
-The utility of \cref{alg:linucb} comes from it having a small regret,
-which depends on constructing accurate confidence sets that
-nevertheless tightly concentrate around the unknown $\vec\theta^*$.
-In other words, the $\beta_t$ should be as small as possible while
-accounting for the noise $\eta_t$ and the perturbations caused by
-$H_t$ and $\vec h_t$.  We start by giving a ``generic'' regret bound
-that holds if the confidence sets are accurate.
-
-\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}
-  \label{thm:linucb-regret}%
-  Suppose the mean rewards are bounded:
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ for all $\vec x \in \bigcup_t\Dset{t}$;
-  and $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In
-  the event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence
-  sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le
-  \sqrt{\beta_{t-1}}$) and each $V_{t-1} = G_{t-1} + H_{t-1}$ for some
-  symmetric $H,H_0,\dotsc,H_{n-1} \in \Real^{d\times d}$ with all
-  $H_{t-1} \succeq H \succ 0$, the pseudo-regret of \cref{alg:linucb}
-  \begin{align*}
-    \widehat R_n
-    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
-      - \innerp{\vec x_t}{\vec\theta*} \\
-    \shortintertext{satisfies}
-    \widehat R_n
-    &\le 2B\sqrt{2n \bar\beta_n \log\frac{\det V_n}{\det H}}. \\
-    \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
-    \widehat R_n
-    &\le 2B\sqrt{2dn \bar\beta_n \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
-  \end{align*}
-\end{restatable}
-
-The following results will help us calculate how large the $\beta_t$
-must be to ensure that the confidence sets contain $\vec\theta^*$ with
-high probability.
-
-\begin{lemma}
-  \label{lemma:conf-ellip-size}%
-  Suppose $\vec y_t = \vec X_t \vec\theta^* + \vec\eta_t$ and let
-  $\vec z_t \defeq \transp{\vec X_t}\vec\eta$.  Then
-  \begin{align*}
-    \norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}
-    &\le \norm{\inv{V_t}}{\vec z_t} + \norm{H_t}{\vec\theta^*}
-      + \norm{\inv{H_t}}{\vec h_t}.
-  \end{align*}
-
-  \begin{proof}
-    By definition, $\tilde{\vec\theta}_t = \inv{V_t} \tilde{\vec u}_t$,
-    $\tilde{\vec u}_t = \vec u_t + \vec h_t$, and $\vec u_t = \transp{\vec
-      X_t} \vec y_t$, so that
-    \begin{align*}
-      \vec\theta^* - \tilde{\vec\theta}_t
-      &= \vec\theta^* - \inv{V_t}(\transp{\vec X_t} \vec y_t + \vec h_t) \\
-      &= \vec\theta^* - \inv{V_t}(\transp{\vec X_t} \vec X_t \vec\theta^*
-        + \transp{\vec X_t} \vec\eta_t + \vec h_t)
-      &\text{since } \vec y_t = \vec X_t \vec\theta^* + \vec\eta_t \\
-      &= \vec\theta^* - \inv{V_t}(V_t \vec\theta^* - H_t \vec\theta^* + \vec z_t + \vec h_t)
-      &\text{defining } \vec z_t \defeq \transp{\vec X_t} \vec\eta_t \\
-      &= \inv{V_t}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
-      \shortintertext{Multiplying both sides by $V_t^{1/2}$ gives}
-      V_t^{1/2}(\vec\theta^* - \tilde{\vec\theta}_t)
-      &= V_t^{-1/2}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
-      \norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}
-      &= \norm{\inv{V_t}}{H_t\vec\theta^* - \vec z_t - \vec h_t}
-      &\text{applying $\norm{}{\wildcard}$ to both sides}\\
-      &\le \norm{\inv{V_t}}{H_t\vec\theta^*} + \norm{\inv{V_t}}{z_t}
-        + \norm{\inv{V_t}}{\vec h_t} &\text{triangle inequality} \\
-      &\le \norm{\inv{V_t}}{\vec z_t} + \norm{\inv{H_t}}{H_t\vec\theta^*}
-        + \norm{\inv{H_t}}{\vec h_t}
-      &\text{since $\inv{V_t} \preceq \inv{H_t}$ by \cref{claim:psd-matrix-props}} \\
-      &= \norm{\inv{V_t}}{\vec z_t} + \norm{H_t}{\vec\theta^*} +
-        \norm{\inv{H_t}}{\vec h_t}.
-      &\qedhere
-    \end{align*}
-  \end{proof}
-\end{lemma}
-
-\begin{lemma}
-  \label{lemma:z-tails}%
-  For every round $t$, suppose the noise $\eta_t$ in the reward is
-  conditionally $\sigma^2$-subgaussian given all the action vectors
-  and previous rewards, i.e.
-  \begin{align*}
-    \Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
-    &\le \exp(\lambda^2\sigma^2/2), &\text{for all } \lambda\in\Real.
-  \end{align*}
-  Let $\vec z_t \defeq \transp{\vec X_t} \vec\eta_t$, $H\succeq 0$ be a
-  symmetric matrix, and $\delta>0$.  Then with probability at least
-  $1-\delta$ for all rounds $t$,
-  \begin{align*}
-    \norm{\inv{(G_t + H)}}{\vec z_t}
-    &\le \sigma\sqrt{2\log\frac{1}{\delta} + \log\frac{\det(G_t + H)}{\det H}}. \\
-    \shortintertext{In the further event that $H_t \succeq H$ for all rounds $t$,}
-    \norm{\inv{V_t}}{\vec z_t}
-    &\le \sigma\sqrt{2\log\frac{1}{\delta} + \log\frac{\det V_t}{\det H}}. \\
-    \shortintertext{Lastly, if all $\norm{}{\vec x_t} \le L$,}
-    \norm{\inv{V_t}}{\vec z_t}
-    &\le \sigma\sqrt{2\log\frac{1}{\delta} + d\log\frac{\tr H + nL^2}{d \det^{1/d}H}}.
-  \end{align*}
-
-  \begin{proof}
-    The first result is essentially a restatement of the
-    ``self-normalized bound for vector-valued martingales'' of
-    \citet[Theorem~1]{AbbasiYadkoriImprovedAlgorithmsLinear2011}.  The
-    second result follows from \cref{claim:psd-matrix-props} when
-    $V_t = G_t + H_t \succeq G_t + H$, since
-    $\inv{V_t} \preceq \inv{(G_t + H)}$ and
-    $\det(G_t + H) \le \det V_t$.  The third result is another
-    application of \cref{lemma:elliptical-potential}, as used in
-    \cref{thm:linucb-regret}.
-  \end{proof}
-\end{lemma}
-
-\Cref{lemma:conf-ellip-size} decomposes
-$\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}$ into three terms:
-\begin{enumerate*}[(i), itemjoin={{; }}, itemjoin*={{; and }}]
-\item $\norm{\inv{V_t}}{\vec z_t}$, which is bounded by
-  \cref{lemma:z-tails}
-\item $\norm{H_t}{\vec\theta^*}$, which we will bound as
-  $\sqrt{\norm{}{H_t}}\norm{}{\vec\theta^*}$
-\item $\norm{\inv{H_t}}{\vec h_t}$.
-\end{enumerate*}
-In the following sections, we will derive high-probability bounds for
-the latter two terms for specific choices of $H_t$ and $\vec h_t$.
-
-\subsection{Problem-Dependent Regret Bound}%
-\label{sec:prob-dep-regret}
-
-\todo[inline]{Move this to more appropriate place}
-
-\begin{theorem}
-  Suppose that at every round $t$ the decision set has a unique optimal
-  action and every other action incurs a regret at least $\Delta_t$.
-  Let $\Delta$ be a lower bound on all the $\Delta_t$.  We now give a
-  \emph{problem-dependent} regret bound that depends on the $\Delta$.
-\end{theorem}
-
-\begin{proof}
-  Consider the set of rounds up to $t$ on which the learner chooses a
-  sub-optimal action: $B_t = \set{s \le t \given r_t > 0}$ and let
-  $b_t = |B_t|$ be the number of times this happened.  Let $F_t$ be
-  the Gram matrix for just the actions on those rounds:
-  \begin{align*}
-    F_t &\defeq \sum_{s\in B_t} \XtX{\vec x_s}.
-  \end{align*}
-  Now $V_t = G_t + H_t \succeq G_t + H \succeq E_t + H \eqdef U_t$, and
-  $\inv{V_t} \preceq \inv{U_t}$.  We now decompose the regret into the
-  sum of per-round regrets $r_t$ but in a different way than we did in
-  \cref{lemma:linucb-regret}:
-  \begin{align*}
-    \widehat R_n
-    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
-    &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
-    &\le \frac{4\bar\beta_n}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
-    &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
-    &\le \frac{4\bar\beta_n}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
-    &\le \frac{8B^2\bar\beta_n}{\Delta} \log\frac{\det(E_n+H)}{\det H}
-    &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
-    \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
-    \rho_{\min}\Eye{d}$, the regret is bounded by}
-    \widehat R_n &\le \frac{8B^2\bar\beta_n}{\Delta} d\log\frac{L^2b_t + \rho_{\min}}{\rho_{\min}}.
-  \end{align*}
-
-\end{proof}
+To simplify calculations, we construct the matrices
+$A_t \defeq \begin{bmatrix} \vec X_t & \vec y_t \end{bmatrix} \in
+\Real^{t\times(d+1)}$.  The top-left $d\times d$ submatrix of
+$\XtX{A_t}$ is the Gram matrix $G_t$ and the last column contains the
+vector $\vec u_t = \transp{\vec X_t}\vec y_t$.  It therefore suffices
+to maintain a differentially private approximation of $M_t$.  We have
+assumed before that each action vector is bounded:
+$\norm{}{\vec x_t} \le L$; further assume that the rewards are also
+bounded: $\abs{y_t} \le \tilde B$ for all $t$.  Then each row of $A_t$
+is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
 
 \subsection{Pan-Privacy with Tree-Based Aggregation}
 \label{sec:tree-mechanism}
@@ -687,17 +595,6 @@ $(\varepsilon',\delta')$-differentially private where:
 
 \subsection{Differential Privacy via Additive Wishart Noise}
 \label{sec:dp-wishart}
-
-To simplify calculations, we construct the matrices
-$A_t \defeq \begin{bmatrix} \vec X_t & \vec y_t \end{bmatrix} \in
-\Real^{t\times(d+1)}$.  The top-left $d\times d$ submatrix of
-$\XtX{A_t}$ is the Gram matrix $G_t$ and the last column contains the
-vector $\vec u_t = \transp{\vec X_t}\vec y_t$.  It therefore suffices
-to maintain a differentially private approximation of $M_t$.  We have
-assumed before that each action vector is bounded:
-$\norm{}{\vec x_t} \le L$; further assume that the rewards are also
-bounded: $\abs{y_t} \le \tilde B$ for all $t$.  Then each row of $A_t$
-is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
 
 \begin{theorem}%
   \label{thm:wishart-cont-dp}
@@ -730,7 +627,7 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   \begin{align*}
     H
     &\defeq \tilde L^2\paren*{\sqrt{mk} - \sqrt{d} - \sqrt{2\ln\frac{4n}{\alpha}}}^2\Eye{d} \\
-    \sqrt{\beta_t}
+    \beta_t
     &\defeq \sigma\sqrt{2\ln\frac{n}{\alpha} + \log\frac{\det V_t}{\det H}}
       + S \tilde L \paren*{\sqrt{mk} + \sqrt{d} + \sqrt{2\ln\frac{4n}{\alpha}}}
       + \tilde L \sqrt{d + 2\sqrt{d\ln\frac{2n}{\alpha}} + 2\ln\frac{2n}{\alpha}}.
@@ -738,7 +635,7 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   With probability at least $1-\alpha$, the following hold for rounds
   $t = 1,\dotsc,n-1$: $H_t \succeq H$ and
   $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
-  \sqrt{\beta_t}$.
+  \beta_t$.
 \end{corollary}
 
 \subsection{Differential Privacy via Additive Gaussian Noise}
@@ -781,6 +678,77 @@ is bounded by $\tilde L \defeq \sqrt{L^2 + \tilde B^2}$.
   independently, according to $\Normal(0, m\sigma^2)$.
 \end{theorem}
 
+\subsection{Regret Bounds}
+\label{sec:regret-bounds}
+
+We start by giving a ``generic'' regret bound
+that holds if the confidence sets are accurate.
+
+\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}
+  \label{thm:linucb-regret}%
+  Suppose the mean rewards are bounded:
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ for all $\vec x \in \bigcup_t\Dset{t}$;
+  and $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In
+  the event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence
+  sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
+  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le
+  \beta_{t-1}$) and each $V_{t-1} = G_{t-1} + H_{t-1}$ for some
+  symmetric $H,H_0,\dotsc,H_{n-1} \in \Real^{d\times d}$ with all
+  $H_{t-1} \succeq H \succ 0$, the pseudo-regret of \cref{alg:linucb}
+  \begin{align*}
+    \widehat R_n
+    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
+      - \innerp{\vec x_t}{\vec\theta*} \\
+    \shortintertext{satisfies}
+    \widehat R_n
+    &\le 2B\bar\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
+    \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
+    \widehat R_n
+    &\le 2B\bar\beta_n \sqrt{2dn \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
+  \end{align*}
+\end{restatable}
+
+\subsection{Instance-Dependent Regret Bounds}%
+\label{sec:prob-dep-regret}
+
+\todo[inline]{Work in progress}
+
+\begin{theorem}
+  Suppose that at every round $t$ the decision set has a unique optimal
+  action and every other action incurs a regret at least $\Delta_t$.
+  Let $\Delta$ be a lower bound on all the $\Delta_t$.  We now give a
+  \emph{problem-dependent} regret bound that depends on the $\Delta$.
+\end{theorem}
+
+\begin{proof}
+  Consider the set of rounds up to $t$ on which the learner chooses a
+  sub-optimal action: $B_t = \set{s \le t \given r_t > 0}$ and let
+  $b_t = |B_t|$ be the number of times this happened.  Let $F_t$ be
+  the Gram matrix for just the actions on those rounds:
+  \begin{align*}
+    F_t &\defeq \sum_{s\in B_t} \XtX{\vec x_s}.
+  \end{align*}
+  Now $V_t = G_t + H_t \succeq G_t + H \succeq E_t + H \eqdef U_t$, and
+  $\inv{V_t} \preceq \inv{U_t}$.  We now decompose the regret into the
+  sum of per-round regrets $r_t$ but in a different way than we did in
+  \cref{lemma:linucb-regret}:
+  \begin{align*}
+    \widehat R_n
+    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
+    &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
+    &\le \frac{4\sqrt{\bar\beta_n}}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
+    &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
+    &\le \frac{4\sqrt{\bar\beta_n}}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
+    &\le \frac{8B^2\sqrt{\bar\beta_n}}{\Delta} \log\frac{\det(E_n+H)}{\det H}
+    &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
+    \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
+    \rho_{\min}\Eye{d}$, the regret is bounded by}
+    \widehat R_n &\le \frac{8B^2\sqrt{\bar\beta_n}}{\Delta} d\log\frac{L^2b_t + \rho_{\min}}{\rho_{\min}}.
+  \end{align*}
+
+\end{proof}
+
+
 \section{Lower Bounds}
 \label{sec:lower_bounds}
 
@@ -788,13 +756,13 @@ In this section, we present lower bounds for two versions of the problem we deal
 
 \begin{claim}
 \label{clm:standard_contextual_DP_implies_linear_regret}
-For any $\varepsilon < \ln(2)$ and $\delta < 0.25$, any $(\varepsilon,\delta)$-differentially private algorithm $A$ for the contextual bandit problem must incur psuedo-regret of $\Omega(n)$.
+For any $\varepsilon < \ln(2)$ and $\delta < 0.25$, any $(\varepsilon,\delta)$-differentially private algorithm $A$ for the contextual bandit problem must incur pseudo-regret of $\Omega(n)$.
 \end{claim}
 \begin{proof}
-We consider a setting with two arms $\Aset{}=\{a^1,a^2\}$ and two possible contexts: $c^1$ which maps $a^1\mapsto \vec\theta^*$ and $a^2 \mapsto -\vec\theta^*$; and $c^2$ which flips the mapping; assuming $\|\vec\theta^*\|=1$ it is evident we incur a psuedo-regret of $2$ when pulling arm $a^1$ is under context $c^2$ or pulling arm $a^2$ under $c^2$. Fix a day $t$ and a history of previous inputs and arm pulls $H_{t-1}$. Consider a pair of neighboring sequences that agree on the history $H_{t-1}$ and differ just on day $t$ --- in $S$ the context $c_t =c^1$ whereas in $S'$ it is $c^2$. Denote $\mathcal{S}$ as the subset of action sequences that are fixed on the first $t-1$ days according to $H_{t-1}$, thet $t$-th action is $a^1$ and have all possible actions on days $>t$. Differential privacy w.r.t to $\mathcal{S}$ gives thus that $\Pr[a_t = a^1 |~S] = \Pr[A(S)\in \mathcal{S}] \leq e^\varepsilon \Pr[a_t=a^1 |~S'] + \delta$. Consider an adversary that sets the context of day $t$ to be either $c^1$ or $c^2$ uniformly and independently of other days. The psuedo-regret incured on day $t$ is thus: $2\cdot \tfrac 1 2 \left( \Pr[a_t=a^2|~S] + \Pr[a_t=a^1|~S'] \right)  = (1- \Pr[a_t=a^1|~S]) + e^{-\varepsilon}(\Pr[a_t=a^1|~S]-\delta) > 1 + \Pr[a_t=a^2|~S](e^{-\varepsilon}-1) - \delta > 1 - 1\cdot \tfrac 1 2 - \tfrac 1 4 = \tfrac 1 4$. Thus our algorithm incurs a psuedo-regret cost of $\tfrac n 4$.
+We consider a setting with two arms $\Aset{}=\{a^1,a^2\}$ and two possible contexts: $c^1$ which maps $a^1\mapsto \vec\theta^*$ and $a^2 \mapsto -\vec\theta^*$; and $c^2$ which flips the mapping; assuming $\|\vec\theta^*\|=1$ it is evident we incur a pseudo-regret of $2$ when pulling arm $a^1$ is under context $c^2$ or pulling arm $a^2$ under $c^2$. Fix a day $t$ and a history of previous inputs and arm pulls $H_{t-1}$. Consider a pair of neighboring sequences that agree on the history $H_{t-1}$ and differ just on day $t$ --- in $S$ the context $c_t =c^1$ whereas in $S'$ it is $c^2$. Denote $\mathcal{S}$ as the subset of action sequences that are fixed on the first $t-1$ days according to $H_{t-1}$, thet $t$-th action is $a^1$ and have all possible actions on days $>t$. Differential privacy w.r.t to $\mathcal{S}$ gives thus that $\Pr[a_t = a^1 |~S] = \Pr[A(S)\in \mathcal{S}] \leq e^\varepsilon \Pr[a_t=a^1 |~S'] + \delta$. Consider an adversary that sets the context of day $t$ to be either $c^1$ or $c^2$ uniformly and independently of other days. The pseudo-regret incured on day $t$ is thus: $2\cdot \tfrac 1 2 \left( \Pr[a_t=a^2|~S] + \Pr[a_t=a^1|~S'] \right)  = (1- \Pr[a_t=a^1|~S]) + e^{-\varepsilon}(\Pr[a_t=a^1|~S]-\delta) > 1 + \Pr[a_t=a^2|~S](e^{-\varepsilon}-1) - \delta > 1 - 1\cdot \tfrac 1 2 - \tfrac 1 4 = \tfrac 1 4$. Thus our algorithm incurs a pseudo-regret cost of $\tfrac n 4$.
 \end{proof}
 
-The second lower bound we show is more challenging. Here we show that any $\varepsilon$-differentially private algorithm for the classic MAB problem must incur \emph{an additional} psuedo-regret of $\Omega( k\log(n)/\epsilon)$ on top of the standard (non-private) regret bounds.  We consider an instance of the MAB where the leading arm is $a^1$, the rewards are drawn from a distribution over $\{-1,1\}$, and the gap between the means of arm $a^1$ and arm $a^i$ is $\Delta_i$. Simple calculation shows that for such distributions, the total-variation distance between two distributions whose means are $\mu$ and $\mu-\Delta$ is $\Delta/2$. Fix $\Delta_2, \Delta_3,...,\Delta_k$ as some small constants, and we now argue the following.
+The second lower bound we show is more challenging. Here we show that any $\varepsilon$-differentially private algorithm for the classic MAB problem must incur \emph{an additional} pseudo-regret of $\Omega( k\log(n)/\epsilon)$ on top of the standard (non-private) regret bounds.  We consider an instance of the MAB where the leading arm is $a^1$, the rewards are drawn from a distribution over $\{-1,1\}$, and the gap between the means of arm $a^1$ and arm $a^i$ is $\Delta_i$. Simple calculation shows that for such distributions, the total-variation distance between two distributions whose means are $\mu$ and $\mu-\Delta$ is $\Delta/2$. Fix $\Delta_2, \Delta_3,...,\Delta_k$ as some small constants, and we now argue the following.
 \begin{claim}
 \label{clm:LB_pulling_any_arms_many_times}
 Let $A$ be any $\varepsilon$-differentially private algorithm for the MAB problems with $k$ arms whose expected regret is at most $n^{3/4}$. Fix any arm $a\neq a^1$, whose difference between it and the optimal arm $a^1$ is $\Delta_a$. Then, for sufficiently large $n$s, $A$ pulls arm $a$ at least $\tfrac {\log(n)}{100\varepsilon\Delta_a}$ many times w.p. $\geq \nicefrac 1 2$.
@@ -803,10 +771,10 @@ We comment that the constant $3/4$ was chosen arbitrarily, and we only require a
 As an immediate corollary we obtain the following \emph{private} regret bound:
 \begin{corollary}
 \label{cor:LB_private_MAB}
-The expected psuedo-regret of any $\varepsilon$-differentially private algorithm from the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\left( \sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$ we get that the private regret bound of the $\max$ of the two terms, i.e.: $\Omega\left( \tfrac {k\log(n)}{\varepsilon}+\sum\limits_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$.
+The expected pseudo-regret of any $\varepsilon$-differentially private algorithm from the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\left( \sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$ we get that the private regret bound of the $\max$ of the two terms, i.e.: $\Omega\left( \tfrac {k\log(n)}{\varepsilon}+\sum\limits_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$.
 \end{corollary}
 \begin{proof}
-Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected psuedo-regret is $\geq \sum\limits_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
+Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum\limits_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
 \end{proof}
 \begin{proof}[Proof of Claim~\ref{clm:LB_pulling_any_arms_many_times}]
 Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions of the arms. Denote $E$ as the event that arm $a$ is pulled $<\tfrac{\log(n)}{100\varepsilon\Delta_a} \stackrel{\rm def}= t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
@@ -825,9 +793,52 @@ In conclusion we get that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\vare
 
 \appendix
 
-\section{Supplementary Material}
+\section{Proof of \Cref{prop:calc-beta}}
 
-\subsection{Proof of \Cref{thm:linucb-regret}}
+\CalcBeta*
+
+\begin{proof}
+  By definition, $\tilde{\vec\theta}_t = \inv{V_t} \tilde{\vec u}_t$,
+  $\tilde{\vec u}_t = \vec u_t + \vec h_t$, and $\vec u_t = \transp{\vec
+    X_t} \vec y_t$, so that
+  \begin{align*}
+    \vec\theta^* - \tilde{\vec\theta}_t
+    &= \vec\theta^* - \inv{V_t}(\transp{\vec X_t} \vec y_t + \vec h_t) \\
+    &= \vec\theta^* - \inv{V_t}(\transp{\vec X_t} \vec X_t \vec\theta^*
+      + \transp{\vec X_t} \vec\eta_t + \vec h_t)
+    &\text{since } \vec y_t = \vec X_t \vec\theta^* + \vec\eta_t \\
+    &= \vec\theta^* - \inv{V_t}(V_t \vec\theta^* - H_t \vec\theta^* + \vec z_t + \vec h_t)
+    &\text{defining } \vec z_t \defeq \transp{\vec X_t} \vec\eta_t \\
+    &= \inv{V_t}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
+    \shortintertext{Multiplying both sides by $V_t^{1/2}$ gives}
+    V_t^{1/2}(\vec\theta^* - \tilde{\vec\theta}_t)
+    &= V_t^{-1/2}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
+    \norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}
+    &= \norm{\inv{V_t}}{H_t\vec\theta^* - \vec z_t - \vec h_t}
+    &\text{applying $\norm{}{\wildcard}$ to both sides}\\
+    &\le \norm{\inv{V_t}}{H_t\vec\theta^*} + \norm{\inv{V_t}}{z_t}
+      + \norm{\inv{V_t}}{\vec h_t} &\text{triangle inequality} \\
+    &\le \norm{\inv{V_t}}{\vec z_t} + \norm{\inv{H_t}}{H_t\vec\theta^*}
+      + \norm{\inv{H_t}}{\vec h_t}
+    &\text{since $\inv{V_t} \preceq \inv{H_t}$ by \cref{claim:psd-matrix-props}} \\
+    &= \norm{\inv{V_t}}{\vec z_t} + \norm{H_t}{\vec\theta^*} +
+      \norm{\inv{H_t}}{\vec h_t}.
+    &\qedhere
+  \end{align*}
+  We use a union bound over all $n$ rounds to bound
+  $\norm{H_t}{\vec\theta^*}$ by
+  $\sqrt{\norm{}{H_t}}\norm{}{\vec\theta^*} \le S\sqrt{\rho_{\max}}$
+  and $\norm{\inv{H_t}}{\vec h_t}$ by $\gamma$, with probability at
+  least $1-\alpha/2$.  Finally, we bound $\norm{\inv{V_t}}{\vec z_t}$
+  with probability at least $1-\alpha/2$ by the ``self-normalized
+  bound for vector-valued martingales'' of
+  \citet[Theorem~1]{AbbasiYadkoriImprovedAlgorithmsLinear2011}.  The
+  upper bound on each $\beta_t$ is another application of
+  \cref{lemma:elliptical-potential}, as used in
+  \cref{thm:linucb-regret}.
+\end{proof}
+
+\section{Proof of \Cref{thm:linucb-regret}}
 
 \ThmLinUCBRegret*
 
@@ -838,10 +849,10 @@ In conclusion we get that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\vare
   $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In the
   event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence sets
   $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le \sqrt{\beta_{t-1}}$),
+  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le \beta_{t-1}$),
   the pseudo-regret of \cref{alg:linucb} satisfies
   \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n\bar\beta_n \sum_{t=1}^n \min\set{B^2,
+    \widehat{R}_n &\le \bar\beta_n\sqrt{4n \sum_{t=1}^n \min\set{B^2,
                    \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
   \end{align*}
 \end{lemma}
@@ -869,23 +880,23 @@ In conclusion we get that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\vare
           + \norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}}}
           \norm{\inv{V_{t-1}}}{\vec x_t}
         &\text{by the triangle inequality}\\
-        &\le 2\sqrt{\beta_{t-1}}\norm{\inv{V_{t-1}}}{\vec x_t}
+        &\le 2\beta_{t-1}\norm{\inv{V_{t-1}}}{\vec x_t}
         &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \Eset{t} \\
-        &\le 2\sqrt{\bar\beta_n}\norm{\inv{V_{t-1}}}{\vec x_t}
+        &\le 2\bar\beta_n\norm{\inv{V_{t-1}}}{\vec x_t}
         &\text{since } \bar\beta_n \ge \beta_{t-1}.
   \end{align*}
   From our assumptions that the mean absolute reward is bounded by $B$
   and $\bar\beta_n \ge 1$, we also get that
-  $r_t \le 2B \le 2B\sqrt{\bar\beta_n}$.  Putting these together,
+  $r_t \le 2B \le 2B\bar\beta_n$.  Putting these together,
   \begin{align}\label{eq:regret-bound-oneround}
-    r_t &\le 2\sqrt{\bar\beta_n} \min\set{B, \norm{\inv{V_{t-1}}}{\vec x_t}}
+    r_t &\le 2\bar\beta_n \min\set{B, \norm{\inv{V_{t-1}}}{\vec x_t}}
   \end{align}
   Now we apply Jensen's inequality as follows:
   \begin{align*}
     \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
                    \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
     \widehat R_n &\le \sqrt{n\sum_{t=1}^n r_t^2}
-                  = \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2,
+                  =  2\bar\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
                   \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
                   \qedhere
   \end{align*}
@@ -970,7 +981,7 @@ In conclusion we get that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\vare
   From our assumptions and \cref{lemma:linucb-regret}, we know that
   the Linear UCB regret is bounded by
   \begin{align*}
-    \widehat{R}_n &\le \sqrt{4n \bar\beta_n \sum_{t=1}^n\min\set{B^2,
+    \widehat{R}_n &\le 2\bar\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
                    \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
   \end{align*}
   Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
