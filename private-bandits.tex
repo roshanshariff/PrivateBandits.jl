@@ -126,6 +126,7 @@
 \newcommand{\Wishart}{\mathcal{W}}
 \newcommand{\Normal}{\mathcal{N}}
 \newcommand{\Eye}[1]{\bm{I}_{#1 \times #1}}
+\newcommand{\EyeNoSub}{\bm{I}}
 \newcommand{\XtX}[1]{\transp{#1}{#1}}
 
 % Theorem environments
@@ -354,7 +355,7 @@ problem is stochastic rather than adversarial.  Instead, we apply a
 new result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
 that the effective group-privacy between two possible inputs of $n$
 samples drawn iid from distributions $P$ and $Q$ respectively is about
-$n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lowerbound}.
+$n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
 
 
 
@@ -365,11 +366,13 @@ $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lowerbound}.
 \paragraph{Differential Privacy.} Differential privacy was first introduced by
 \citet{DworkCalibratingNoiseSensitivity2006, DworkKenthrapdai...2006}, and it is a rigorous mathermatical notion that determines that the probability of any event changes very little with the change of a single datum. (We omit the definition as the Joint-DP was already defined.) A classic result~\cite{DworkKenthrapdai...2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and vairance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. Among its many elegant traits is the notion of group privacy: should $k$ datums change the data, the change to any every is still limited, by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkRothblumVadhan2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\left( O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'  \right)$-differentially private for any $\delta'>0$.
 
-The notion of differential privacy under continual observation was first defined in~\cite{DworkContinualObservation2010} have also been defined, using the \textbf{tree-based algorithm} (originally appearing in~\cite{ChanPrivateContinualRelease2010}). This algorithm maintains a binary tree whose $n$ leafs correspond to the $n$ entries in the input sequence. Each node in the tree maintains a noisy (privacy-preserving) count of the sum of the input entries in its subtree, thus enabling us to maintain a running count of the sum of inputs thus far by combining no more than $\log(n)$ noisy counts. This algorithm is the key ingredient in a variety of works the deal with privacy in an noline setting, including counts~\cite{DworkContinualObservation2010}, online convex optimization~\cite{Jain,someone,thakurta,colt2012/3}, and regret minimization~\cite{SmithThakurta2013},\cite{MishraNearlyOptimalDPBandits2015} and~\cite{TussouDimitrikakis twice} in the adversarial and stoachastic setting.
+The notion of differential privacy under continual observation was first defined in~\cite{DworkContinualObservation2010} have also been defined, using the \textbf{tree-based algorithm} (originally appearing in~\cite{ChanPrivateContinualRelease2010}). This algorithm maintains a binary tree whose $n$ leafs correspond to the $n$ entries in the input sequence. Each node in the tree maintains a noisy (privacy-preserving) count of the sum of the input entries in its subtree, thus enabling us to maintain a running count of the sum of inputs thus far by combining no more than $\log(n)$ noisy counts. This algorithm is the key ingredient in a variety of works the deal with privacy in an noline setting, including counts~\cite{DworkContinualObservation2010}, online convex optimization~\cite{Jain,someone,thakurta,colt2012/3}, and regret minimization~\cite{SmithThakurta2013},\cite{MishraNearlyOptimalDPBandits2015} and~\cite{TussouDimitrikakis twice} in both the adversarial and stoachastic setting. We comment that~\cite{MishraNearlyOptimalDPBandits2015} proposed an algorithm similar to our own for the contextual bandit setting, however (i) without maintaining PSD, (ii) without any analysis only empirical evidence and (iii) without presenting lower bounds.
 
 In the offline setting, there have been numerous works studying differentially private linear regression~\cite{ChaudhuriMonteleoniSarwate2011, BassilySmithThakurta2014}. In this work we rely on two techniques that maintain a private version of the $2^{\rm nd}$-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkTTZ14} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
-\begin{multicols}{2}[\subsection{Notation}\label{sec:notation}]
+\paragraph{The MAB and the Contextual MAB Problems.}
+
+\begin{multicols}{2}[\paragraph{Notation.}\label{sec:notation}]
   \nolinenumbers
   \begin{description}[style=sameline,leftmargin=5em]
   \item[$n$] horizon, i.e. number of rounds
@@ -567,72 +570,75 @@ post-processes $G_t$ and $\vec u_t$.
 
 To make the following exposition simpler, define the matrix
 $A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
-\Real^{n\times(d+1)}$, with $A_t$ being the top $t-1$ rows of $A$ (and
-$A_1 = \vec 0_{1\times(d+1)}$).  Then the top-left $d\times d$
-sub-matrix of $M_t \defeq \XtX{A_t}$ is the Gram matrix $G_t$ and the
+\Real^{n\times(d+1)}$, and the matrices $A_t$ holding the top $t-1$ rows of $A$ (and
+$A_1 = \vec 0_{1\times(d+1)}$).  Denote $M_t \defeq \XtX{A_t}$, and note that the top-left $d\times d$
+sub-matrix of $M_t$ is the Gram matrix $G_t$ and the
 first $d$ entries of its last column are
 $\vec u_t = \transp{\vec X_{t-1}}\vec y_{t-1}$.  It therefore suffices
 to maintain a differentially private approximation of $M_t$. Since
 \cref{alg:linucb} allows for additive perturbations $H_t$ and $h_t$,
 we can use any privacy mechanism that uses additive noise, releasing
 $M_t + N_t$.  The top-left $d\times d$ sub-matrix of $N_t$ becomes
-$H_t$ and the first $d$ entries of its last column become $\vec h_t$.
-
+$H_t$ and the first $d$ entries of its last column become $\vec h_t$. Lastly, in order to maintain a private estimation of $M_t$ we require the following assumption.
 \begin{assumption}\label{ass:bounded-data}
   Each row of $A$ is bounded:
   $\norm{}{\vec x_t}^2 + y_t^2 \le \tilde L^2$ for all rounds $t$.  In
-  particular, this holds if $\vec x_t \le L$ (\cref{ass:x-bound}) and
+  particular, if $\vec x_t \le L$ (\cref{ass:x-bound}) and
   the rewards are bounded: $\abs{y_t} \le \tilde B$ (not just their
-  means as in \cref{ass:meanreward-bound}).
+  means as in \cref{ass:meanreward-bound}), we can set $\tilde L^2 = L^2 + \tilde B^2$.
 \end{assumption}
+Below we present two techniques for maintaining (and updating) the private estimations of $M_t$. As mentioned in Section~\ref{sec:background}, the key component of our technique is the tree-based algorithm, allowing us to estimate $M_t$ using at most $m \defeq 1 + \ceil{\log_2n}$ noisy counters. In order to have that the entire tree-based algorithm is $(\varepsilon,\delta)$-differentially private, we add noise to each node in the tree so that each noisy count on its own preserves $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy. Thus in each day $N_t$, the noise we add to $M_t$, is composed on the sum of $\leq m$ such counters.
 
-\subsection{Pan-Privacy with Tree-Based Aggregation}
-\label{sec:tree-mechanism}
+% \subsection{Pan-Privacy with Tree-Based Aggregation}
+% \label{sec:tree-mechanism}
 
-\todo[inline]{Expand this section, keeping the results below.}  For a horizon
-of $n$, the pan-private tree mechanism composes $m = \ceil{1+\log_2n}$
-mechanisms.  Suppose we want to achieve a target of
-$(\varepsilon,\delta)$-differential privacy after composing these $m$
-mechanisms.  Then it is sufficient for each mechanism to be
-$(\varepsilon',\delta')$-differentially private where:
-\begin{align*}
-  \varepsilon'' &= \frac{\varepsilon}{2\sqrt{2m\ln\frac{1}{\delta - m\delta'}}} \\
-  \delta' &< \delta/m.
-\end{align*}
+% \todo[inline]{Expand this section, keeping the results below.}  For a horizon
+% of $n$, the pan-private tree mechanism composes $m = \ceil{1+\log_2n}$
+% mechanisms.  Suppose we want to achieve a target of
+% $(\varepsilon,\delta)$-differential privacy after composing these $m$
+% mechanisms.  Then it is sufficient for each mechanism to be
+% $(\varepsilon',\delta')$-differentially private where:
+%  \begin{align*}
+%    \varepsilon'' &= \frac{\varepsilon}{2\sqrt{2m\ln\frac{1}{\delta - m\delta'}}} \\
+%    \delta' &< \delta/m.
+%  \end{align*}
 
-\subsection{Differential Privacy via Wishart Noise}
+\subsection{Differential Privacy Under Continual Observation via Wishart Noise}
 \label{sec:dp-wishart}
 
-\begin{theorem}%
-  \label{thm:wishart-cont-dp}
-  Fix $\varepsilon$ and a sufficiently small $\delta$, let
-  $A\in\Real^{n\times p}$ be a matrix satisfying
-  \cref{ass:bounded-data}, and define $m \defeq 1 + \ceil{\log_2n}$.
-  Generate the sequence of matrices $(W_t)_{t=1}^n$ using the tree
-  mechanism of \cref{sec:tree-mechanism} with Wishart noise distributed
-  according to \todo{Make sure $k$ below is correct!}
-  \begin{align*}
-    &\Wishart_p(\tilde L^2\Eye{p}, k),
-    &\text{ where } k
-    &\defeq p + \floor*{\frac{224}{\varepsilon^2} \cdot m\ln^2\paren*{\frac{4m+1}{\delta}}}.
-  \end{align*}
-  Then the sequence $(M_t + W_t)_{t=1}^n$ is
-  $(\varepsilon,\delta)$-differentially private with respect to
-  changing a single row of $A$.
+First, we plug into the tree-based algorithm noise from a suitably chosen Wishart distribtuion. The Wishart distribution $\Wishart_{d+1}(V, k)$ is the result of sampling $k$ independent  $(d+1)$-dimesnional Gaussians from $\Normal(\vec 0_{d+1}, V)$ and computing their $2^{\rm nd}$-moment matrix. Under suitably chosen $V$ and $k$, this noise preserves $(\varepsilon,\delta)$-differential privacy.
 
-  Furthermore, each $W_t$ is distributed identically, but not
-  independently, according to $\Wishart_p(\tilde L^2\Eye{p}, mk)$, which
-  gives the following $\alpha/(2n)$-accurate tail bounds for each
-  round separately:
-  \begin{align*}
-    \rho_{\min}, \rho_{\max} &\defeq \tilde L^2 \paren*{\sqrt{mk}
-                             \pm \paren*{\sqrt{d} + \sqrt{2\ln\frac{8n}{\alpha}}}}^2,
-    &\gamma &\defeq \sqrt{d} + \sqrt{2\ln\frac{2n}{\alpha}}.
+\begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]
+  \label{thm:wishart-cont-dp}
+  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$. 
+  \end{theorem}
+Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \EyeNoSub, k)$ with $k = \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\EyeNoSub, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)  --- $H_t$ is sampled from $\Wishart_d(\tilde L^2\EyeNoSub,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
+\begin{proposition}
+\label{pro:accurate_bounds_for_Wishart}
+Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with Wishart noise $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
+\begin{align*}
+    &\rho_{\min}\defeq  \tilde L^2 \paren*{\sqrt{mk}
+                             - \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2,
+    &\rho_{\max}\defeq \tilde L^2 \paren*{\sqrt{mk}
+                             + \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2,
+    &\gamma \defeq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}.
   \end{align*}
-\end{theorem}
+\end{proposition}
+\begin{proof}
+Seeing as $H_t\sim\Wishart_d(\tilde L^2 \EyeNoSub, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[Z ; \vec z]$ where $Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $H_t = \transp Z Z$ and $h_t = \transp Z \vec z$, thus $\|\vec h_t\|_{H_t^{-1}} = \sqrt{ \transp{\vec z} Z (\transp Z Z)^{-1}  \transp Z \vec z }$. The matrix $Z (\transp Z Z)^{-1}  \transp Z$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. Taking a union bound over all $n$ days concludes the proof.
+\end{proof}
+
+All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
+\begin{corollary}
+\label{cor:regret_with_Wishart}
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\EyeNoSub, k )$ gives a regret bound of
+\[PLUG IN THE FINAL RESULT\]
+\end{corollary}
 
 \subsection{Differential Privacy via Additive Gaussian Noise}
 \label{sec:dp-gauss}
+
+Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Here we analyze a slight variation, where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then use $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} 
 
 \begin{theorem}%
   \label{thm:analyze-gauss}
@@ -789,6 +795,19 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
 \newpage
 
 \appendix
+
+\section{Deferred Background Material}
+\label{apx_sec:more_background}
+
+\subsection{Differential Privacy}
+\label{apx_subsec:DP}
+
+In the offline setting, a dataset $D$ is a $n$-tuple of elements from some universe $\mathcal{U}$. Two datasets are called neighbors if they differ just on a single element. An algorithm $A$ is said to be $(\varepsilon,\delta)$-differentially private if for any pair of neighboring datasets $D$ and $D'$ and any subset of possible outputs $\mathcal{S}$ we have that $\Pr[A(D)\in\mathcal{S}]\leq e^\varepsilon\Pr[A(D')\in\mathcal{S}] + \delta$. A common technique~\cite{DWorkKentrapadi...2006} for approximating the value of a query $f$ on dataset $D$ is to first find its $L_2$-sensitivity, $GS_2 :=\max_{D,D'\textrm{ neighboring}} \|f(D)-f(D')\|_2$, and then add Gaussian noise of $0$-mean and variance $\tfrac{2GS_2^2\ln(\nicefrac 2 \delta)}{\varepsilon^2}$.
+
+\paragraph{The Tree-Based Mechanism.} Assume for simplicity that $n=2^i$ for some positive integer $i$. Let $T$ be a complete binary tree with its leaf nodes being $l_1,...,l_n$. Each internal
+node $x\in T$ stores the sum of all the leaf nodes in the tree
+rooted at $x$. First notice that one can compute any partial sum $\sum_{j=1}^i l_i$ using at most $m:=\lceil\log(n)+1\rceil$ nodes of $T$. Second, notice that for any two neighbor-
+ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkRothblumVadhan2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$). 
 
 \section{Proof of \Cref{prop:calc-beta}}
 
