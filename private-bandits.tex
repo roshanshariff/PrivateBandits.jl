@@ -164,21 +164,14 @@
 \maketitle
 
 \begin{abstract}
-  We study the contextual linear bandit problem, where an algorithm
+  We study the contextual linear bandit problem, a version of the standard stochastic mutli-armed bandit problem where an algorithm
   sequentially selects actions that maximize an associated reward,
-  which may depend on a provided per-round \emph{context}.  In
-  particular, the reward is assumed to be a linear function of a
+  which may depend on a provided per-round \emph{context}. Though the context can be chosen arbitrarily or adversarially, the reward is assumed to be a linear function of a
   \emph{feature vector} that encodes the context and selected action,
-  with added stochastic noise.
+  with added stochastic noise. Our goal in this work is devise differentially private learners for the contexutal linear bandit problem.
 
-  In many real-world applications, it is important to maintain the
-  privacy of the provided contexts and rewards.  Specifically, the
-  algorithm's choice of actions should not reveal too much information
-  about the previous contexts and rewards it has learned from.  We
-  address this concern by providing a \emph{differentially private}
-  algorithm for the contextual linear bandit problem, along with
-  bounds on its performance.
-\end{abstract}
+  We first show that using the standard definition of differential privacy results in linear regret. And so we swtich to \emph{joint} differential privacy, where we assume that the action chosen on day $t$ is only revealed to user $t$ and thus needn't be kept private that day, only on following days. We give a general scheme converting the linear UCB algorithm into a joint differentially private algorithm using the tree-based algorithm of~\cite{ChanPrivateContinualRelease2010,DworkContinualObservation2010}, and upper bound the resulting algorithms' regret and test their performance empirically. We also give (the first) lower bound of the \emph{additional} regret private algorithms encoure. 
+ \end{abstract}
 
 \section{Introduction}
 \label{sec:introduction}
@@ -390,7 +383,8 @@ In the offline setting, there have been numerous works studying differentially p
   \linenumbers
 \end{multicols}
 
-\section{Differentially Private Linear UCB}
+\section{Linear UCB with Changing Regularizers}
+\label{sec:LinUCB}
 
 Our differentially private contextual linear bandit algorithm is based
 on the well-studied LinUCB algorithm, an application of the Upper
@@ -449,9 +443,9 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
     $u_1\gets \vec 0_{d}$.
     \For{each round $t = 1,2,\dotsc,n$}
     \State Receive $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
-    \State Receive regularized $V_t \gets G_t + H_t$.
-    \State Receive perturbed $\tilde{\vec u}_t \gets \vec u_t + \vec h_t$
+    \State Receive regularized $V_t \gets G_t + H_t$ and perturbed $\tilde{\vec u}_t \gets \vec u_t + \vec h_t$
     \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{V_{t}}\tilde{\vec u}_{t}$
+    \State Compute confidence-set bound $\beta_t$ based on Porposition~\ref{prop:calc-beta}.
     \State Pick action $\vec x_t \gets \argmax_{\vec x\in\Dset{t}}
     \innerp{\tilde{\vec \theta}_t}{\vec x} +
     \beta_t\norm{\inv{V_t}}{\vec x}$.
@@ -537,7 +531,7 @@ $H_t$ and $\vec h_t$.
   \end{align*}
 \end{restatable}
 
-\subsection{Achieving Differential Privacy}
+\section{Joint Differentially Private Linear UCB}
 \label{sec:alg-dp}
 
 Notice that \cref{alg:linucb} uses its history of actions and rewards
@@ -617,12 +611,12 @@ Applying this guarantee to our setting, where each count needs to preserve $(\tf
 \label{pro:accurate_bounds_for_Wishart}
 Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with Wishart noise $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
 \begin{align*}
-    &\rho_{\min}\defeq  \tilde L^2 \paren*{\sqrt{mk}
-                             - \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2,
-    &\rho_{\max}\defeq \tilde L^2 \paren*{\sqrt{mk}
-                             + \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2,
-    &\gamma \defeq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}.
-  \end{align*}
+    \rho_{\min}\defeq  \resizebox{11em}{!}{$\tilde L^2 \paren*{\sqrt{mk}
+                             - \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2$},
+    &&\rho_{\max}\defeq \resizebox{11em}{!}{$\tilde L^2 \paren*{\sqrt{mk}
+                             + \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2$},
+    &&\gamma \defeq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}.
+  \end{align*} 
 \end{proposition}
 \begin{proof}
 Seeing as $H_t\sim\Wishart_d(\tilde L^2 \EyeNoSub, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[Z ; \vec z]$ where $Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $H_t = \transp Z Z$ and $h_t = \transp Z \vec z$, thus $\|\vec h_t\|_{H_t^{-1}} = \sqrt{ \transp{\vec z} Z (\transp Z Z)^{-1}  \transp Z \vec z }$. The matrix $Z (\transp Z Z)^{-1}  \transp Z$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. Taking a union bound over all $n$ days concludes the proof.
@@ -638,44 +632,27 @@ Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ 
 \subsection{Differential Privacy via Additive Gaussian Noise}
 \label{sec:dp-gauss}
 
-Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Here we analyze a slight variation, where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then use $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} 
+Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Recall that each datum has a bounded $L_2$-norm of $\tilde L$, hence a change to a single datum may alter the Forbenius norm of $M_t$ by $\tilde L^2$. It follows that in order to make sure each node in the tree-based algorithm  preserves $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2})$-differential privacy,\footnote{We use here the slightly better bounds for the composition of Gaussian noise based on zero-Concentrated DP, see~\cite{BunSteinke2016}.} the variance of each coordinate must be $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 / \varepsilon^2$.
 
-\begin{theorem}%
-  \label{thm:analyze-gauss}
-  Fix $\varepsilon\in(0,1)$ and $\delta\in(0,1/e)$.  Let
-  $A\in\Real^{n\times p}$ be a matrix whose rows have $l_2$-norm
-  bounded by $\tilde L$.  Let $N\in\Real^{p\times p}$ be a symmetric
-  random Gaussian matrix with each entry having variance
-  $\tilde L^4\ln(1/\delta)/\varepsilon^2$;
-  i.e.\,$N_{i,j}\sim\Normal(0,\tilde L^4\ln(1/\delta)/\varepsilon^2)$
-  independently for $i \le j$ and $N_{i,j} = N_{j,i}$ for $i > j$.
-  Then outputting $\XtX{A} + N$ is
-  $(\varepsilon,\delta)$-differentially private with respect to
-  changing a single row of $A$.
-\end{theorem}
+Instead of ensuring the noise is symmtertic by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top signular value of $Z$ give that $\Pr[ \|Z\| > \sigma(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
-\begin{theorem}%
-  \label{thm:analyze-gauss-cont}
-  Fix $\varepsilon$ and a sufficiently small $\delta$, let
-  $A\in\Real^{n\times p}$ be a matrix with each row having
-  $\norm{}{A_{t,:}} \le \tilde L$, and let
-  $m \defeq 1 + \ceil{\log_2n}$.  Generate the sequence of matrices
-  $(N_t)_{t=1}^n$ using the tree mechanism (\cref{sec:tree-mechanism})
-  with symmetric Gaussian noise; i.e., having equal $(i,j)$ and
-  $(j,i)$ entries independently drawn (for each $i \le j$) from the
-  distribution\todo{Make sure the variance below is correct!}
-  \begin{align*}
-    &\Normal(0, \sigma^2),
-    &\text{ where } \sigma^2
-    &\defeq \frac{\tilde L^4 \ln(1/\delta)}{\varepsilon^2}.
+However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\EyeNoSub$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $H_t$ is given by summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, symmetrizing the result as shown above and adding $(\upsilon+1)\EyeNoSub$; and $\vec h_t$ is the result of summing $\leq m$ $d$-dimensional vectors whose entries are sampled i.i.d from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
+\begin{proposition}
+\label{pro:accurate_bounds_for_Gaussian}
+Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
+\begin{align*}
+    &\rho_{\max}\defeq  2\Upsilon+1 &&\rho_{\min}\defeq 1 && \gamma \defeq \sqrt m\sigma_{\rm noise}(\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})=4m\tilde L^2 \ln(\nicefrac 4 \delta) (\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})/\varepsilon
   \end{align*}
-  Then releasing the sequence $(\XtX{A_{1:t,:}} + N_t)_{t=1}^n$ is
-  $(\varepsilon,\delta)$-differentially private with respect to
-  changing a single row of $A$.
+\end{proposition}
 
-  Furthermore, each entry of $N_t$ is distributed identically, but not
-  independently, according to $\Normal(0, m\sigma^2)$.
-\end{theorem}
+The result is a bound on the regret of Algorithm~\ref{alg:linucb} using the tree-based algorithm using Gaussian noise.
+
+\begin{corollary}
+\label{cor:regret_with_Wishart}
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmterized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ gives a regret bound of
+\[PLUG IN THE FINAL RESULT\]
+\end{corollary}
+
 
 \subsection{Regret Bounds}
 \label{sec:regret-bounds}
