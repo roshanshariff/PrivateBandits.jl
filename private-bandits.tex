@@ -4,7 +4,7 @@
 % if you need to pass options to natbib, use, e.g.:
 % \PassOptionsToPackage{numbers, compress}{natbib}
 % before loading nips_2018
-\PassOptionsToPackage{round,colon}{natbib}
+\PassOptionsToPackage{square,comma,numbers}{natbib}
 
 % ready for submission
 \usepackage{nips_2018}
@@ -20,11 +20,11 @@
 % \usepackage[nonatbib]{nips_2018}
 
 \title{Differentially Private Contextual Linear Bandits}
-\author{
-  Roshan Shariff
-  \And
-  Or Sheffet
-}
+% \author{
+%   Roshan Shariff
+%   \And
+%   Or Sheffet
+% }
 
 \usepackage{newtxtext}
 %\usepackage[semibold]{libertine} % a bit lighter than Times--no osf in math
@@ -43,6 +43,7 @@
 %\usepackage{upgreek}
 \usepackage{bm} % load after all math to give access to bold math
 
+\usepackage{lineno}
 \usepackage{microtype}
 \usepackage[inline,shortlabels]{enumitem}
 \usepackage{setspace}
@@ -60,8 +61,16 @@
 
 %% Cross-references
 \usepackage{varioref}
-\usepackage[hidelinks]{hyperref}
+\usepackage[pdfusetitle]{hyperref}
+% \usepackage{bookmark}
 \usepackage[capitalise]{cleveref}
+\hypersetup{
+  hidelinks,
+  bookmarks,
+  bookmarksnumbered,
+  bookmarksopen,
+  bookmarksopenlevel=2
+}
 
 %% To-do notes
 \usepackage[obeyFinal]{todonotes}
@@ -85,6 +94,7 @@
 \newcommand{\Int}{\mathds{Z}}
 \newcommand{\mgf}{\mathrm{mgf}}
 \newcommand{\UCB}{\operatorname{UCB}}
+\newcommand{\iid}{i.i.d.\@}
 \renewcommand\mid{\mathinner{\vert}}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -185,14 +195,14 @@
 
 The \emph{stochastic multi-armed bandit} (MAB) is a well-known
 sequential decision-making task: in every round, a learner chooses an
-action (or arm) and receives a corresponding reward drawn i.i.d.\ from
-an unknown distribution associated with the chosen action action.  The
+action (or arm) and receives a corresponding reward drawn i.i.d.\@
+from an unknown distribution associated with the chosen action.  The
 objective is to maximize the cumulative reward by learning from the
 past rewards associated with the different actions.  The
 \emph{contextual} bandit problem is an extension of MAB, where in each
-round we are also given an arbitrary context, and the reward is now
-drawn from a distribution that depends on \emph{both} the context and
-the selected action.
+round the learner is also given an arbitrary context, and the reward
+is now drawn from a distribution that depends on \emph{both} the
+context and the selected action.
 
 % Since the agent only observes the reward for actions it takes, this
 % is an online learning task with partial information.  Learning the
@@ -204,20 +214,20 @@ the selected action.
 
 As a motivating example, consider the problem of online
 advertisements.  The user provides a context (composed of query word,
-past history of clicks, website visits etc), and in response the site
-surfaces a potential ad and receives a reward if the user clicks the
-ad.  Ignoring the context and modeling the problem as a standard MAB
-(with each possible ad as an action) suffers from the drawback of
-ignoring the variety of users' preferences; whereas mode-ling the
+past history of clicks, website visits, etc.), and in response the
+site surfaces a potential ad and receives a reward if the user clicks
+on it.  Ignoring the context and modeling the problem as a standard
+MAB (with each possible ad as an action) suffers from the drawback of
+ignoring the variety of users' preferences; whereas modeling the
 problem as an independent learning task per user prevents
-generalization between users.  As a result, it is common to model the problem as a
-contextual linear-bandit problem.  Based on the user-given context,
-each ad (action) is mapped to some feature vector; yet the
-click-probability is modeled the same way across all users --- it is
-assumed to be proportional to the inner-product between the action's
-feature vector and some target vector $\vec\theta^*$.
+generalization between users.  As a result, it is common to model the
+problem as a contextual linear-bandit problem.  Based on the
+user-given context, each ad (action) is mapped to some feature vector;
+yet the click-probability is modeled the same way across all users ---
+it is assumed to be proportional to the inner-product between the
+action's feature vector and some target vector $\vec\theta^*$.
 
-The above example motivates the need for privacy in the contextual bandit setting: users' interests, web site visits, and clicks are
+The above example motivates the need for privacy in the contextual bandit setting: users' interests, website visits, and clicks are
 sensitive personal information, yet they are all required for making a reasonable prediction.
 % An algorithm may pick an ad for a
 % user based on their own information, and it may even learn from
@@ -363,14 +373,14 @@ $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
 \section{Preliminaries, Background and Related Works}
 \label{sec:background}
 
-\paragraph{Differential Privacy.} Differential privacy was first introduced by
+\subsection{Differential Privacy.} Differential privacy was first introduced by
 \citet{DworkCalibratingNoiseSensitivity2006, DworkKenthrapdai...2006}, and it is a rigorous mathermatical notion that determines that the probability of any event changes very little with the change of a single datum. (We omit the definition as the Joint-DP was already defined.) A classic result~\cite{DworkKenthrapdai...2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and vairance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. Among its many elegant traits is the notion of group privacy: should $k$ datums change the data, the change to any every is still limited, by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkRothblumVadhan2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\left( O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'  \right)$-differentially private for any $\delta'>0$.
 
 The notion of differential privacy under continual observation was first defined in~\cite{DworkContinualObservation2010} have also been defined, using the \textbf{tree-based algorithm} (originally appearing in~\cite{ChanPrivateContinualRelease2010}). This algorithm maintains a binary tree whose $n$ leafs correspond to the $n$ entries in the input sequence. Each node in the tree maintains a noisy (privacy-preserving) count of the sum of the input entries in its subtree, thus enabling us to maintain a running count of the sum of inputs thus far by combining no more than $\log(n)$ noisy counts. This algorithm is the key ingredient in a variety of works the deal with privacy in an noline setting, including counts~\cite{DworkContinualObservation2010}, online convex optimization~\cite{Jain,someone,thakurta,colt2012/3}, and regret minimization~\cite{SmithThakurta2013},\cite{MishraNearlyOptimalDPBandits2015} and~\cite{TussouDimitrikakis twice} in both the adversarial and stoachastic setting. We comment that~\cite{MishraNearlyOptimalDPBandits2015} proposed an algorithm similar to our own for the contextual bandit setting, however (i) without maintaining PSD, (ii) without any analysis only empirical evidence and (iii) without presenting lower bounds.
 
 In the offline setting, there have been numerous works studying differentially private linear regression~\cite{ChaudhuriMonteleoniSarwate2011, BassilySmithThakurta2014}. In this work we rely on two techniques that maintain a private version of the $2^{\rm nd}$-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkTTZ14} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
-\paragraph{The MAB and the Contextual MAB Problems.}
+\subsection{The MAB and the Contextual MAB Problems.}
 
 \begin{multicols}{2}[\paragraph{Notation.}\label{sec:notation}]
   \nolinenumbers
@@ -390,7 +400,7 @@ In the offline setting, there have been numerous works studying differentially p
   \linenumbers
 \end{multicols}
 
-\section{Differentially Private Linear UCB}
+\section{Linear UCB with Changing Regularizers}
 
 Our differentially private contextual linear bandit algorithm is based
 on the well-studied LinUCB algorithm, an application of the Upper
@@ -471,7 +481,7 @@ algorithm; we will indicate where each of these is used.
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:}
   \assume[ass:x-bound] $\norm{}{\vec x} \le L$.
   \assume[ass:meanreward-bound]
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$.
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$.
   \assume[ass:thetastar-bound] $\norm{}{\vec\theta^*} \le S$.
   \assume[ass:linear-reward]
   $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
@@ -537,12 +547,54 @@ $H_t$ and $\vec h_t$.
   \end{align*}
 \end{restatable}
 
-\subsection{Achieving Differential Privacy}
+\subsection{Regret Bounds}
+\label{sec:regret-bounds}
+
+\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
+  \label{thm:linucb-regret}%\
+  Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
+    ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
+  $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
+  probability at least $1-\alpha$ the pseudo-regret of
+  \cref{alg:linucb}
+  \begin{align*}
+    \widehat R_n
+    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t} \\
+    \shortintertext{satisfies}
+    \widehat R_n
+    &\le \sqrt{8n}\brck*{
+      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      }
+  \end{align*}
+\end{restatable}
+
+\begin{restatable}[Gap-Dependent Regret of
+  \Cref{alg:linucb}]{theorem}{ThmLinUCBRegretGap}%
+  \label{thm:linucb-regret}%\
+  Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
+    ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
+  $\beta_t$ are as given by \cref{prop:calc-beta}.  If the optimal
+  actions in every decision set $\Dset{t}$ is separated from the
+  sub-optimal arms by reward gap at least $\Delta$, then with
+  probability at least $1-\alpha$ the pseudo-regret of
+  \cref{alg:linucb} satisfies
+  \begin{align*}
+    \widehat R_n
+    &\le \frac{4}{\Delta} \brck*{
+      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      }^2
+  \end{align*}
+\end{restatable}
+
+
+\section{Linear UCB with Joint Differential Privacy}
 \label{sec:alg-dp}
 
 Notice that \cref{alg:linucb} uses its history of actions and rewards
 up to round $t$ only via the confidence set $\E_t$, which is to say
-$V_t$ and $\tilde{\vec u}_t$, which are perturbations of the Gram
+via $V_t$ and $\tilde{\vec u}_t$, which are perturbations of the Gram
 matrix $G_t\defeq\XtX{\vec X_{t-1}}$ and the vector
 $\vec u_t \defeq \transp{\vec X_t} \vec y_t$, respectively; these also
 determine $\beta_t$.  By recording this history with differential
@@ -610,7 +662,7 @@ First, we plug into the tree-based algorithm noise from a suitably chosen Wishar
 
 \begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]
   \label{thm:wishart-cont-dp}
-  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$. 
+  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$.
   \end{theorem}
 Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \EyeNoSub, k)$ with $k = \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\EyeNoSub, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)  --- $H_t$ is sampled from $\Wishart_d(\tilde L^2\EyeNoSub,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
 \begin{proposition}
@@ -638,7 +690,7 @@ Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ 
 \subsection{Differential Privacy via Additive Gaussian Noise}
 \label{sec:dp-gauss}
 
-Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Here we analyze a slight variation, where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then use $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} 
+Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Here we analyze a slight variation, where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then use $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.}
 
 \begin{theorem}%
   \label{thm:analyze-gauss}
@@ -676,68 +728,6 @@ Our second alternative is to plug into the tree-based algorithm Gaussian noise, 
   Furthermore, each entry of $N_t$ is distributed identically, but not
   independently, according to $\Normal(0, m\sigma^2)$.
 \end{theorem}
-
-\subsection{Regret Bounds}
-\label{sec:regret-bounds}
-
-\begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
-  \label{thm:linucb-regret}%\
-  Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
-    ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
-  $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
-  probability at least $1-\alpha$ the pseudo-regret of
-  \cref{alg:linucb}
-  \begin{align*}
-    \widehat R_n
-    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t} \\
-    \shortintertext{satisfies}
-    \widehat R_n
-    &\le B\sqrt{8n}\brck*{
-      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
-      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
-      }
-  \end{align*}
-\end{restatable}
-
-\subsection{Instance-Dependent Regret Bounds}%
-\label{sec:prob-dep-regret}
-
-\todo[inline]{Work in progress}
-
-\begin{theorem}
-  Suppose that at every round $t$ the decision set has a unique optimal
-  action and every other action incurs a regret at least $\Delta_t$.
-  Let $\Delta$ be a lower bound on all the $\Delta_t$.  We now give a
-  \emph{problem-dependent} regret bound that depends on the $\Delta$.
-\end{theorem}
-
-\begin{proof}
-  Consider the set of rounds up to $t$ on which the learner chooses a
-  sub-optimal action: $B_t = \set{s \le t \given r_t > 0}$ and let
-  $b_t = |B_t|$ be the number of times this happened.  Let $F_t$ be
-  the Gram matrix for just the actions on those rounds:
-  \begin{align*}
-    F_t &\defeq \sum_{s\in B_t} \XtX{\vec x_s}.
-  \end{align*}
-  Now $V_t = G_t + H_t \succeq G_t + H \succeq E_t + H \eqdef U_t$, and
-  $\inv{V_t} \preceq \inv{U_t}$.  We now decompose the regret into the
-  sum of per-round regrets $r_t$ but in a different way than we did in
-  \cref{lemma:linucb-regret}:
-  \begin{align*}
-    \widehat R_n
-    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
-    &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
-    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
-    &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
-    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
-    &\le \frac{8B^2\beta_n^2d}{\Delta} \log\paren*{1 + \frac{b_n L^2}{d\rho_{\min}}}
-    &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
-    \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
-    \rho_{\min}\Eye{d}$, the regret is bounded by}
-    \widehat R_n &\le \frac{8B^2\sqrt{\bar\beta_n}}{\Delta} d\log\frac{L^2b_t + \rho_{\min}}{\rho_{\min}}.
-  \end{align*}
-
-\end{proof}
 
 
 \section{Lower Bounds}
@@ -789,12 +779,18 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
   in Tor's paper?}
 
 
-\bibliographystyle{plainnat}
+\bibliographystyle{alpha}
 \bibliography{references,zotero-references}
 
-\newpage
 
+\cleardoublepage
 \appendix
+\phantomsection
+\addcontentsline{toc}{chapter}{Supplementary Material}
+\begin{center}
+  \LARGE\bf Supplementary Material
+\end{center}
+
 
 \section{Deferred Background Material}
 \label{apx_sec:more_background}
@@ -807,7 +803,7 @@ In the offline setting, a dataset $D$ is a $n$-tuple of elements from some unive
 \paragraph{The Tree-Based Mechanism.} Assume for simplicity that $n=2^i$ for some positive integer $i$. Let $T$ be a complete binary tree with its leaf nodes being $l_1,...,l_n$. Each internal
 node $x\in T$ stores the sum of all the leaf nodes in the tree
 rooted at $x$. First notice that one can compute any partial sum $\sum_{j=1}^i l_i$ using at most $m:=\lceil\log(n)+1\rceil$ nodes of $T$. Second, notice that for any two neighbor-
-ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkRothblumVadhan2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$). 
+ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkRothblumVadhan2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$).
 
 \section{Proof of \Cref{prop:calc-beta}}
 
@@ -858,76 +854,77 @@ ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ node
 
 \ThmLinUCBRegret*
 
+We start by giving a ``generic'' regret bound:
+
 \begin{lemma}\label{lemma:linucb-regret}
-  Suppose the mean rewards are bounded:
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ for all $\vec x\in\bigcup_t\Dset{t}$;
-  all the $V_t \succ 0$ are symmetric; and
-  $\bar\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  In the
-  event that for all rounds $t\in\set{1,\dotsc,n}$ the confidence sets
-  $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
-  $\norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}} \le \beta_{t-1}$),
-  the pseudo-regret of \cref{alg:linucb} satisfies
+  Suppose \cref{ass:meanreward-bound,ass:psd-reg} hold (i.e.\
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ and all $H_t \succeq 0$)
+  and $\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  If all
+  the confidence sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
+  $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
+  \beta_t$), then the pseudo-regret of \cref{alg:linucb} satisfies
   \begin{align*}
-    \widehat{R}_n &\le \bar\beta_n\sqrt{4n \sum_{t=1}^n \min\set{B^2,
-                   \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
+    \widehat{R}_n &\le \beta_n\sqrt{4n \sum_{t=1}^n \min\set{B^2,
+                   \norm{\inv{V_t}}{\vec x_t}^2}}.
   \end{align*}
 \end{lemma}
 
 \begin{proof}
-  At every round $t$, \cref{alg:linucb} selects the ``optimistic''
+  At every round $t$, \cref{alg:linucb} selects an ``optimistic''
   action $\vec x_t$ satisfying
   \begin{align}\label{eq:optimistic-action}
     (\vec x_t,\bar{\vec\theta}_t)
-    &= \argmax_{\vec x\in\Dset{t},\vec\theta\in\Eset{t}} \innerp{\vec\theta}{\vec x}.
+    &\in \argmax_{(\vec x, \vec\theta) \in\Dset{t}\times\Eset{t}} \innerp{\vec\theta}{\vec x}.
   \end{align}
-  Let $\vec x_t^* = \argmax_{\vec x\in\Dset{t}}\innerp{\vec\theta^*}{\vec x}$ be an optimal
+  Let $\vec x_t^* \in \argmax_{\vec x\in\Dset{t}}\innerp{\vec\theta^*}{\vec x}$ be an optimal
   action and $r_t = \innerp{\vec\theta^*}{\vec x_t^* - \vec x_t}$ be the immediate
   pseudo-regret suffered for round $t$:
   \begin{align*}
     r_t &= \innerp{\vec\theta^*}{\vec x_t^*} - \innerp{\vec\theta^*}{\vec x_t} \\
         &\le \innerp{\bar{\vec\theta}_t}{\vec x_t} - \innerp{\vec\theta^*}{\vec x_t}
         &\text{from \eqref{eq:optimistic-action} since }
-          \vec x_t^*\in\Dset{t}, \vec\theta^*\in\Eset{t} \\
+          (\vec x_t^*,\vec\theta^*) \in \Dset{t}\times\Eset{t} \\
         &= \innerp{\bar{\vec\theta}_t - \vec\theta^*}{\vec x_t} \\
-        &= \innerp{V_{t-1}^{1/2}(\bar{\vec\theta}_t - \vec\theta^*)}{V_{t-1}^{-1/2} \vec x_t} \\
-        &\le \norm{V_{t-1}}{\bar{\vec\theta}_t - \vec\theta^*}\norm{\inv{V_{t-1}}}{\vec x_t}
+       &= \innerp{V_t^{1/2}(\bar{\vec\theta}_t - \vec\theta^*)}{V_t^{-1/2} \vec x_t}
+        &\text{since } V_t \succeq H_t \succeq 0 \\
+        &\le \norm{V_t}{\bar{\vec\theta}_t - \vec\theta^*}\norm{\inv{V_t}}{\vec x_t}
         &\text{by Cauchy-Schwarz}\\
-        &\le \paren[\big]{\norm{V_{t-1}}{\bar{\vec\theta}_t - \tilde{\vec\theta}_{t-1}}
-          + \norm{V_{t-1}}{\vec\theta^* - \tilde{\vec\theta}_{t-1}}}
-          \norm{\inv{V_{t-1}}}{\vec x_t}
+        &\le \paren[\big]{\norm{V_t}{\bar{\vec\theta}_t - \tilde{\vec\theta}_t}
+          + \norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}}
+          \norm{\inv{V_t}}{\vec x_t}
         &\text{by the triangle inequality}\\
-        &\le 2\beta_{t-1}\norm{\inv{V_{t-1}}}{\vec x_t}
+        &\le 2\beta_t\norm{\inv{V_t}}{\vec x_t}
         &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \Eset{t} \\
-        &\le 2\bar\beta_n\norm{\inv{V_{t-1}}}{\vec x_t}
-        &\text{since } \bar\beta_n \ge \beta_{t-1}.
+        &\le 2\beta_n\norm{\inv{V_t}}{\vec x_t}
+        &\text{since } \beta_n \ge \beta_t.
   \end{align*}
   From our assumptions that the mean absolute reward is bounded by $B$
-  and $\bar\beta_n \ge 1$, we also get that
-  $r_t \le 2B \le 2B\bar\beta_n$.  Putting these together,
+  and $\beta_n \ge 1$, we also get that
+  $r_t \le 2B \le 2B\beta_n$.  Putting these together,
   \begin{align}\label{eq:regret-bound-oneround}
-    r_t &\le 2\bar\beta_n \min\set{B, \norm{\inv{V_{t-1}}}{\vec x_t}}
+    r_t &\le 2\beta_n \min\set{B, \norm{\inv{V_t}}{\vec x_t}}
   \end{align}
   Now we apply Jensen's inequality as follows:
   \begin{align*}
     \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
                    \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
     \widehat R_n &\le \sqrt{n\sum_{t=1}^n r_t^2}
-                  =  2\bar\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
-                  \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
+                  =  2\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
+                  \norm{\inv{V_t}}{\vec x_t}^2}}.
                   \qedhere
   \end{align*}
 \end{proof}
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
-  Let $\vec x_1,\dotsc,\vec x_n \in \Real^d$ be bounded vectors with each
-  $\norm{}{\vec x_t} \le L$, $U_0\in\Real^{d\times d}$ a positive
-  definite matrix, and $B \ge 0$.  Define
-  $U_t \defeq U_0 + \sum_{s=1}^t \vec x_s \transp{\vec x_s}$ for all
-  $t\in\set{1,\dotsc,n}$.  Then
+  Let $\vec x_1,\dotsc,\vec x_n \in \Real^d$ be vectors with each
+  $\norm{}{\vec x_t} \le L$.  Given a positive definite matrix
+  $U_1\in\Real^{d\times d}$, define
+  $U_{t+1} \defeq U_t + \vec x_t \transp{\vec x_t}$ for all $t$.  Then
+  for any $B \ge 0$,
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_{t-1}}}{\vec x_t}^2}
-    &\le 2B^2 \log\frac{\det U_n}{\det U_0}
-      \le 2B^2d \log\frac{\tr U_0+nL^2}{d\det^{1/d} U_0}.
+    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2}
+    &\le 2B^2 \log\frac{\det U_{n+1}}{\det U_1}
+      \le 2B^2d \log\frac{\tr U_1+nL^2}{d\det^{1/d} U_1}.
   \end{align*}
 \end{lemma}
 
@@ -935,20 +932,20 @@ ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ node
   We begin by deriving the first inequality with $B=1$, using the fact
   that $\min\set{1, u} \le 2\log(1+u)$ for any $u \ge 0$:
   \begin{align*}
-    \sum_{t=1}^n\min\set{1, \norm{\inv{U_{t-1}}}{\vec x_t}^2}
-    &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_{t-1}}}{\vec x_t}^2).
+    \sum_{t=1}^n\min\set{1, \norm{\inv{U_t}}{\vec x_t}^2}
+    &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_t}}{\vec x_t}^2).
   \end{align*}
-  We will show that this last summation is $2\log(\det U_n/\det
-  U_0)$.  For $t \ge 1$ we have
+  We will show that this last summation is $2\log(\det U_{n+1}/\det
+  U_n)$.  For all $t$, we have
   \begin{align*}
-    U_t &= U_{t-1} + \vec x_t \transp{\vec x_t}
-         = U_{t-1}^{1/2}
-         \paren[\big]{I + U_{t-1}^{-1/2} \vec x_t \transp{\vec x_t} U_{t-1}^{-1/2}}
-         U_{t-1}^{1/2} \\
-    \det U_t &=\det U_{t-1}
-              \det\paren[\big]{I +
-              U_{t-1}^{-1/2} \vec x_t \transp{\vec x_t}
-              U_{t-1}^{-1/2}}.
+    U_{t+1} &= U_t + \vec x_t \transp{\vec x_t}
+             = U_t^{1/2}
+             \paren[\big]{I + U_t^{-1/2} \vec x_t \transp{\vec x_t} U_t^{-1/2}}
+             U_t^{1/2} \\
+    \det U_{t+1} &=\det U_t
+                  \det\paren[\big]{I +
+                  U_t^{-1/2} \vec x_t \transp{\vec x_t}
+                  U_t^{-1/2}}.
   \end{align*}
   Consider the eigenvectors of the matrix $I + \vec y \transp{\vec y}$
   for an arbitrary vector $\vec y \in \Real^d$.  We know that $\vec y$
@@ -965,19 +962,20 @@ ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ node
   \end{align*}
   Therefore the only eigenvalues of $I + \vec y \transp{\vec y}$ are
   $1+\norm{}{\vec y}^2$ (with eigenvector $\vec y$) and 1.  In our
-  case $\vec y = U_{t-1}^{-1/2} \vec x_t$ and
-  $\norm{}{\vec y}^2 = \transp{\vec x_t} \inv{U_{t-1}} \vec x_t =
-  \norm{\inv{U_{t-1}}}{\vec x_t}^2$, so we get our first inequality:
+  case $\vec y = U_t^{-1/2} \vec x_t$ and
+  $\norm{}{\vec y}^2 = \transp{\vec x_t} \inv{U_t} \vec x_t =
+  \norm{\inv{U_t}}{\vec x_t}^2$, so we get our first inequality:
   \begin{align*}
-    \det U_n &= \det U_0 \prod_{t=1}^n(1 + \norm{\inv{U_{t-1}}}{\vec x_t}^2) \\
-    2\log\frac{\det U_n}{\det U_0}
-            &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_{t-1}}}{\vec x_t}^2).
+    \det U_{n+1} &= \det U_1 \prod_{t=1}^n(1 + \norm{\inv{U_t}}{\vec x_t}^2) \\
+    2\log\frac{\det U_{n+1}}{\det U_1}
+            &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_t}}{\vec x_t}^2).
   \end{align*}
-  For $B \neq 1$, we apply the above result with each $\vec x_t$ scaled by
-  $B^{-1}$ and $U_0,\dotsc,U_n$ scaled by $B^{-2}$:
+  For $B \neq 1$, we apply the above result to the sequence
+  $\vec x_t' \defeq \vec x_t/B$ and $U_1' = U_1/B^2$, $B^{-1}$ and $U_1$ scaled by
+  $B^{-2}$:
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{\vec x_t}^2}
-    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_{t-1}}}{B^{-1} \vec x_t}^2}
+    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_t}}{\vec x_t}^2}
+    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_t}}{\vec x_t'}^2}
       \le 2B^2 \log\frac{\det(B^{-2}U_n)}{\det(B^{-2}U_0)}.
   \end{align*}
   To get the second inequality, we apply the arithmetic-geometric
@@ -993,28 +991,76 @@ ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ node
   \end{align*}
 \end{proof}
 
-\begin{proof}[Proof of \Cref{thm:linucb-regret}]
+\begin{lemma}[Regret of \Cref{alg:linucb}]
+  \label{lemma:linucb-regret}%
+  Suppose \cref{ass:meanreward-bound} holds
+  ($\abs{\innerp{\vec\theta^*}{\vec x}} \le B$) and the $(\beta_t)_{t=1}^n$
+  are $(\alpha,n)$-accurate.
+  \begin{align*}
+    \widehat R_n
+    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
+      \shortintertext{satisfies}
+      \widehat R_n
+    &\le 2B\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
+    \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
+    \widehat R_n
+    &\le 2B\beta_n \sqrt{2dn \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
   From our assumptions and \cref{lemma:linucb-regret}, we know that
   the Linear UCB regret is bounded by
   \begin{align*}
-    \widehat{R}_n &\le 2\bar\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
-                   \norm{\inv{V_{t-1}}}{\vec x_t}^2}}.
+    \widehat{R}_n &\le 2\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
+                   \norm{\inv{V_t}}{\vec x_t}^2}}.
   \end{align*}
   Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
   \cref{claim:psd-matrix-props} it follows that
   $\inv{V_t} \preceq \inv{U_t}$, which means
-  $\norm{\inv{V_{t-1}}}{\vec x_t}^2 \le \norm{\inv{U_{t-1}}}{\vec x_t}^2$.  We
+  $\norm{\inv{V_t}}{\vec x_t}^2 \le \norm{\inv{U_t}}{\vec x_t}^2$.  We
   now apply \cref{lemma:elliptical-potential} to the sequence $U_t$ to
   get
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_{t-1}}}{\vec x_t}^2}
-    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_{t-1}}}{\vec x_t}^2} \\
+    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_t}}{\vec x_t}^2}
+    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_t}}{\vec x_t}^2} \\
     &\le 2B^2 \log\det\frac{U_n}{U_0} \\
     &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
   \end{align*}
   To get the required bounds, it only remains to see that $U_0 = H$ and
   that $\det U_n \le \det V_n$ (again by
   \cref{claim:psd-matrix-props}).
+\end{proof}
+
+
+\todo{Finish the following gap-dependent proof.}
+
+\begin{proof}
+  Consider the set of rounds up to $t$ on which the learner chooses a
+  sub-optimal action: $B_t = \set{s \le t \given r_t > 0}$ and let
+  $b_t = |B_t|$ be the number of times this happened.  Let $F_t$ be
+  the Gram matrix for just the actions on those rounds:
+  \begin{align*}
+    F_t &\defeq \sum_{s\in B_t} \XtX{\vec x_s}.
+  \end{align*}
+  Now $V_t = G_t + H_t \succeq G_t + H \succeq E_t + H \eqdef U_t$, and
+  $\inv{V_t} \preceq \inv{U_t}$.  We now decompose the regret into the
+  sum of per-round regrets $r_t$ but in a different way than we did in
+  \cref{lemma:linucb-regret}:
+  \begin{align*}
+    \widehat R_n
+    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
+    &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
+    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
+    &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
+    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
+    &\le \frac{8B^2\beta_n^2d}{\Delta} \log\paren*{1 + \frac{b_n L^2}{d\rho_{\min}}}
+    &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
+    \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
+    \rho_{\min}\Eye{d}$, the regret is bounded by}
+    \widehat R_n &\le \frac{8B^2\sqrt{\beta_n}}{\Delta} d\log\frac{L^2b_t + \rho_{\min}}{\rho_{\min}}.
+  \end{align*}
+
 \end{proof}
 
 \section{Privacy Proofs}
