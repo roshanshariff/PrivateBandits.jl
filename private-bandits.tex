@@ -158,7 +158,7 @@
 \newenvironment{assumptions*}[2][]{%
   \begin{assumptions}[#1]
     #2
-    \begin{enumerate}[nosep]
+    \begin{enumerate}[nolistsep]
       \setcounter{enumi}{\theassumption}
       \newcommand{\assume}[1][]{\item\label[assumption]{##1}}
     }{
@@ -534,8 +534,8 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
   \end{algorithmic}
 \end{algorithm}
 
-We now collect our assumptions about the environment and inputs to the
-algorithm; we will indicate where each of these is used.
+We will refer back to the following assumptions about the environment
+and algorithm:
 \begin{assumptions*}[\Cref{alg:linucb}]{%
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\D_t$:}
   \assume[ass:x-bound] $\norm{}{\vec x} \le L$.
@@ -553,11 +553,10 @@ algorithm; we will indicate where each of these is used.
   \end{align*}
 \end{assumptions*}
 \cref{ass:x-bound,ass:meanreward-bound} are not needed for the
-correctness of the algorithm itself (i.e.\ the accuracy of its
-confidence sets), only for the regret bounds in
-\cref{sec:regret-bounds}.  Conversely, it is important to note that of
-these, only \cref{ass:x-bound} is needed for the algorithm to be
-differentially private (see \cref{sec:alg-dp}).
+correctness of the algorithm (i.e.\ its confidence sets), only for the
+regret bounds in \cref{sec:regret-bounds}.  Conversely, it is
+important to note that of these, only \cref{ass:x-bound} is needed for
+differential private (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
 
 The algorithm relies upon the confidence ellipsoids to be accurate but
 nevertheless tightly concentrated around the unknown $\vec\theta^*$.
@@ -594,14 +593,16 @@ $H_t$ and $\vec h_t$.
   $(\alpha/2n)$-accurate for some $\alpha\in(0,1)$ and horizon $n$.
   Then $(\beta_t)_{t=1}^n$ is $(\alpha,n)$-accurate where
   \begin{align*}
-    \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
-             + S\sqrt{\rho_{\max}} + \gamma.
-             \end{align*}
-    {If in addition each $\norm{}{\vec x_s} \le L$
-    (\cref{ass:x-bound}), then}
-    $\beta_t \le \sigma\sqrt{2\log(\nicefrac{2}{\alpha}) + d\log\paren*{1 + \frac{tL^2}{d\rho_{\min}}}}
-             + S\sqrt{\rho_{\max}} + \gamma$.
+    \beta_t
+    &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
+      + S\sqrt{\rho_{\max}} + \gamma \\
+    &\le \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}}
+      + \frac{tL^2}{d\rho_{\min}}}}
+      + S\sqrt{\rho_{\max}} + \gamma.
+      &\text{(Under \cref{ass:x-bound})}
+  \end{align*}
 \end{restatable}
+
 \vspace{-5pt}
 \subsection{Regret Bounds}
 \label{sec:regret-bounds}
@@ -611,10 +612,8 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
     ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
-  probability at least $1-\alpha$ the pseudo-regret
-  $\widehat R_n \defeq \sum_{t=1}^n \max_{\vec x\in\D_t}
-  \innerp{\vec\theta^*}{\vec x - \vec x_t}$ \todo{isn't it
-    $\vec x_t^*$?} of \cref{alg:linucb} satisfies
+  probability at least $1-\alpha$ the pseudo-regret of
+  \cref{alg:linucb} is bounded by
     \begin{align}
     \label{eq:regret_general_formula}
     \widehat R_n
@@ -908,7 +907,22 @@ different regularizer at each round.
   \begin{align*}
     \norm{\inv{(G_t + \rho_{\min}\Eye)}}{\vec z_t}
     &\le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\frac{\det(G_t+\rho_{\min}\Eye)}{\det\rho_{\min}\Eye}}
-      \le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\det V_t - d\log\rho_{\min}} \qedhere
+      \le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\det V_t - d\log\rho_{\min}}.
+  \end{align*}
+  It only remains to show the upper-bound on each $\beta_t$.  By
+  \cref{claim:psd-matrix-props}, we have
+  $\det V_t = \det(G_t+H_t) \le \det(G_t+\rho_{\max}\Eye)$ and
+  \begin{align*}
+    \log\det V_t
+    &\le \log\det(G_t + \rho_{\max}\Eye)
+    \le d\log(\rho_{\max} + tL^2/d).
+  \end{align*}
+  using the trace-determinant inequality as in the proof of
+  \cref{lemma:elliptical-potential}.  All the $\beta_t$ are therefore
+  bounded by the constants
+  \begin{align*}
+    \bar\beta_t &\defeq \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}}
+                 + \frac{tL^2}{d\rho_{\min}}}} + S\sqrt{\rho_{\max}} + \gamma. \qedhere
   \end{align*}
 \end{proof}
 
@@ -1038,38 +1052,12 @@ different regularizer at each round.
 
 \ThmLinUCBRegret*
 
-% \begin{lemma}[Regret of \Cref{alg:linucb}]
-%   \label{lemma:linucb-regret}%
-%   Suppose \cref{ass:meanreward-bound} holds
-%   ($\abs{\innerp{\vec\theta^*}{\vec x}} \le B$) and the $(\beta_t)_{t=1}^n$
-%   are $(\alpha,n)$-accurate.
-%   \begin{align*}
-%     \widehat R_n
-%     &\defeq \sum_{t=1}^n \max_{\vec x\in\D_t} \innerp{\vec x}{\vec\theta^*}
-%       \shortintertext{satisfies}
-%       \widehat R_n
-%     &\le 2B\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
-%     \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
-%     \widehat R_n
-%     &\le 2B\beta_n \sqrt{2dn \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
-%   \end{align*}
-% \end{lemma}
-
 \begin{proof}
   We restrict ourselves to the event that all the confidence
   ellipsoids contain $\vec\theta^*$ and all
-  $\rho_{\min}\Eye \preceq H_t \preceq \rho_{\max}\Eye$; by
-  \cref{prop:calc-beta} this happens with probability at least
-  $1-\alpha$.  Then by \cref{claim:psd-matrix-props}, we have
-  $\det V_t \le \det(G_t+\rho_{\max}\Eye)$ and
-  \begin{align*}
-    \log\det V_t
-    &\le \log\det(G_t + \rho_{\max}\Eye)
-    \le d\log(\rho_{\max} + tL^2/d).
-  \end{align*}
-  using the trace-determinant inequality as in the proof of
-  \cref{lemma:elliptical-potential}.  All the $\beta_t$ are therefore
-  bounded by the constant
+  $\rho_{\min}\Eye \preceq H_t \preceq \rho_{\max}\Eye$.
+  \Cref{prop:calc-beta} assures us that this happens with probability at least
+  $1-\alpha$, and furthermore gives us the bound $\beta_t \le \bar\beta_n$:
   \begin{align*}
     \bar\beta_n &\defeq \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}}
                  + \frac{nL^2}{d\rho_{\min}}}}
