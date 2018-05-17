@@ -98,6 +98,7 @@
 \newcommand{\Int}{\mathds{Z}}
 \newcommand{\mgf}{\mathrm{mgf}}
 \newcommand{\UCB}{\mathrm{UCB}}
+\newcommand{\ie}{\text{i.e.\@}}
 \newcommand{\iid}{\text{i.i.d.\@}}
 \renewcommand{\Pr}{\mathds{P}}
 \renewcommand\mid{\mathinner{\vert}}
@@ -209,16 +210,14 @@
 \section{Introduction}
 \label{sec:introduction}
 
-The \emph{stochastic multi-armed bandit} (MAB) is a well-known
-sequential decision-making task: in every round, a learner chooses an
-action (or arm) and receives a corresponding reward drawn \iid{}
-from an unknown distribution associated with the chosen action.  The
-objective is to maximize the cumulative reward by learning from the
-past rewards associated with the different actions.  The
-\emph{contextual} bandit problem is an extension of MAB, where in each
-round the learner is also given an arbitrary context, and the reward
-is now drawn from a distribution that depends on \emph{both} the
-context and the selected action.
+The well-known \emph{stochastic multi-armed bandit} (MAB) is a
+sequential decision-making task in which a learner repeatedly chooses
+an action (or arm) and receives a noisy reward.  The objective is to
+maximize cumulative reward by quickly discovering the optimal arm: the
+one with the best reward in expectation.  The \emph{contextual} bandit
+problem is an extension of MAB, where the learner also receives a
+\emph{context} in each round, and the expected reward depends on
+\emph{both} the context and the selected action.
 
 % Since the agent only observes the reward for actions it takes, this
 % is an online learning task with partial information.  Learning the
@@ -228,23 +227,22 @@ context and the selected action.
 % the best arms it has found.  The main challenge of bandit strategies
 % is to balance exploration and exploitation.
 
-As a motivating example, consider the problem of online
-advertisements.  The user provides a context (composed of query word,
-past history of clicks, website visits, etc.), and in response the
-site surfaces a potential ad and receives a reward if the user clicks
-on it.  Ignoring the context and modeling the problem as a standard
-MAB (with each possible ad as an action) suffers from the drawback of
-ignoring the variety of users' preferences; whereas modeling the
-problem as an independent learning task per user prevents
-generalization between users.  As a result, it is common to model the
-problem as a contextual linear-bandit problem.  Based on the
-user-given context, each ad (action) is mapped to some feature vector;
-yet the click-probability is modeled the same way across all users ---
-it is assumed to be proportional to the inner-product between the
-action's feature vector and some target vector $\vec\theta^*$.
+As a motivating example, consider online shopping: the user provides a
+context (composed of query words, past purchases, etc.), and the site
+responds with a suggested product and receives a reward if the user
+buys it.  Ignoring the context and modeling the problem as a standard
+MAB (with an action for each possible product) suffers from the
+drawback of ignoring the variety of users' preferences; whereas
+learning each user's preference separately prevents generalization
+between users.  Therefore it is common to model the task as a
+contextual \emph{linear bandit} problem: Based on the user-given
+context, each product (action) is mapped to a feature vector; the
+purchase probability is assumed to be the \emph{same} unknown linear
+function of the feature vector for all users.
 
-The above example motivates the need for privacy in the contextual bandit setting: users' interests, website visits, and clicks are
-sensitive personal information, yet they are all required for making a reasonable prediction.
+The above example motivates the need for privacy in the contextual
+bandit setting: users' past purchases are sensitive personal
+information, yet they strongly predict future purchases.
 % An algorithm may pick an ad for a
 % user based on their own information, and it may even learn from
 % aggregated information to choose better in the future, but an
@@ -252,24 +250,23 @@ sensitive personal information, yet they are all required for making a reasonabl
 % much about any individual user.
 In this work, we give the first upper- and lower-bounds for the
 problem of (joint) \emph{differentially private} contextual linear
-bandits.
-\emph{Differential privacy}, the de-facto gold-standard of
-privacy preserving data-analysis in both academia and industry,
-states that the algorithm's performance has a very limited dependency on any interaction with one single user (one context and one
-reward).  However, as we later illustrate, in the contextual
-bandit setting adhering to the standard notion of differential privacy (under continual observation) implies we must essentially ignore
-each day's context and thus incur linear regret.  We therefore adopt
-the more relaxed notion of \emph{joint differential privacy}
-\citep{KearnsMechanismDesign2014} which allows for the output of round
-$t$ to depend arbitrarily on the context of round $t$, yet have only
-limited dependency with the context or reward of any other round
-$t'$.  Intuitively, we allow the $t$-th user to observe ads
+bandits.  Differential privacy is the de facto gold-standard of
+privacy-preserving data analysis in both academia and industry,
+requiring that an algorithm's output have very limited dependency on
+any single user interaction (one context and reward).  However, as we
+later illustrate, adhering to the standard notion of differential
+privacy (under continual observation) in the contextual bandit
+requires us to essentially ignore the context and thus incur linear
+regret.  We therefore adopt the more relaxed notion of \emph{joint
+  differential privacy}~\citep{KearnsMechanismDesign2014} which,
+intuitively, allows us to present the $t$-th user with products
 corresponding to her preferences, without revealing (much) about those
-preferences to all users at times $t'>t$.\footnote{The guarantee of
+preferences to users at times $t'>t$.\footnote{The guarantee of
   differential privacy under continuous observation assures that the
-  entire sequence of actions and rewards preserve privacy.  Hence, even
-  if all later user collude in an effort to learn user $t$'s context,
-  they still have very limited advantage over a random guess.}
+  entire sequence of actions and rewards preserve privacy.  Hence,
+  even if all later user collude in an effort to learn user $t$'s
+  context, they still have very limited advantage over a random
+  guess.}
 
 \subsection{Background and Problem Formulation}
 \label{subsec:intro_background}
@@ -277,17 +274,11 @@ preferences to all users at times $t'>t$.\footnote{The guarantee of
 \subsubsection{Stochastic Contextual Linear Bandits.}%
 \label{sec:contextual-bandits}
 
-The classic MAB problem is a sequential decision making task in which, at
-every round $t$, an algorithm selects an action $a_t$ from a fixed set $\A$.
-%Usually, $\A = \set{1,\dotsc,K}$ (the $K$-armed bandit) but we do not
-%require this; our algorithms can handle other action sets that may be
-%infinite or uncountable.
-The algorithm then receives a \emph{reward}
-corresponding to the action it chose.  In the (stationary)
-\emph{stochastic multi-armed bandit}, the reward is of the form $r_t =
-\mu_{a_t} + \eta_t$, where $\mu_a$ is the expected reward of action $a$
-and $\eta_t$ is zero-mean noise.
-%In other words, the reward is sampled independently from a distribution that depends only on the selected action.
+In the classic MAB task, in every round $t$ a learner selects an
+\emph{action} $a_t$ from a fixed set $\A$ and receives a \emph{reward}
+$r_t$.  In the (stationary) \emph{stochastic} MAB, the reward is noisy
+with a fixed but unknown expectation $\Ex{r_t\given a_t}$ that depends
+only on the selected action.
 
 In the contextual bandit problem, the algorithm also receives a
 \emph{context} $c_t\in\C$ at the beginning of each round, and the
