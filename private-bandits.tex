@@ -142,13 +142,14 @@
 \newcommand{\Eye}[1][]{\bm{I}\notblank{#1}{_{{#1}\times{#1}}}{}}
 \newcommand{\XtX}[1]{\transp{#1}{#1}}
 
+\renewcommand{\paragraph}[1]{\vspace{2pt}\noindent\textbf{#1}}
 % Theorem environments
 
 \declaretheorem[style=plain]{theorem}
 \declaretheorem[style=plain,sibling=theorem]{lemma}
 \declaretheorem[style=plain,sibling=theorem]{corollary}
 \declaretheorem[style=plain,sibling=theorem]{proposition}
-\declaretheorem[style=remark,sibling=theorem]{claim}
+\declaretheorem[style=plain,sibling=theorem]{claim}
 \declaretheorem[style=definition]{definition}
 \declaretheorem[style=definition]{assumption}
 \declaretheorem[style=remark,numbered=no]{remark}
@@ -168,6 +169,8 @@
 }
 
 \Crefname{assumption}{Assumption}{Assumptions}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\onehalfspacing
@@ -266,9 +269,10 @@ preferences to users at times $t'>t$.\footnote{The guarantee of
   context, they still have very limited advantage over a random
   guess.}
 
-\subsection{Stochastic Contextual Linear Bandits}%
-\label{sec:contextual-bandits}
-
+\subsection{Problem Formulation}
+\label{subsec:problem_formulation}
+\paragraph{Stochastic Contextual Linear Bandits.}%
+%\label{sec:contextual-bandits}
 In the classic multi-armed bandit, in every round $t$ a learner
 selects an \emph{action} $a_t$ from a fixed set $\A$ and receives a
 \emph{reward} $y_t$.  In the (stationary) \emph{stochastic} MAB, the
@@ -318,9 +322,8 @@ $\widehat{R}_n \defeq
   unavoidable reward noise.}
 
 
-\subsection{Joint Differential Privacy.}%
-\label{sec:joint-dp}
-
+\paragraph{Joint Differential Privacy.}%
+%\label{sec:joint-dp}
 As discussed above, the context and reward may be considered private
 information about the users which we wish to keep private from all
 \emph{other} users. We thus introduce the notion of joint
@@ -402,18 +405,18 @@ that the effective group-privacy between two possible inputs of $n$
 samples drawn iid from distributions $P$ and $Q$ respectively is about
 $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
 
+\subsection{Related Work}
+\label{subsec:related_work}
 
+\paragraph{MAB and the Contextual Bandit Problem.}
 
-\todo[inline]{Complete this section.}
-\section{Preliminaries, Background and Related Work}
-\label{sec:background}
-
-\subsection{Differential Privacy.} Differential privacy was first introduced by
-\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion that determines that the probability of any event changes very little with the change of a single datum. (We omit the definition as the Joint-DP was already defined.) A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. Among its many elegant traits is the notion of group privacy: should $k$ datums change the data, the change to any every is still limited, by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
-
+\paragraph{Differential Privacy.} Differential privacy was first introduced by
+\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion that determines that the probability of any event changes very little with the change of a single datum. (We omit the definition as the Joint-DP was already defined.) 
+%A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. 
+Among its many elegant traits is the notion of group privacy: should $k$ datums change the data, the change to any every is still limited, by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
+%
 The notion of differential privacy under continual observation was
-first defined by \citet{DworkContinualObservation2010} have also been
-defined, using the \textbf{tree-based algorithm}~\citep[originally
+first defined by \citet{DworkContinualObservation2010} using the \textbf{tree-based algorithm}~\citep[originally
 appearing in][]{ChanPrivateContinualRelease2010}). This algorithm
 maintains a binary tree whose $n$ leafs correspond to the $n$ entries
 in the input sequence. Each node in the tree maintains a noisy
@@ -432,26 +435,39 @@ settings. We comment that \citet{MishraNearlyOptimalDPBandits2015}
 proposed an algorithm similar to our own for the contextual bandit
 setting, however (i) without maintaining PSD, (ii) without any
 analysis, only empirical evidence, and (iii) without presenting lower
-bounds.
-
+bounds. Further details about acheiving differential privacy via additive noise and the tree-based algorithm appear in Section~\ref{apx_sec:more_background}.
+%
 In the offline setting, there have been numerous works studying differentially private linear regression~\citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}. In this work we rely on two techniques that maintain a private version of the second-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkAnalyzeGauss2014} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
-\subsection{The MAB and the Contextual MAB Problems.}
+\todo[inline]{Complete this section.}
+\section{Preliminaries and notation}
+\label{sec:preliminaries}
 
-\begin{multicols}{2}[\paragraph{Notation.}\label{sec:notation}]
+We use $\vec{bold}$ character to denote vectors and bold $\vec{CAPITAL}$ letters to denote matrices. A matrix $\vec M$ is positive-semidefinite (PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that $\transp{\vec  x} \vec M \vec x \geq 0$. We use $\vec M\succeq \vec N$ to denote the fact that $(\vec M-\vec N)$ is PSD. It is known that such $\vec M$ defines a dot-product between vectors and so we define $\|\vec x\|_{\vec M} = \sqrt{\transp{\vec  x} \vec M \vec x}$. The Gaussian distribution $\Normal(\mu,\sigma^2)$ is defined by the density function $(2\pi\sigma^2)^{-0.5}\exp(-\nicefrac{(x-\mu)^2}{2\sigma^2})$. The $L_2$-norm squared of a $d$-dimensional vector whose coordinates are drawn iid from $\Normal(0,1)$ is given by the $\chi^2$-distribution, which is tightly concentrated around $d$. %Explicit concentration bounds are given in Section~\ref{} 
+
+\paragraph{Notation.}\label{sec:notation} Our bound depends on many parameters of the problem, specified below. Additional parameters (bounds) as specified in Assumptions~\ref{ass:x-bound}-\ref{ass:bounded-data} below.
+\begin{multicols}{2}[]
   \nolinenumbers
   \begin{description}[style=sameline,leftmargin=5em,nosep]
   \item[$n$] horizon, i.e. number of rounds
   \item[$s,t$] indices of rounds
   \item[$d$] dimensionality of action space
   \item[$\D_t\subset\Real^d$] decision set at round $t$
-  \item[$\vec x_t \in \D_t$] action at round $t$
+  \item[$\vec x_t \in \D_t$] action at round $t$ \todo{Is this necessary? It was specified in the problem definition. Can it be merged with 6?}
   \item[$y_t \in \Real$] reward at round $t$
   \item[$\vec X_t \in \Real^{t\times d}$] matrix with $\vec X_s = \transp{\vec
       x_s}$ for $s\in[t]$
+  \item[$\vec G_t = \transp{\vec X_t}\vec X_t$] The gram-matrix of the actions
+  \item[$\vec H_t$] The regularizer at day $t$ 
   \item[$\vec y_t \in \Real^t$] vector of rewards $\vec y_s = y_s$
+  \item[$\vec u_t = \transp{\vec X_t} \vec y_t$] The action-reward product 
+  \item[$\vec h_t$] The regularizer / perturbation of $\vec u_t$
   \item[$\vec\theta^* \in \Real^d$] unknown parameter vector
-  \item[$\norm{V}{\vec x}$] $\defeq \sqrt{\transp{\vec x} V \vec x}$
+  %\item[$\norm{V}{\vec x}$] $\defeq \sqrt{\transp{\vec x} V \vec x}$
+%   \item[$L$] a bound on the norm of all actions (in all rounds)
+%   \item[$B$] a bound on the mean of the rewards: $|\langle \vec x,\vec\theta^*\rangle| \leq B$.
+% \item[$\tilde B$] a bound on the reward itself.
+% \item[$\tilde L$] $\defeq \sqrt{L^2+\tilde B^2}$.
   \end{description}
   \linenumbers
 \end{multicols}
@@ -539,8 +555,8 @@ and algorithm:
   $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$.
   \assume[ass:thetastar-bound] $\norm{}{\vec\theta^*} \le S$.
   \assume[ass:linear-reward]
-  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$
-  \assume[ass:psd-reg] $H_t \succ 0$ is symmetric.
+  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$ \todo{Is it necesary? Already defined in the problem formulation. Merge with 6 perhaps?}
+  \assume[ass:psd-reg] $H_t \succeq 0$ is PSD.
   \assume[ass:subgaussian] $\eta_t$ is $\sigma^2$-conditionally
   subgaussian given actions and previous rewards:
   \begin{align*}
@@ -666,7 +682,7 @@ post-processes $G_t$ and $\vec u_t$.
   differentially private $\vec X_{t-1}$) but also on the current
   context $c_t$ via the decision set $\D_t$.  Since this use of $c_t$
   is not differentially private, it is revealed by the algorithm's
-  chosen $\vec x_t$ (as discussed in \cref{sec:joint-dp}).
+  chosen $\vec x_t$.
 \end{remark}
 
 To make the following exposition simpler, define the matrices
@@ -680,9 +696,7 @@ private approximation of $M_t$. Since \cref{alg:linucb} allows for
 additive perturbations $H_t$ and $h_t$, we can use any privacy
 mechanism that uses additive noise, releasing $M_t + N_t$.  The
 top-left $d\times d$ sub-matrix of $N_t$ becomes $H_t$ and the first
-$d$ entries of its last column become $\vec h_t$. Lastly, in order to
-maintain a private estimation of $M_t$ we require the following
-assumption.
+$d$ entries of its last column become $\vec h_t$. Lastly, to have a private estimation of $M_t$ we also assume the following.
 \begin{assumption}\label{ass:bounded-data}
   Each row of $A$ is bounded:
   $\norm{}{\vec x_t}^2 + y_t^2 \le \tilde L^2$ for all rounds $t$.  In
@@ -692,7 +706,7 @@ assumption.
 \end{assumption}
 Below we present two techniques for maintaining (and updating) the
 private estimations of $M_t$. As mentioned in
-Section~\ref{sec:background}, the key component of our technique is
+Section~\ref{subsec:related_work}, the key component of our technique is
 the tree-based algorithm, allowing us to estimate $M_t$ using at most
 $m \defeq 1 + \ceil{\log_2n}$ noisy counters. In order for the entire
 tree-based algorithm to be $(\varepsilon,\delta)$-differentially
@@ -717,7 +731,7 @@ such counters.
 %    \delta' &< \delta/m.
 %  \end{align*}
 
-\subsection{Differential Privacy Under Continual Observation via Wishart Noise}
+\subsection{Differential Privacy via Wishart Noise}
 \label{sec:dp-wishart}
 
 First, we instantiate the tree-based algorithm with noise from a
@@ -900,6 +914,53 @@ Assume for simplicity that $n=2^i$ for some positive integer $i$. Let $T$ be a c
 node $x\in T$ stores the sum of all the leaf nodes in the tree
 rooted at $x$. First notice that one can compute any partial sum $\sum_{j=1}^i l_i$ using at most $m:=\lceil\log(n)+1\rceil$ nodes of $T$. Second, notice that for any two neighbor-
 ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkBoosting2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$).
+
+\subsection{Useful Facts.}
+\label{apx_subsec:facts}
+
+In this work, we repeatedly apply the following facts about PSD matrices, the Gaussian distribution, the $\chi^2$-distribution and the Wishart-distribution.
+
+\begin{claim}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]%
+  \label{claim:psd-matrix-props}%
+  If $A \succeq B \succeq 0$, then
+  \begin{enumerate}[nolistsep]
+  \item $\rank(A) \ge \rank(B)$
+  \item $\det A \ge \det B$
+  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
+  \end{enumerate}
+\end{claim}
+
+\begin{claim}[{\citealp[Corollary to
+    Lemma~1,][p.~1325]{LaurentAdaptiveEstimation2000}}]%
+  \label{claim:chi2-tails}
+  If $U\sim\chi^2(d)$ and $\alpha\in(0,1)$,
+  \begin{align*}
+    \Prob[\bigg]{U \ge d + 2\sqrt{d\ln\frac{1}{\alpha}} + 2\ln\frac{1}{\alpha}} &\le \alpha,
+    & \Prob[\bigg]{U \le d - 2\sqrt{d\ln\frac{1}{\alpha}}} &\le \alpha.
+  \end{align*}
+\end{claim}
+
+\begin{claim}[{\citealp[Adaptation
+    of][Corollary~5.35]{VershyninRandomMatrices2010}}]%
+  \label{claim:gaussian-matrix-tails}
+  Let $A$ be an $n\times d$ matrix whose entries are independent
+  standard normal variables.  Then for every $\alpha\in(0,1)$, with
+  probability at least $1-\alpha$ it holds that
+  \begin{align*}
+    \sigma_{\min}(A), \sigma_{\max}(A) &\in \sqrt{n} \pm (\sqrt{d} + \sqrt{2\ln(2/\alpha)})
+  \end{align*}
+\end{claim}
+
+\begin{claim}[{\citealp[Lemma~A.3]{SheffetPrivateApproxRegression2015}}]%
+  \label{claim:wishart-tails}
+  Fix $\alpha\in(0,1/e)$ and let $W\sim\Wishart_d(V, k)$ with $\sqrt{m}
+  > \sqrt{d} + \sqrt{2\ln(2/\alpha)}$.  Then with probability at least
+  $1-\alpha$ it holds that for every $j = 1,2,\dotsc,d$:
+  \begin{align*}
+    \sigma_j(W) &\in \paren*{\sqrt{m} \pm \paren[\Big]{\sqrt{d} + \sqrt{2\ln(2/\alpha)}}}^2 \sigma_j(V).
+  \end{align*}
+\end{claim}
+
 
 \section{Proofs from Section~\ref{sec:LinUCB}}
 
@@ -1161,48 +1222,6 @@ Seeing as $H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on t
   changing a single row of $A$.
 \end{theorem}
 
-\section{Useful Results}
-
-\begin{claim}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]%
-  \label{claim:psd-matrix-props}%
-  If $A \succeq B \succeq 0$, then
-  \begin{enumerate}[nolistsep]
-  \item $\rank(A) \ge \rank(B)$
-  \item $\det A \ge \det B$
-  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
-  \end{enumerate}
-\end{claim}
-
-\begin{claim}[{\citealp[Corollary to
-    Lemma~1,][p.~1325]{LaurentAdaptiveEstimation2000}}]%
-  \label{claim:chi2-tails}
-  If $U\sim\chi^2(d)$ and $\alpha\in(0,1)$,
-  \begin{align*}
-    \Prob[\bigg]{U \ge d + 2\sqrt{d\ln\frac{1}{\alpha}} + 2\ln\frac{1}{\alpha}} &\le \alpha,
-    & \Prob[\bigg]{U \le d - 2\sqrt{d\ln\frac{1}{\alpha}}} &\le \alpha.
-  \end{align*}
-\end{claim}
-
-\begin{claim}[{\citealp[Adaptation
-    of][Corollary~5.35]{VershyninRandomMatrices2010}}]%
-  \label{claim:gaussian-matrix-tails}
-  Let $A$ be an $n\times d$ matrix whose entries are independent
-  standard normal variables.  Then for every $\alpha\in(0,1)$, with
-  probability at least $1-\alpha$ it holds that
-  \begin{align*}
-    \sigma_{\min}(A), \sigma_{\max}(A) &\in \sqrt{n} \pm (\sqrt{d} + \sqrt{2\ln(2/\alpha)})
-  \end{align*}
-\end{claim}
-
-\begin{claim}[{\citealp[Lemma~A.3]{SheffetPrivateApproxRegression2015}}]%
-  \label{claim:wishart-tails}
-  Fix $\alpha\in(0,1/e)$ and let $W\sim\Wishart_d(V, k)$ with $\sqrt{m}
-  > \sqrt{d} + \sqrt{2\ln(2/\alpha)}$.  Then with probability at least
-  $1-\alpha$ it holds that for every $j = 1,2,\dotsc,d$:
-  \begin{align*}
-    \sigma_j(W) &\in \paren*{\sqrt{m} \pm \paren[\Big]{\sqrt{d} + \sqrt{2\ln(2/\alpha)}}}^2 \sigma_j(V).
-  \end{align*}
-\end{claim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \cleardoublepage
