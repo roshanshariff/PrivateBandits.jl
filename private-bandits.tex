@@ -198,9 +198,9 @@
   that day, only on following days. We give a general scheme
   converting the linear UCB algorithm into a joint differentially
   private algorithm using the tree-based algorithm of
-  \citet{ChanPrivateContinualRelease2010,DworkContinualObservation2010},
-  and upper bound the resulting algorithms' regret and test their
-  performance empirically. We also give the first lower bound of the
+  \citet{ChanPrivateContinualRelease2010,DworkContinualObservation2010}.
+  We bound the resulting algorithms' regret and test their performance
+  empirically.  We also give the first lower bound of the
   \emph{additional} regret private algorithms must incur.
  \end{abstract}
 
@@ -265,10 +265,7 @@ preferences to users at times $t'>t$.\footnote{The guarantee of
   context, they still have very limited advantage over a random
   guess.}
 
-\subsection{Background and Problem Formulation}%
-\label{subsec:intro_background}
-
-\subsubsection{Stochastic Contextual Linear Bandits}%
+\subsection{Stochastic Contextual Linear Bandits}%
 \label{sec:contextual-bandits}
 
 In the classic multi-armed bandit, in every round $t$ a learner
@@ -285,13 +282,13 @@ affects the reward in a linear way: map every context-action pair to a
 arbitrary but known function) and assume that
 $\Ex{y_t\given c_t,a_t} = \innerp{\vec\theta^*}{\phi(c_t,a_t)}$.  The
 vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
-environment which the agent aims to learn so that she can maximize
-reward.  Indeed, everything a learner needs to know about the context
-is now implicitly encoded by the \emph{decision set}
+environment which the learner must discover to maximize reward.  Now
+everything the learner needs to know about the context is implicitly
+encoded by the \emph{decision set}
 $\D_t \defeq \set{\phi(c_t,a)\given a\in\A \subset \Real^d}$, and
-choosing some $x_t\in\A_t$ effectively determines the action
+choosing some $x_t\in\A_t$ effectively determines an action
 $a_t\in\A_t$.  Thus, the contextual stochastic linear bandit framework
-is composed of repeated rounds in which the learner
+consists of repeated rounds in which the learner
 \begin{enumerate*}[(i),before=\unskip{: },itemjoin={{; }},itemjoin*={{; and }}]
 \item receives a \emph{decision set} $\mathcal{D}_t \subset \Real^d$
 \item chooses an \emph{action} $\vec x_t \in \mathcal{D}_t$
@@ -299,13 +296,13 @@ is composed of repeated rounds in which the learner
   $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$.
 \end{enumerate*}
 
-The objective is to maximizing cumulative reward, which is equivalent
-to minimizing a quantity called \emph{regret}, the extra cumulative
-reward a learner would have received had it always chosen the best
-available action.  An effective learner may nevertheless earn only a
-small reward if all the actions are poor, but it would then have low
-regret.  In other words, the regret characterizes the cost of
-\emph{learning} the optimal action rather than knowing it beforehand.
+The objective is to maximize cumulative reward, which is equivalent to
+minimizing a quantity called \emph{regret} --- the extra reward a
+learner would have received by always choosing the best available
+action.  An effective learner may nevertheless earn only a small
+reward if all the actions are poor, but would then still achieve low
+regret.  In other words, the regret characterizes the cost of having
+to \emph{learn} the optimal action over just \emph{knowing} it beforehand.
 For stochastic problems, we are usually interested in a related
 quantity called \emph{pseudo-regret}, which is the extra
 \emph{expected} reward that could have been earned.  In our setting,
@@ -319,7 +316,7 @@ $\widehat{R}_n \defeq
   unavoidable reward noise.}
 
 
-\subsubsection{Joint Differential Privacy.}%
+\subsection{Joint Differential Privacy.}%
 \label{sec:joint-dp}
 
 As discussed above, the context and reward may be considered private
@@ -554,7 +551,7 @@ and algorithm:
 correctness of the algorithm (i.e.\ its confidence sets), only for the
 regret bounds in \cref{sec:regret-bounds}.  Conversely, it is
 important to note that of these, only \cref{ass:x-bound} is needed for
-differential private (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
+differential privacy (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
 
 The algorithm relies upon the confidence ellipsoids to be accurate but
 nevertheless tightly concentrated around the unknown $\vec\theta^*$.
@@ -761,17 +758,22 @@ $\Wishart_{d+1}(\tilde L^2 \Eye, k)$, then the following
 are $(\alpha/2n)$-accurate bounds:
 {\small\begin{align*}
     \rho_{\min} \defeq \tilde L^2 \paren[\big]{\sqrt{mk}
-                 - \sqrt{d} - \sqrt{2\ln(8n/\alpha})}^2,\quad
+                 - \sqrt{d} - \sqrt{2\ln(8n/\alpha})}^2,\;\,
     \rho_{\max} \defeq \tilde L^2 \paren[\big]{\sqrt{mk}
-                 + \sqrt{d} + \sqrt{2\ln(8n/\alpha)}}^2,\quad
+                 + \sqrt{d} + \sqrt{2\ln(8n/\alpha)}}^2,\;\,
     \gamma \defeq \sqrt{d} + \sqrt{2\ln(2n/\alpha)}.
  \end{align*}}
 \end{restatable}
 
-All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
+The proof applies known tail bounds and is deferred to the appendix.
+It only remains to plug in the above bounds and derive the
+regret of \cref{alg:linucb} regularized with Wishart noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm with each node adding noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$, assuming $n/\log(n)\gg k$, we get a pseudo-regret bound of
+\cref{alg:linucb} with $H_t$ and $\vec h_t$ generated by the tree-based
+mechanism with each node adding noise independently from
+$\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$, assuming
+$n/\log(n)\gg k$, we get a pseudo-regret bound of
 \[ O(\sqrt n\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right) )  \] in general, and a gap-dependent pseudo-regret bound of
 \[ O(\tfrac1 \Delta\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right)^2 ) \]
 \end{corollary}
@@ -784,9 +786,9 @@ symmetric Gaussian noise: $\left((d+1)\times (d+1)\right)$-matrices
 which are symmetric and their upper-diagonal entries taken from a
 Gaussian distribution. Recall that each datum has a bounded $L_2$-norm
 of $\tilde L$, hence a change to a single datum may alter the
-Forbenius norm of $M_t$ by $\tilde L^2$. It follows that in order to
+Frobenius norm of $M_t$ by $\tilde L^2$. It follows that in order to
 make sure each node in the tree-based algorithm preserves
-$(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
+$(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
 \nicefrac{\delta}{2})$-differential privacy,%
 \footnote{We use here the slightly better bounds for the composition
   of Gaussian noise based on zero-Concentrated
@@ -795,12 +797,12 @@ the variance of each coordinate must be
 $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 /
 \varepsilon^2$.
 
-Instead of ensuring the noise is symmtertic by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top signular value of $Z$ give that $\Pr[ \|Z\| > \sigma_{\rm noise}(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
+Instead of ensuring the noise is symmetric by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top singular value of $Z$ give that $\Pr[ \|Z\| > \sigma_{\rm noise}(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
 However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $H_t$ is given by summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, symmetrizing the result as shown above and adding $(\upsilon+1)\Eye$; and $\vec h_t$ is the result of summing $\leq m$ $d$-dimensional vectors whose entries are sampled i.i.d from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Gaussian}
-Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
+Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $(\alpha/2n)$-accurate bounds:
 \begin{align*}
     &\rho_{\max}\defeq  2\Upsilon+1 &&\rho_{\min}\defeq 1 && \gamma \defeq \sqrt m\sigma_{\rm noise}(\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})=4m\tilde L^2 \ln(\nicefrac 4 \delta) (\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})/\varepsilon
   \end{align*}
@@ -835,7 +837,7 @@ The second lower bound we show is more challenging. We show that any $\varepsilo
 \label{clm:LB_pulling_any_arms_many_times}
 Let $A$ be any $\varepsilon$-differentially private algorithm for the MAB problems with $k$ arms whose expected regret is at most $n^{3/4}$. Fix any arm $a\neq a^1$, whose difference between it and the optimal arm $a^1$ is $\Delta_a$. Then, for sufficiently large $n$s, $A$ pulls arm $a$ at least $\tfrac {\log(n)}{100\varepsilon\Delta_a}$ many times w.p. $\geq \nicefrac 1 2$.
 \end{claim}
-We comment that the bound $n^{3/4}$ was chosen arbitrarily, and we only require a regret upper bound of $n^{1-c}$ for some $c>0$. Of course, we could have used standard assumptions, where the regret is asymptotically smaller than \emph{any} polynomial; or discuss algorithms of regret $\tilde O(\sqrt n)$ (best min-max regret). Aiming to separate the standard lower-bounds on regret from the private bounds, we decided to use $n^{3/4}$.
+We comment that the bound $n^{3/4}$ was chosen arbitrarily, and we only require a regret upper bound of $n^{1-c}$ for some $c>0$. Of course, we could have used standard assumptions, where the regret is asymptotically smaller than \emph{any} polynomial; or discuss algorithms of regret $\tilde O(\sqrt n)$ (best minimax regret). Aiming to separate the standard lower-bounds on regret from the private bounds, we decided to use $n^{3/4}$.
 As an immediate corollary we obtain the following \emph{private} regret bound:
 \begin{corollary}
 \label{cor:LB_private_MAB}
@@ -879,7 +881,7 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
 \end{center}
 
 
-\section{Deferred Background Material}
+\section{Additional Background Information}
 \label{apx_sec:more_background}
 
 \subsection{Differential Privacy}
