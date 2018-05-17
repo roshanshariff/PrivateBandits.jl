@@ -470,12 +470,10 @@ containing the unknown parameter vector $\vec\theta^*$ with high
 probability.  It then computes an upper confidence bound on the reward
 of each action in the decision set $\D_t$, and ``optimistically''
 chooses the action with the highest UCB:
-\begin{align}\label{eq:def-ucb}
-  \vec x_t &\gets \argmax_{\vec x\in\D_t} \UCB_t(\vec x),
-  &\text{where }
-  \UCB_t(\vec x) &\defeq \max_{\vec\theta\in\E_t} \innerp{\vec\theta}{\vec x}.
-\end{align}
-We assume the rewards are linear with added subgaussian noise (i.e.,
+$\vec x_t \gets \argmax_{\vec x\in\D_t} \UCB_t(\vec x)$, where
+$\UCB_t(\vec x) \defeq \max_{\vec\theta\in\E_t}
+\innerp{\vec\theta}{\vec x}$.  We assume the rewards are linear with
+added subgaussian noise (i.e.,
 $y_s = \innerp{\vec\theta^*}{\vec x_s} + \eta_s$ for $s<t$), so it is
 natural to center the confidence set $\E_t$ on the (regularized)
 linear regression estimate:
@@ -596,8 +594,8 @@ $H_t$ and $\vec h_t$.
     \beta_t
     &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
       + S\sqrt{\rho_{\max}} + \gamma \\
-    &\le \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}}
-      + \frac{tL^2}{d\rho_{\min}}}}
+    &\le \sigma\sqrt{2\log\tfrac{2}{\alpha} + d\log\paren[\Big]{\tfrac{\rho_{\max}}{\rho_{\min}}
+      + \tfrac{tL^2}{d\rho_{\min}}}}
       + S\sqrt{\rho_{\max}} + \gamma.
       &\text{(Under \cref{ass:x-bound})}
   \end{align*}
@@ -617,9 +615,9 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
     \begin{align}
     \label{eq:regret_general_formula}
     \widehat R_n
-    &\le \sqrt{8n}\brck*{\sigma\paren*{2\log\frac{2}{\alpha}
-      + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
-      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}}
+    &\le \sqrt{8n}\brck[\bigg]{\sigma\paren*{2\log\tfrac{2}{\alpha}
+      + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \tfrac{nL^2}{d\rho_{\min}}}}}
   \end{align}
 \end{restatable}
 
@@ -636,9 +634,9 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
   \begin{align}
   \label{eq:regret_gap_general_formula}
     \widehat R_n
-    &\le \frac{8}{\Delta} \brck*{\sigma\paren*{2\log\frac{2}{\alpha}
-      + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
-      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}}^2
+    &\le \frac{8}{\Delta} \brck[\bigg]{\sigma\paren*{2\log\frac{2}{\alpha}
+      + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\tfrac{nL^2}{d\rho_{\min}}}}}^2
   \end{align}
 \end{restatable}
 
@@ -656,7 +654,7 @@ differential privacy, we obtain a Linear UCB algorithm that is jointly
 differentially private (\cref{def:joint-dp}) because it simply
 post-processes $G_t$ and $\vec u_t$.
 
-\begin{claim}[{\citealp[see][Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}}]
+\begin{claim}[see {\citet[Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}}]
   If the sequence $(V_t,\tilde{\vec u}_t)_{t=1}^{n-1}$ is
   $(\varepsilon,\delta)$-differentially private with respect to
   $(\vec x_t, y_t)_{t=1}^{n-1}$, then \cref{alg:linucb} is
@@ -665,13 +663,12 @@ post-processes $G_t$ and $\vec u_t$.
 
 \begin{remark}
   \Cref{alg:linucb} is only jointly differentially private even though
-  the history maintains full differential privacy.  This is because
-  the chosen action depends not only on the past contexts $c_s$
-  ($s < t$, via the differentially private $\vec X_{t-1}$) but also on
-  the current context $c_t$ via the decision set $\D_t$.  Since
-  this use of $c_t$ is not differentially private, it is revealed by
-  the algorithm's chosen $\vec x_t$ (as discussed in
-  \cref{sec:joint-dp}).
+  the history maintains full differential privacy --- its action
+  choice depends not only on the past contexts $c_s$ ($s < t$, via the
+  differentially private $\vec X_{t-1}$) but also on the current
+  context $c_t$ via the decision set $\D_t$.  Since this use of $c_t$
+  is not differentially private, it is revealed by the algorithm's
+  chosen $\vec x_t$ (as discussed in \cref{sec:joint-dp}).
 \end{remark}
 
 To make the following exposition simpler, define the matrix
@@ -693,7 +690,18 @@ $H_t$ and the first $d$ entries of its last column become $\vec h_t$. Lastly, in
   the rewards are bounded: $\abs{y_t} \le \tilde B$ (not just their
   means as in \cref{ass:meanreward-bound}), we can set $\tilde L^2 = L^2 + \tilde B^2$.
 \end{assumption}
-Below we present two techniques for maintaining (and updating) the private estimations of $M_t$. As mentioned in Section~\ref{sec:background}, the key component of our technique is the tree-based algorithm, allowing us to estimate $M_t$ using at most $m \defeq 1 + \ceil{\log_2n}$ noisy counters. In order to have that the entire tree-based algorithm is $(\varepsilon,\delta)$-differentially private, we add noise to each node in the tree so that each noisy count on its own preserves $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy. Thus in each day $N_t$, the noise we add to $M_t$, is composed on the sum of $\leq m$ such counters.
+Below we present two techniques for maintaining (and updating) the
+private estimations of $M_t$. As mentioned in
+Section~\ref{sec:background}, the key component of our technique is
+the tree-based algorithm, allowing us to estimate $M_t$ using at most
+$m \defeq 1 + \ceil{\log_2n}$ noisy counters. In order for the entire
+tree-based algorithm to be $(\varepsilon,\delta)$-differentially
+private, we add noise to each node in the tree so that each noisy
+count on its own preserves
+$(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
+\nicefrac{\delta}{2m})$-differential privacy. Thus in each day, the
+noise $N_t$, that we add to $M_t$, comes from the sum of at most $m$
+such counters.
 
 % \subsection{Pan-Privacy with Tree-Based Aggregation}
 % \label{sec:tree-mechanism}
@@ -712,27 +720,53 @@ Below we present two techniques for maintaining (and updating) the private estim
 \subsection{Differential Privacy Under Continual Observation via Wishart Noise}
 \label{sec:dp-wishart}
 
-First, we plug into the tree-based algorithm noise from a suitably chosen Wishart distribtuion. The Wishart distribution $\Wishart_{d+1}(V, k)$ is the result of sampling $k$ independent  $(d+1)$-dimesnional Gaussians from $\Normal(\vec 0_{d+1}, V)$ and computing their $2^{\rm nd}$-moment matrix. Under suitably chosen $V$ and $k$, this noise preserves $(\varepsilon,\delta)$-differential privacy.
+First, we instantiate the tree-based algorithm with noise from a
+suitably chosen Wishart distribution $\Wishart_{d+1}(V, k)$, which is the
+result of sampling $k$ independent $(d+1)$-dimensional Gaussians from
+$\Normal(\vec 0_{d+1}, V)$ and computing their $2^{\rm nd}$-moment
+matrix. Under suitably chosen $V$ and $k$, this noise preserves
+$(\varepsilon,\delta)$-differential privacy.
 
-\begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]
+\begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]%
   \label{thm:wishart-cont-dp}
-  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \Eye, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$.
-  \end{theorem}
-Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \Eye, k)$ with $k \defeq \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\Eye, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)~--- $H_t$ is sampled from $\Wishart_d(\tilde L^2\Eye,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
-\begin{proposition}
+  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each
+  row in the input is bouded by $\tilde L$ then adding to the inputs'
+  $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde
+  L^2 \Eye, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private,
+  provided $k_0\geq d+1 + 28\varepsilon_0^{-2}\ln(4/\delta_0)$.
+\end{theorem}
+Applying this guarantee to our setting, where each count needs to
+preserve
+$(\varepsilon/\sqrt{8m\ln(2/\delta)}, \delta/2m)$-differential
+privacy, it suffices to sample a matrix from
+$\Wishart_{d+1}(\tilde{L} \Eye, k)$ with
+$k \defeq \ceil{d+1 + 224
+  m\varepsilon^{-2}\ln(8m/\delta)\ln(2/\delta)}$. Moreover, combining
+the noise of $m$ samples from the Wishart distribution is equivalent
+to sampling a noise matrix
+$N_t\sim \Wishart_{d+1}(\tilde L^2\Eye, mk)$. (Intuitively, we merely
+concatenate the $m$ batches of multivariate Gaussians sampled in the
+generation of each of the $m$ Wishart noises.) Furthermore, consider
+the $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left
+submatrix and the right-most subcolumn resp.)~--- $H_t$ is sampled
+from $\Wishart_d(\tilde L^2\Eye,k)$ , and each entry of $\vec h_t$ is
+the dot-product of two multivariate Gaussians. Knowing their
+distribution, we can infer the accurate bounds required for our regret
+bounds.
+\begin{restatable}{proposition}{PropWishartTails}
 \label{pro:accurate_bounds_for_Wishart}
-Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with Wishart noise $\Wishart_{d+1}(\tilde L^2 \Eye, k)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
-\begin{align*}
-    \rho_{\min}\defeq  \resizebox{11em}{!}{$\tilde L^2 \paren*{\sqrt{mk}
-                             - \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2$},
-    &&\rho_{\max}\defeq \resizebox{11em}{!}{$\tilde L^2 \paren*{\sqrt{mk}
-                             + \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2$},
-    &&\gamma \defeq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}.
-  \end{align*}
-\end{proposition}
-\begin{proof}
-Seeing as $H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[Z ; \vec z]$ where $Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $H_t = \transp Z Z$ and $h_t = \transp Z \vec z$, thus $\|\vec h_t\|_{H_t^{-1}} = \sqrt{ \transp{\vec z} Z (\transp Z Z)^{-1}  \transp Z \vec z }$. The matrix $Z (\transp Z Z)^{-1}  \transp Z$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. Taking a union bound over all $n$ days concludes the proof.
-\end{proof}
+Fix any $\alpha>0$. If for each $t$ the $H_t$ and $\vec h_t$ are
+generated by the tree-based algorithm with Wishart noise
+$\Wishart_{d+1}(\tilde L^2 \Eye, k)$, then the following
+are $(\alpha/2n)$-accurate bounds:
+{\small\begin{align*}
+    \rho_{\min} \defeq \tilde L^2 \paren[\big]{\sqrt{mk}
+                 - \sqrt{d} - \sqrt{2\ln(8n/\alpha})}^2,\quad
+    \rho_{\max} \defeq \tilde L^2 \paren[\big]{\sqrt{mk}
+                 + \sqrt{d} + \sqrt{2\ln(8n/\alpha)}}^2,\quad
+    \gamma \defeq \sqrt{d} + \sqrt{2\ln(2n/\alpha)}.
+ \end{align*}}
+\end{restatable}
 
 All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
 \begin{corollary}
@@ -745,8 +779,8 @@ Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ 
 \subsection{Differential Privacy via Additive Gaussian Noise}
 \label{sec:dp-gauss}
 
-Our second alternative is to plug into the tree-based algorithm
-Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices
+Our second alternative is to instantiate the tree-based algorithm with
+symmetric Gaussian noise: $\left((d+1)\times (d+1)\right)$-matrices
 which are symmetric and their upper-diagonal entries taken from a
 Gaussian distribution. Recall that each datum has a bounded $L_2$-norm
 of $\tilde L$, hence a change to a single datum may alter the
@@ -1100,6 +1134,11 @@ different regularizer at each round.
 \end{proof}
 
 \section{Privacy Proofs}
+
+\PropWishartTails*
+\begin{proof}
+Seeing as $H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[Z ; \vec z]$ where $Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $H_t = \transp Z Z$ and $h_t = \transp Z \vec z$, thus $\|\vec h_t\|_{H_t^{-1}} = \sqrt{ \transp{\vec z} Z (\transp Z Z)^{-1}  \transp Z \vec z }$. The matrix $Z (\transp Z Z)^{-1}  \transp Z$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. Taking a union bound over all $n$ days concludes the proof.
+\end{proof}
 
 \begin{theorem}[{\citealp[Theorem~4.1]{SheffetPrivateApproxRegression2015}}]%
   \label{thm:wishart-dp}%
