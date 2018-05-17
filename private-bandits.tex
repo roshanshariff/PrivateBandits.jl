@@ -679,7 +679,7 @@ Seeing as $H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on t
 All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$ gives a pseudo-regret bound of
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm with each node adding noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$, assuming $n/\log(n)\gg k$, we get a pseudo-regret bound of
 \[ O(\sqrt n\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right) )  \] in general, and a gap-dependent pseudo-regret bound of
 \[ O(\tfrac1 \Delta\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right)^2 ) \]
 \end{corollary}
@@ -703,7 +703,7 @@ Note how $\gamma=O(\Upsilon)$ (the only difference is $\sqrt{\log(\tfrac n \alph
 As a result we get a bound on the regret of Algorithm~\ref{alg:linucb} using the tree-based algorithm using Gaussian noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmterized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ gives a regret bound of
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmterized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $(\Upsilon+1)\Eye$, assuming $n/d>\Upsilon$, we get a regret bound of
 \[O(\sqrt n \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right) )\]
 in general, and a gap-dependent pseudo-regret bound of
 \[O(\tfrac 1 \Delta \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right)^2 )\]
