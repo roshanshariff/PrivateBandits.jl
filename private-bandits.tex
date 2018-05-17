@@ -42,6 +42,7 @@
 \usepackage{dsfont}
 %\usepackage{upgreek}
 \usepackage{bm} % load after all math to give access to bold math
+\usepackage{etoolbox}
 
 \usepackage{lineno}
 \usepackage{microtype}
@@ -64,6 +65,7 @@
 \usepackage[pdfusetitle]{hyperref}
 % \usepackage{bookmark}
 \usepackage[capitalise]{cleveref}
+
 \hypersetup{
   hidelinks,
   bookmarks,
@@ -93,13 +95,15 @@
 \newcommand{\Nat}{\mathds{N}}
 \newcommand{\Int}{\mathds{Z}}
 \newcommand{\mgf}{\mathrm{mgf}}
-\newcommand{\UCB}{\operatorname{UCB}}
-\newcommand{\iid}{i.i.d.\@}
+\newcommand{\UCB}{\mathrm{UCB}}
+\newcommand{\iid}{\text{i.i.d.\@}}
+\renewcommand{\Pr}{\mathds{P}}
 \renewcommand\mid{\mathinner{\vert}}
-\DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\argmax}{arg\,max}
-\DeclareMathOperator{\tr}{tr}
-\DeclareMathOperator{\rank}{rank}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\renewcommand{\det}{\operatorname{det}}
 
 \newcommand\given[1][\delimsize]{%
   \providecommand{\delimsize}{}
@@ -113,8 +117,8 @@
 \DeclarePairedDelimiter{\floor}\lfloor\rfloor
 \DeclarePairedDelimiter{\ceil}\lceil\rceil
 \DeclarePairedDelimiterX{\innerp}[2]\langle\rangle{#1,#2}
-\DeclarePairedDelimiterXPP{\Prob}[1]{\mathds{P}}(){}{#1}
-\DeclarePairedDelimiterXPP{\PrSet}[1]{\mathds{P}}\{\}{}{#1}
+\DeclarePairedDelimiterXPP{\Prob}[1]{\Pr}(){}{#1}
+\DeclarePairedDelimiterXPP{\PrSet}[1]{\Pr}\{\}{}{#1}
 \DeclarePairedDelimiterXPP{\Ex}[1]{\mathds{E}}{[}{]}{}{#1}
 \DeclarePairedDelimiterXPP{\Exx}[2]{\mathds{E}_{#1}}{[}{]}{}{#2}
 \DeclarePairedDelimiterXPP{\Var}[1]{\mathrm{Var}}{[}{]}{}{#1}
@@ -135,8 +139,7 @@
 \newcommand{\scrF}{\mathscr{F}}
 \newcommand{\Wishart}{\mathcal{W}}
 \newcommand{\Normal}{\mathcal{N}}
-\newcommand{\Eye}[1]{\bm{I}_{#1 \times #1}}
-\newcommand{\EyeNoSub}{\bm{I}}
+\newcommand{\Eye}[1][]{\bm{I}\notblank{#1}{_{{#1}\times{#1}}}{}}
 \newcommand{\XtX}[1]{\transp{#1}{#1}}
 
 % Theorem environments
@@ -188,7 +191,7 @@
 
 The \emph{stochastic multi-armed bandit} (MAB) is a well-known
 sequential decision-making task: in every round, a learner chooses an
-action (or arm) and receives a corresponding reward drawn i.i.d.\@
+action (or arm) and receives a corresponding reward drawn \iid{}
 from an unknown distribution associated with the chosen action.  The
 objective is to maximize the cumulative reward by learning from the
 past rewards associated with the different actions.  The
@@ -440,8 +443,8 @@ level, as prescribed by \cref{prop:calc-beta}.
 \end{align}
 Just as the changing regularizer $H_t$ perturbs the Gram matrix $G_t$,
 our algorithm allows for the vector
-$\vec u_t \defeq \transp{\vec X_t} \vec y_t$ to be perturbed by a
-changing $\vec h_t$ to get
+$\vec u_t \defeq \transp{\vec X_{t-1}} \vec y_{t-1}$ to be perturbed
+by a changing $\vec h_t$ to get
 $\tilde{\vec u}_t \defeq \vec u_t + \vec h_t$.  The estimate
 $\hat{\vec\theta}_t$ is replaced by
 $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
@@ -512,7 +515,8 @@ $H_t$ and $\vec h_t$.
   $\gamma$]\label{def:accurate-params}
   The tail bounds $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
   $\alpha$-\emph{accurate} for some $H_t$ and $\vec h_t$ if the
-  following hold with probability at least $1-\alpha$:
+  following hold with probability at least $1-\alpha$ for each round
+  separately:
   \begin{align*}
     \norm{}{H_t} &\le \rho_{\max},
     &\norm{}{\inv{H_t}} &\le \rho_{\min},
@@ -524,19 +528,11 @@ $H_t$ and $\vec h_t$.
   \label{prop:calc-beta}
   Suppose
   \cref{ass:thetastar-bound,ass:linear-reward,ass:psd-reg,ass:subgaussian}
-  hold, i.e.\ $\norm{}{\vec\theta^*} \le S$, $H_t \succ 0$, and the
-  rewards are linear with $\sigma^2$-subgaussian noise.  For some
-  $\alpha\in(0,1)$ and horizon $n$, let
-  $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ be
-  $\alpha/(2n)$-accurate tail bounds for each round separately
-  (\cref{def:accurate-params}).  Then the sequence $(\beta_t)_{t=1}^n$
-  is $(\alpha,n)$-accurate (\cref{def:accurate-beta}):
+  hold and let $\rho_{\min}$, $\rho_{\max}$, and $\gamma$ be
+  $(\alpha/2n)$-accurate for some $\alpha\in(0,1)$ and horizon $n$.
+  Then $(\beta_t)_{t=1}^n$ is $(\alpha,n)$-accurate where
   \begin{align*}
     \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
-             + S\sqrt{\rho_{\max}} + \gamma. \\
-    \shortintertext{Furthermore, if each $\norm{}{\vec x_s} \le L$
-    (\cref{ass:x-bound}), then}
-    \beta_t &\le \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{tL^2}{d\rho_{\min}}}}
              + S\sqrt{\rho_{\max}} + \gamma.
   \end{align*}
 \end{restatable}
@@ -556,29 +552,27 @@ $H_t$ and $\vec h_t$.
     &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t} \\
     \shortintertext{satisfies}
     \widehat R_n
-    &\le \sqrt{8n}\brck*{
-      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
-      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
-      }
+    &\le \sqrt{8n}\brck*{\sigma\paren*{2\log\frac{2}{\alpha}
+      + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}}
   \end{align*}
 \end{restatable}
 
 \begin{restatable}[Gap-Dependent Regret of
-  \Cref{alg:linucb}]{theorem}{ThmLinUCBRegretGap}%
-  \label{thm:linucb-regret}%\
+  \Cref{alg:linucb}]{theorem}{ThmLinUCBGapRegret}%
+  \label{thm:linucb-gap-regret}
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
     ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  If the optimal
-  actions in every decision set $\Dset{t}$ is separated from the
-  sub-optimal arms by reward gap at least $\Delta$, then with
+  actions in every decision set $\Dset{t}$ are separated from the
+  sub-optimal arms by a reward gap of at least $\Delta$, then with
   probability at least $1-\alpha$ the pseudo-regret of
   \cref{alg:linucb} satisfies
   \begin{align*}
     \widehat R_n
-    &\le \frac{4}{\Delta} \brck*{
-      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
-      + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
-      }^2
+    &\le \frac{8}{\Delta} \brck*{\sigma\paren*{2\log\frac{2}{\alpha}
+      + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}}^2
   \end{align*}
 \end{restatable}
 
@@ -590,9 +584,9 @@ Notice that \cref{alg:linucb} uses its history of actions and rewards
 up to round $t$ only via the confidence set $\E_t$, which is to say
 via $V_t$ and $\tilde{\vec u}_t$, which are perturbations of the Gram
 matrix $G_t\defeq\XtX{\vec X_{t-1}}$ and the vector
-$\vec u_t \defeq \transp{\vec X_t} \vec y_t$, respectively; these also
-determine $\beta_t$.  By recording this history with differential
-privacy, we obtain a Linear UCB algorithm that is jointly
+$\vec u_t \defeq \transp{\vec X_{t-1}} \vec y_{t-1}$, respectively;
+these also determine $\beta_t$.  By recording this history with
+differential privacy, we obtain a Linear UCB algorithm that is jointly
 differentially private (\cref{def:joint-dp}) because it simply
 post-processes $G_t$ and $\vec u_t$.
 
@@ -656,12 +650,12 @@ First, we plug into the tree-based algorithm noise from a suitably chosen Wishar
 
 \begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]
   \label{thm:wishart-cont-dp}
-  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$.
+  Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \Eye, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$.
   \end{theorem}
-Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \EyeNoSub, k)$ with $k = \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\EyeNoSub, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)  --- $H_t$ is sampled from $\Wishart_d(\tilde L^2\EyeNoSub,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
+Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \Eye, k)$ with $k = \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\Eye, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)  --- $H_t$ is sampled from $\Wishart_d(\tilde L^2\Eye,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Wishart}
-Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with Wishart noise $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
+Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with Wishart noise $\Wishart_{d+1}(\tilde L^2 \Eye, k)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
 \begin{align*}
     \rho_{\min}\defeq  \resizebox{11em}{!}{$\tilde L^2 \paren*{\sqrt{mk}
                              - \paren*{\sqrt{d} + \sqrt{2\ln(\tfrac{8n}{\alpha})}}}^2$},
@@ -671,13 +665,13 @@ Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are
   \end{align*}
 \end{proposition}
 \begin{proof}
-Seeing as $H_t\sim\Wishart_d(\tilde L^2 \EyeNoSub, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[Z ; \vec z]$ where $Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $H_t = \transp Z Z$ and $h_t = \transp Z \vec z$, thus $\|\vec h_t\|_{H_t^{-1}} = \sqrt{ \transp{\vec z} Z (\transp Z Z)^{-1}  \transp Z \vec z }$. The matrix $Z (\transp Z Z)^{-1}  \transp Z$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. Taking a union bound over all $n$ days concludes the proof.
+Seeing as $H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[Z ; \vec z]$ where $Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $H_t = \transp Z Z$ and $h_t = \transp Z \vec z$, thus $\|\vec h_t\|_{H_t^{-1}} = \sqrt{ \transp{\vec z} Z (\transp Z Z)^{-1}  \transp Z \vec z }$. The matrix $Z (\transp Z Z)^{-1}  \transp Z$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. Taking a union bound over all $n$ days concludes the proof.
 \end{proof}
 
 All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\EyeNoSub, k )$ gives a regret bound of
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$ gives a regret bound of
 \[PLUG IN THE FINAL RESULT\]
 \end{corollary}
 
@@ -688,7 +682,7 @@ Our second alternative is to plug into the tree-based algorithm Gaussian noise, 
 
 Instead of ensuring the noise is symmtertic by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top signular value of $Z$ give that $\Pr[ \|Z\| > \sigma(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
-However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\EyeNoSub$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $H_t$ is given by summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, symmetrizing the result as shown above and adding $(\upsilon+1)\EyeNoSub$; and $\vec h_t$ is the result of summing $\leq m$ $d$-dimensional vectors whose entries are sampled i.i.d from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
+However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $H_t$ is given by summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, symmetrizing the result as shown above and adding $(\upsilon+1)\Eye$; and $\vec h_t$ is the result of summing $\leq m$ $d$-dimensional vectors whose entries are sampled i.i.d from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Gaussian}
 Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
@@ -756,7 +750,7 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
   in Tor's paper?}
 
 
-\bibliographystyle{alpha}
+\bibliographystyle{plainnat}
 \bibliography{references,zotero-references}
 
 
@@ -777,27 +771,33 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
 
 In the offline setting, a dataset $D$ is a $n$-tuple of elements from some universe $\mathcal{U}$. Two datasets are called neighbors if they differ just on a single element. An algorithm $A$ is said to be $(\varepsilon,\delta)$-differentially private if for any pair of neighboring datasets $D$ and $D'$ and any subset of possible outputs $\mathcal{S}$ we have that $\Pr[A(D)\in\mathcal{S}]\leq e^\varepsilon\Pr[A(D')\in\mathcal{S}] + \delta$. A common technique~\cite{DWorkKentrapadi...2006} for approximating the value of a query $f$ on dataset $D$ is to first find its $L_2$-sensitivity, $GS_2 :=\max_{D,D'\textrm{ neighboring}} \|f(D)-f(D')\|_2$, and then add Gaussian noise of $0$-mean and variance $\tfrac{2GS_2^2\ln(\nicefrac 2 \delta)}{\varepsilon^2}$.
 
-\paragraph{The Tree-Based Mechanism.} Assume for simplicity that $n=2^i$ for some positive integer $i$. Let $T$ be a complete binary tree with its leaf nodes being $l_1,...,l_n$. Each internal
+\subsection{The Tree-Based Mechanism}
+
+Assume for simplicity that $n=2^i$ for some positive integer $i$. Let $T$ be a complete binary tree with its leaf nodes being $l_1,...,l_n$. Each internal
 node $x\in T$ stores the sum of all the leaf nodes in the tree
 rooted at $x$. First notice that one can compute any partial sum $\sum_{j=1}^i l_i$ using at most $m:=\lceil\log(n)+1\rceil$ nodes of $T$. Second, notice that for any two neighbor-
 ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkRothblumVadhan2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$).
 
-\section{Proof of \Cref{prop:calc-beta}}
+\section{Proofs from Section~\ref{sec:LinUCB}}
+
+The proofs in this section are based on those of
+\citet{AbbasiYadkoriImprovedAlgorithmsLinear2011}, modified to allow a
+different regularizer at each round.
 
 \CalcBeta*
 
 \begin{proof}
   By definition, $\tilde{\vec\theta}_t = \inv{V_t} \tilde{\vec u}_t$,
   $\tilde{\vec u}_t = \vec u_t + \vec h_t$, and $\vec u_t = \transp{\vec
-    X_t} \vec y_t$, so that
+    X_{t-1}} \vec y_{t-1}$, so that
   \begin{align*}
     \vec\theta^* - \tilde{\vec\theta}_t
-    &= \vec\theta^* - \inv{V_t}(\transp{\vec X_t} \vec y_t + \vec h_t) \\
-    &= \vec\theta^* - \inv{V_t}(\transp{\vec X_t} \vec X_t \vec\theta^*
-      + \transp{\vec X_t} \vec\eta_t + \vec h_t)
-    &\text{since } \vec y_t = \vec X_t \vec\theta^* + \vec\eta_t \\
+    &= \vec\theta^* - \inv{V_t}(\transp{\vec X_{t-1}} \vec y_{t-1} + \vec h_t) \\
+    &= \vec\theta^* - \inv{V_t}(\XtX{\vec X_{t-1}} \vec\theta^*
+      + \transp{\vec X_{t-1}} \vec\eta_{t-1} + \vec h_t)
+    &\text{since } \vec y_{t-1} = \vec X_{t-1} \vec\theta^* + \vec\eta_{t-1} \\
     &= \vec\theta^* - \inv{V_t}(V_t \vec\theta^* - H_t \vec\theta^* + \vec z_t + \vec h_t)
-    &\text{defining } \vec z_t \defeq \transp{\vec X_t} \vec\eta_t \\
+    &\text{defining } \vec z_t \defeq \transp{\vec X_{t-1}} \vec\eta_{t-1} \\
     &= \inv{V_t}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
     \shortintertext{Multiplying both sides by $V_t^{1/2}$ gives}
     V_t^{1/2}(\vec\theta^* - \tilde{\vec\theta}_t)
@@ -809,39 +809,35 @@ ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ node
       + \norm{\inv{V_t}}{\vec h_t} &\text{triangle inequality} \\
     &\le \norm{\inv{V_t}}{\vec z_t} + \norm{\inv{H_t}}{H_t\vec\theta^*}
       + \norm{\inv{H_t}}{\vec h_t}
-    &\text{since $\inv{V_t} \preceq \inv{H_t}$ by \cref{claim:psd-matrix-props}} \\
-    &= \norm{\inv{V_t}}{\vec z_t} + \norm{H_t}{\vec\theta^*} +
-      \norm{\inv{H_t}}{\vec h_t}.
-    &\qedhere
+    &\text{by \cref{claim:psd-matrix-props} since } V_t \succeq H_t \\
+    &= \norm{\inv{(G_t+\rho_{\min}\Eye)}}{\vec z_t} + \norm{H_t}{\vec\theta^*} +
+      \norm{\inv{H_t}}{\vec h_t},
+    &\text{since } V_t \succeq G_t + \rho_{\min}\Eye.
   \end{align*}
   We use a union bound over all $n$ rounds to bound
-  $\norm{H_t}{\vec\theta^*}$ by
-  $\sqrt{\norm{}{H_t}}\norm{}{\vec\theta^*} \le S\sqrt{\rho_{\max}}$
-  and $\norm{\inv{H_t}}{\vec h_t}$ by $\gamma$, with probability at
-  least $1-\alpha/2$.  Finally, we bound $\norm{\inv{V_t}}{\vec z_t}$
-  with probability at least $1-\alpha/2$ by the ``self-normalized
-  bound for vector-valued martingales'' of
-  \citet[Theorem~1]{AbbasiYadkoriImprovedAlgorithmsLinear2011}.  The
-  upper bound on each $\beta_t$ is another application of
-  \cref{lemma:elliptical-potential}, as used in
-  \cref{thm:linucb-regret}.
+  $\norm{H_t}{\vec\theta^*} \le
+  \sqrt{\norm{}{H_t}}\norm{}{\vec\theta^*} \le S\sqrt{\rho_{\max}}$
+  and $\norm{\inv{H_t}}{\vec h_t} \le \gamma$ with probability at
+  least $1-\alpha/2$.  Finally, by the ``self-normalized bound for
+  vector-valued martingales'' of
+  \citet[Theorem~1]{AbbasiYadkoriImprovedAlgorithmsLinear2011}, with
+  probability $1-\alpha/2$ for all rounds simultaneously
+  \begin{align*}
+    \norm{\inv{(G_t + \rho_{\min}\Eye)}}{\vec z_t}
+    &\le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\frac{\det(G_t+\rho_{\min}\Eye)}{\det\rho_{\min}\Eye}}
+      \le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\det V_t - d\log\rho_{\min}} \qedhere
+  \end{align*}
 \end{proof}
 
-\section{Proof of \Cref{thm:linucb-regret}}
-
-\ThmLinUCBRegret*
-
-We start by giving a ``generic'' regret bound:
-
-\begin{lemma}\label{lemma:linucb-regret}
+\begin{lemma}[LinUCB Regret]\label{lemma:linucb-regret}
   Suppose \cref{ass:meanreward-bound,ass:psd-reg} hold (i.e.\
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ and all $H_t \succeq 0$)
-  and $\beta_n \ge \max\set{\beta_0,\dotsc,\beta_{n-1},1}$.  If all
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$ and all $H_t \succeq 0$)
+  and $\bar\beta_n \ge \max\set{\beta_1,\dotsc,\beta_n,1}$.  If all
   the confidence sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
   $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
-  \beta_t$), then the pseudo-regret of \cref{alg:linucb} satisfies
+  \beta_t$), then the pseudo-regret of \cref{alg:linucb} is bounded by
   \begin{align*}
-    \widehat{R}_n &\le \beta_n\sqrt{4n \sum_{t=1}^n \min\set{B^2,
+    \widehat{R}_n &\le \bar\beta_n\sqrt{4n \sum_{t=1}^n \min\set{1,
                    \norm{\inv{V_t}}{\vec x_t}^2}}.
   \end{align*}
 \end{lemma}
@@ -872,24 +868,22 @@ We start by giving a ``generic'' regret bound:
         &\text{by the triangle inequality}\\
         &\le 2\beta_t\norm{\inv{V_t}}{\vec x_t}
         &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \Eset{t} \\
-        &\le 2\beta_n\norm{\inv{V_t}}{\vec x_t}
-        &\text{since } \beta_n \ge \beta_t.
+        &\le 2\bar\beta_n\norm{\inv{V_t}}{\vec x_t}
+        &\text{since } \bar\beta_n \ge \beta_t.
   \end{align*}
-  From our assumptions that the mean absolute reward is bounded by $B$
-  and $\beta_n \ge 1$, we also get that
-  $r_t \le 2B \le 2B\beta_n$.  Putting these together,
+  From our assumptions that the mean absolute reward is at most $1$
+  and $\bar\beta_n \ge 1$, we also get that $r_t \le 2 \le 2\bar\beta_n$.
+  Putting these together,
   \begin{align}\label{eq:regret-bound-oneround}
-    r_t &\le 2\beta_n \min\set{B, \norm{\inv{V_t}}{\vec x_t}}
+    r_t &\le 2\bar\beta_n \min\set{1, \norm{\inv{V_t}}{\vec x_t}}
   \end{align}
   Now we apply Jensen's inequality as follows:
   \begin{align*}
     \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
-                   \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2 \\
-    \widehat R_n &\le \sqrt{n\sum_{t=1}^n r_t^2}
-                  =  2\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
-                  \norm{\inv{V_t}}{\vec x_t}^2}}.
-                  \qedhere
+                   \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2
+                   \le 4n\bar\beta_n^2\sum_{t=1}^n\min\set{1,\norm{\inv{V_t}}{\vec x_t}^2}.
   \end{align*}
+  Taking square roots completes the proof.
 \end{proof}
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
@@ -897,17 +891,16 @@ We start by giving a ``generic'' regret bound:
   $\norm{}{\vec x_t} \le L$.  Given a positive definite matrix
   $U_1\in\Real^{d\times d}$, define
   $U_{t+1} \defeq U_t + \vec x_t \transp{\vec x_t}$ for all $t$.  Then
-  for any $B \ge 0$,
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2}
-    &\le 2B^2 \log\frac{\det U_{n+1}}{\det U_1}
-      \le 2B^2d \log\frac{\tr U_1+nL^2}{d\det^{1/d} U_1}.
+    \sum_{t=1}^n\min\set{1, \norm{\inv{U_t}}{\vec x_t}^2}
+    &\le 2\log\frac{\det U_{n+1}}{\det U_1}
+      \le 2d\log\frac{\tr U_1+nL^2}{d\det^{1/d} U_1}.
   \end{align*}
 \end{lemma}
 
 \begin{proof}
-  We begin by deriving the first inequality with $B=1$, using the fact
-  that $\min\set{1, u} \le 2\log(1+u)$ for any $u \ge 0$:
+  We use the fact that $\min\set{1, u} \le 2\log(1+u)$ for any
+  $u \ge 0$:
   \begin{align*}
     \sum_{t=1}^n\min\set{1, \norm{\inv{U_t}}{\vec x_t}^2}
     &\le 2 \sum_{t=1}^n \log(1 + \norm{\inv{U_t}}{\vec x_t}^2).
@@ -947,95 +940,90 @@ We start by giving a ``generic'' regret bound:
     2\log\frac{\det U_{n+1}}{\det U_1}
             &= 2\sum_{t=1}^n\log(1+\norm{\inv{U_t}}{\vec x_t}^2).
   \end{align*}
-  For $B \neq 1$, we apply the above result to the sequence
-  $\vec x_t' \defeq \vec x_t/B$ and $U_1' = U_1/B^2$, $B^{-1}$ and $U_1$ scaled by
-  $B^{-2}$:
-  \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_t}}{\vec x_t}^2}
-    &= B^2 \sum_{t=1}^n\min\set{1,\norm{\inv{U_t}}{\vec x_t'}^2}
-      \le 2B^2 \log\frac{\det(B^{-2}U_n)}{\det(B^{-2}U_0)}.
-  \end{align*}
   To get the second inequality, we apply the arithmetic-geometric
   mean inequality to the eigenvalues $\lambda_i$ of $U_n$:
   \begin{align*}
     \det U_n &= \prod_{i=1}^d \lambda_i
               \le \paren[\Big]{\frac{1}{d} \sum_{i=1}^d \lambda_i}^d
               = \paren{(1/d)\tr U_n}^d
-              \le \paren{(\tr U_0 + nL^2)/d}^d \\
-    2B^2 \log\frac{\det U_n}{\det U_0}
-            &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d\det^{1/d}U_0}
+              \le \paren{(\tr U_1 + nL^2)/d}^d \\
+    2\log\frac{\det U_n}{\det U_1}
+            &\le 2d \log\frac{\tr U_1 + nL^2}{d\det^{1/d}U_1}
               \qedhere
   \end{align*}
 \end{proof}
 
-\begin{lemma}[Regret of \Cref{alg:linucb}]
-  \label{lemma:linucb-regret}%
-  Suppose \cref{ass:meanreward-bound} holds
-  ($\abs{\innerp{\vec\theta^*}{\vec x}} \le B$) and the $(\beta_t)_{t=1}^n$
-  are $(\alpha,n)$-accurate.
-  \begin{align*}
-    \widehat R_n
-    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
-      \shortintertext{satisfies}
-      \widehat R_n
-    &\le 2B\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
-    \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
-    \widehat R_n
-    &\le 2B\beta_n \sqrt{2dn \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
-  \end{align*}
-\end{lemma}
+\ThmLinUCBRegret*
+
+% \begin{lemma}[Regret of \Cref{alg:linucb}]
+%   \label{lemma:linucb-regret}%
+%   Suppose \cref{ass:meanreward-bound} holds
+%   ($\abs{\innerp{\vec\theta^*}{\vec x}} \le B$) and the $(\beta_t)_{t=1}^n$
+%   are $(\alpha,n)$-accurate.
+%   \begin{align*}
+%     \widehat R_n
+%     &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
+%       \shortintertext{satisfies}
+%       \widehat R_n
+%     &\le 2B\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
+%     \shortintertext{Furthermore, if each $\norm{}{\vec x_t} \le L$}
+%     \widehat R_n
+%     &\le 2B\beta_n \sqrt{2dn \log\frac{\tr H + nL^2}{d\det^{1/d} H}}.
+%   \end{align*}
+% \end{lemma}
 
 \begin{proof}
-  From our assumptions and \cref{lemma:linucb-regret}, we know that
-  the Linear UCB regret is bounded by
+  We restrict ourselves to the event that all the confidence
+  ellipsoids contain $\vec\theta^*$ and all
+  $\rho_{\min}\Eye \preceq H_t \preceq \rho_{\max}\Eye$; by
+  \cref{prop:calc-beta} this happens with probability at least
+  $1-\alpha$.  Then by \cref{claim:psd-matrix-props}, we have
+  $\det V_t \le \det(G_t+\rho_{\max}\Eye)$ and
   \begin{align*}
-    \widehat{R}_n &\le 2\beta_n\sqrt{n\sum_{t=1}^n\min\set{B^2,
-                   \norm{\inv{V_t}}{\vec x_t}^2}}.
+    \log\det V_t
+    &\le \log\det(G_t + \rho_{\max}\Eye)
+    \le d\log(\rho_{\max} + tL^2/d).
   \end{align*}
-  Define $U_t \defeq G_t + H$, so that $U_t \preceq V_t$ and by
-  \cref{claim:psd-matrix-props} it follows that
-  $\inv{V_t} \preceq \inv{U_t}$, which means
-  $\norm{\inv{V_t}}{\vec x_t}^2 \le \norm{\inv{U_t}}{\vec x_t}^2$.  We
-  now apply \cref{lemma:elliptical-potential} to the sequence $U_t$ to
-  get
+  using the trace-determinant inequality as in the proof of
+  \cref{lemma:elliptical-potential}.  All the $\beta_t$ are therefore
+  bounded by the constant
   \begin{align*}
-    \sum_{t=1}^n\min\set{B^2,\norm{\inv{V_t}}{\vec x_t}^2}
-    &\le \sum_{t=1}^n\min\set{B^2,\norm{\inv{U_t}}{\vec x_t}^2} \\
-    &\le 2B^2 \log\det\frac{U_n}{U_0} \\
-    &\le 2B^2d \log\frac{\tr U_0 + nL^2}{d \det^{1/d} U_0}.
+    \bar\beta_n &\defeq \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}}
+                 + \frac{nL^2}{d\rho_{\min}}}}
+                 + S\sqrt{\rho_{\max}} + \gamma.
   \end{align*}
-  To get the required bounds, it only remains to see that $U_0 = H$ and
-  that $\det U_n \le \det V_n$ (again by
-  \cref{claim:psd-matrix-props}).
+  Next, we have
+  $\norm{\inv{V_t}}{\vec x_t} \le
+  \norm{\inv{(G_t+\rho_{\min}\Eye)}}{\vec x_t}$, which applied to the
+  result of \cref{lemma:linucb-regret} gives, using
+  \cref{lemma:elliptical-potential}
+  \begin{align*}
+    \widehat{R}_n
+    &\le \bar\beta_n\sqrt{8dn\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}} \\
+    &\le \sqrt{8n}\brck*{\sigma\paren*{2\log\frac{2}{\alpha}
+      + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}} \qedhere
+  \end{align*}
 \end{proof}
 
-
-\todo{Finish the following gap-dependent proof.}
+\ThmLinUCBGapRegret*
 
 \begin{proof}
-  Consider the set of rounds up to $t$ on which the learner chooses a
-  sub-optimal action: $B_t = \set{s \le t \given r_t > 0}$ and let
-  $b_t = |B_t|$ be the number of times this happened.  Let $F_t$ be
-  the Gram matrix for just the actions on those rounds:
-  \begin{align*}
-    F_t &\defeq \sum_{s\in B_t} \XtX{\vec x_s}.
-  \end{align*}
-  Now $V_t = G_t + H_t \succeq G_t + H \succeq E_t + H \eqdef U_t$, and
-  $\inv{V_t} \preceq \inv{U_t}$.  We now decompose the regret into the
-  sum of per-round regrets $r_t$ but in a different way than we did in
-  \cref{lemma:linucb-regret}:
+  Because of the gap assumption, for every round $t$ if the per-round
+  pseudo-regret $r_t \neq 0$ then $r_t \ge \Delta$.  We use this fact
+  to decompose the regret in a different way than we did in
+  \cref{lemma:linucb-regret}.  The rest of the proof is similar to
+  that of \cref{thm:linucb-regret}
   \begin{align*}
     \widehat R_n
-    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta}
-    &\text{since } \frac{r_t}{\Delta} \ge 1 \text{ for } t\in B_n \\
-    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{V_t}}{\vec x_t}^2}
-    &\text{from \eqref{eq:regret-bound-oneround} in \cref{lemma:linucb-regret}} \\
-    &\le \frac{4\beta_n^2}{\Delta} \sum_{t\in B_n} \min\set{B^2, \norm{\inv{U_t}}{\vec x_t}^2} \\
-    &\le \frac{8B^2\beta_n^2d}{\Delta} \log\paren*{1 + \frac{b_n L^2}{d\rho_{\min}}}
-    &\text{\Cref{lemma:elliptical-potential} with the sequence } (x_t, U_t)_{t\in B_n} \\
-    \intertext{Now we have $\norm{}{E_n} \le \tr E_n \le L^2b_t$, and since $H =
-    \rho_{\min}\Eye{d}$, the regret is bounded by}
-    \widehat R_n &\le \frac{8B^2\sqrt{\beta_n}}{\Delta} d\log\frac{L^2b_t + \rho_{\min}}{\rho_{\min}}.
+    &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta} \\
+    &\le \frac{4}{\Delta} \bar\beta_n^2 \sum_{t\in B_n} \min\set{1, \norm{\inv{V_t}}{\vec x_t}^2}
+    &\text{from~\eqref{eq:regret-bound-oneround}} \\
+    &\le \frac{8}{\Delta} \bar\beta_n^2d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}} \\
+    &\le \frac{8}{\Delta} \brck*{\sigma\paren*{2\log\frac{2}{\alpha}
+      + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
+      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}}^2
+    &&\qedhere
   \end{align*}
 
 \end{proof}
