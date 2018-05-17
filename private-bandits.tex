@@ -170,6 +170,10 @@
 %\onehalfspacing
 
 \begin{document}
+\setlength{\intextsep}{4pt}
+\setlength{\textfloatsep}{4pt}
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
 
 \maketitle
 
@@ -327,23 +331,22 @@ our framework combines the tree-based algorithm~\cite{DworkContinualObservation2
 upper-confidence bound (LinUCB) algorithm~\cite{???????}.  However, for modularity,
 we choose to analyze a family of linear UCB algorithms where in each
 day one uses a different regularizer, under the premise that all
-regularizers' singular values are bounded. \os{above and below?!?}
-Moreover, we repeat our analysis twice. Once in a general framework,
+regularizers' singular values are bounded. Moreover, we repeat our analysis twice. Once in a general framework,
 obtaining an upper bound on the regret which is proportional to
-$\sqrt n$; and once in an instance dependent setting, where in each
+$\tilde O(\sqrt n)$; and once in an instance dependent setting, where in each
 day there's a significant gap of at least $\Delta$ between the best arm of each round and any other
-arms, obtaining a regret upper bound of $O(\log(n)/\Delta)$.\footnote{The analysis carries through to $k-1$ gaps between the $i$th
+arms, obtaining a regret upper bound of $\mathrm{polylog}(n)/\Delta$.\footnote{The analysis carries through to $k-1$ gaps between the $i$th
 arm and the leading one, yet its result is too cumbersome so we omit
 this analysis.} Our leading application of course is privacy, though
 one could postulate other reasons why such a change in regularizers
 would be useful (e.g., updating the regularizer when an initial upper
-bound of a parameter turns out to be wrong). This analysis is given in Section~\ref{}. We then plug in two
+bound of a parameter turns out to be wrong). This analysis is given in Section~\ref{sec:LinUCB}. We then plug in two
 particular regularizers into our scheme: one based on additive Wishart
 noise \citep{SheffetPrivateApproxRegression2015} which always results
-in a PSD; and one based on additive Gaussian
+in a PSD, acheiving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
 noise \citep{DworkAnalyzeGauss2014} which doesn't have to result in a PSD, so
 we shift it by $\rho I$ so that w.h.p.\ (over all days in the sequence)
-the shifted eigenvalues of the noise are all positive. The details of the two techniques are given in Section~\ref{}. We also present
+the shifted eigenvalues of the noise are all positive, and obtain a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.  We also present
 empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
 We also give lower bound for the $\varepsilon$-differentially private
@@ -515,7 +518,7 @@ $H_t$ and $\vec h_t$.
   following hold with probability at least $1-\alpha$:
   \begin{align*}
     \norm{}{H_t} &\le \rho_{\max},
-    &\norm{}{\inv{H_t}} &\le \rho_{\min},
+    &\norm{}{\inv{H_t}} &\le \nicefrac{1}{\rho_{\min}},
     &\norm{\inv{H_t}}{\vec h_t} &\le \gamma.
   \end{align*}
 \end{definition}
@@ -532,18 +535,18 @@ $H_t$ and $\vec h_t$.
   (\cref{def:accurate-params}).  Then the sequence $(\beta_t)_{t=1}^n$
   is $(\alpha,n)$-accurate (\cref{def:accurate-beta}):
   \begin{align*}
-    \beta_t &\defeq \sigma\sqrt{2\log(2/\alpha) + \log\det V_t - d\log\rho_{\min}}
-             + S\sqrt{\rho_{\max}} + \gamma. \\
-    \shortintertext{Furthermore, if each $\norm{}{\vec x_s} \le L$
-    (\cref{ass:x-bound}), then}
-    \beta_t &\le \sigma\sqrt{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{tL^2}{d\rho_{\min}}}}
+    \beta_t &\defeq \sigma\sqrt{2\log(\nicefrac 2 \alpha) + \log\det V_t - d\log\rho_{\min}}
              + S\sqrt{\rho_{\max}} + \gamma.
-  \end{align*}
+             \end{align*}
+    {If in addition each $\norm{}{\vec x_s} \le L$
+    (\cref{ass:x-bound}), then}
+    $\beta_t \le \sigma\sqrt{2\log(\nicefrac{2}{\alpha}) + d\log\paren*{1 + \frac{tL^2}{d\rho_{\min}}}}
+             + S\sqrt{\rho_{\max}} + \gamma$.
 \end{restatable}
-
+\vspace{-5pt}
 \subsection{Regret Bounds}
 \label{sec:regret-bounds}
-
+Having established that the bounds on the confidence sets $\beta_t$ require only bounds on the regularizers, we now give the resulting regret bounds of~\Cref{alg:linucb}. The proofs of these theorems, which are rather long yet are by no means novel, are deferred to the supplementary material.
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
@@ -551,16 +554,16 @@ $H_t$ and $\vec h_t$.
   $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
   probability at least $1-\alpha$ the pseudo-regret of
   \cref{alg:linucb}
-  \begin{align*}
-    \widehat R_n
-    &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t} \\
-    \shortintertext{satisfies}
+    $\widehat R_n
+    \defeq \sum\limits_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t}$ \os{isn't it $\vec x_t^*$?} satisfies 
+    \begin{align}
+    \label{eq:regret_general_formula}
     \widehat R_n
     &\le \sqrt{8n}\brck*{
-      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      \sigma\paren*{2\log(\nicefrac{2}{\alpha}) + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
       }
-  \end{align*}
+  \end{align}
 \end{restatable}
 
 \begin{restatable}[Gap-Dependent Regret of
@@ -573,13 +576,14 @@ $H_t$ and $\vec h_t$.
   sub-optimal arms by reward gap at least $\Delta$, then with
   probability at least $1-\alpha$ the pseudo-regret of
   \cref{alg:linucb} satisfies
-  \begin{align*}
+  \begin{align}
+  \label{eq:regret_gap_general_formula}
     \widehat R_n
     &\le \frac{4}{\Delta} \brck*{
-      \sigma\paren*{2\log\frac{2}{\alpha} + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
+      \sigma\paren*{2\log(\nicefrac{2}{\alpha}) + d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}
       }^2
-  \end{align*}
+  \end{align}
 \end{restatable}
 
 
@@ -658,7 +662,7 @@ First, we plug into the tree-based algorithm noise from a suitably chosen Wishar
   \label{thm:wishart-cont-dp}
   Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each row in the input is bouded by $\tilde L$ then adding to the inputs' $2^{\rm nd}$-moment matrix noise sampled from $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private, provided $k_0\geq d+1 + \tfrac{28\ln(\nicefrac 4 \delta_0)}{\varepsilon_0^2}$.
   \end{theorem}
-Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \EyeNoSub, k)$ with $k = \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\EyeNoSub, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)  --- $H_t$ is sampled from $\Wishart_d(\tilde L^2\EyeNoSub,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
+Applying this guarantee to our setting, where each count needs to preserve $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a matrix from $\Wishart_{d+1}(\tilde{L} \EyeNoSub, k)$ with $k \defeq \lceil d+1 + \tfrac{224m\ln(\nicefrac {8m} \delta)\ln(\nicefrac 2 \delta)}{\varepsilon^2}   \rceil$. Moreover, combining the noise of $m$ samples from the Wishart distribution is equivalent to sampling a noise matrix $N_t\sim \Wishart_{d+1}(\tilde L^2\EyeNoSub, mk)$. (Intuitively, we merely concatenate the $m$ batches of multivariate Gaussians sampled in the generation of each of the $m$ Wishart noises.) Furthermore, consider $H_t$ and $\vec h_t$ we generate from $N_t$ ($N_t$'s top-left submatrix and the right-most subcolumn resp.)~--- $H_t$ is sampled from $\Wishart_d(\tilde L^2\EyeNoSub,k)$ , and each entry of $\vec h_t$ is the dot-product of two multivariate Gaussians. Knowing their disribution, we can infer the accurate bounds required for our regret bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Wishart}
 Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are taken by applying the tree-based algorithm with Wishart noise $\Wishart_{d+1}(\tilde L^2 \EyeNoSub, k)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $\alpha$-accurate bounds:
@@ -677,8 +681,9 @@ Seeing as $H_t\sim\Wishart_d(\tilde L^2 \EyeNoSub, mk)$, straight-forward bounds
 All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\EyeNoSub, k )$ gives a regret bound of
-\[PLUG IN THE FINAL RESULT\]
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\EyeNoSub, k )$ gives a pseudo-regret bound of
+\[ O(\sqrt n\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right) )  \] in general, and a gap-dependent pseudo-regret bound of
+\[ O(\tfrac1 \Delta\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right)^2 ) \]
 \end{corollary}
 
 \subsection{Differential Privacy via Additive Gaussian Noise}
@@ -686,7 +691,7 @@ Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ 
 
 Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Recall that each datum has a bounded $L_2$-norm of $\tilde L$, hence a change to a single datum may alter the Forbenius norm of $M_t$ by $\tilde L^2$. It follows that in order to make sure each node in the tree-based algorithm  preserves $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2})$-differential privacy,\footnote{We use here the slightly better bounds for the composition of Gaussian noise based on zero-Concentrated DP, see~\cite{BunSteinke2016}.} the variance of each coordinate must be $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 / \varepsilon^2$.
 
-Instead of ensuring the noise is symmtertic by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top signular value of $Z$ give that $\Pr[ \|Z\| > \sigma(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
+Instead of ensuring the noise is symmtertic by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top signular value of $Z$ give that $\Pr[ \|Z\| > \sigma_{\rm noise}(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
 However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\EyeNoSub$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $H_t$ is given by summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, symmetrizing the result as shown above and adding $(\upsilon+1)\EyeNoSub$; and $\vec h_t$ is the result of summing $\leq m$ $d$-dimensional vectors whose entries are sampled i.i.d from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
 \begin{proposition}
@@ -696,13 +701,14 @@ Fix any $\alpha>0$. Given that for each $t$ the regularizers $H_t, \vec h_t$ are
     &\rho_{\max}\defeq  2\Upsilon+1 &&\rho_{\min}\defeq 1 && \gamma \defeq \sqrt m\sigma_{\rm noise}(\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})=4m\tilde L^2 \ln(\nicefrac 4 \delta) (\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})/\varepsilon
   \end{align*}
 \end{proposition}
-
-The result is a bound on the regret of Algorithm~\ref{alg:linucb} using the tree-based algorithm using Gaussian noise.
-
+Note how $\gamma=O(\Upsilon)$ (the only difference is $\sqrt{\log(\tfrac n \alpha)}$).
+As a result we get a bound on the regret of Algorithm~\ref{alg:linucb} using the tree-based algorithm using Gaussian noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
 Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmterized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ gives a regret bound of
-\[PLUG IN THE FINAL RESULT\]
+\[O(\sqrt n \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right) )\]
+in general, and a gap-dependent pseudo-regret bound of
+\[O(\tfrac 1 \Delta \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right)^2 )\]
 \end{corollary}
 
 
