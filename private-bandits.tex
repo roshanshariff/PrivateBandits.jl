@@ -58,7 +58,9 @@
 %\usepackage{dblfloatfix}
 
 %% Bibliography/References
-%\usepackage[round,colon]{natbib}
+% \usepackage[round,colon]{natbib}
+
+\bibpunct{\nolinebreak{}[}{]}{,}{n}{}{,}
 
 %% Cross-references
 \usepackage{varioref}
@@ -181,13 +183,27 @@
 \maketitle
 
 \begin{abstract}
-  We study the contextual linear bandit problem, a version of the standard stochastic mutli-armed bandit problem where an algorithm
+  We study the contextual linear bandit problem, a version of the
+  standard stochastic mutli-armed bandit problem where an algorithm
   sequentially selects actions that maximize an associated reward,
-  which may depend on a provided per-round \emph{context}. Though the context can be chosen arbitrarily or adversarially, the reward is assumed to be a linear function of a
-  \emph{feature vector} that encodes the context and selected action,
-  with added stochastic noise. Our goal in this work is devise differentially private learners for the contexutal linear bandit problem.
+  which may depend on a provided per-round \emph{context}. Though the
+  context can be chosen arbitrarily or adversarially, the reward is
+  assumed to be a linear function of a \emph{feature vector} that
+  encodes the context and selected action, with added stochastic
+  noise. Our goal in this work is devise differentially private
+  learners for the contexutal linear bandit problem.
 
-  We first show that using the standard definition of differential privacy results in linear regret. And so we swtich to \emph{joint} differential privacy, where we assume that the action chosen on day $t$ is only revealed to user $t$ and thus needn't be kept private that day, only on following days. We give a general scheme converting the linear UCB algorithm into a joint differentially private algorithm using the tree-based algorithm of~\cite{ChanPrivateContinualRelease2010,DworkContinualObservation2010}, and upper bound the resulting algorithms' regret and test their performance empirically. We also give (the first) lower bound of the \emph{additional} regret private algorithms encoure.
+  We first show that using the standard definition of differential
+  privacy results in linear regret. And so we swtich to \emph{joint}
+  differential privacy, where we assume that the action chosen on day
+  $t$ is only revealed to user $t$ and thus needn't be kept private
+  that day, only on following days. We give a general scheme
+  converting the linear UCB algorithm into a joint differentially
+  private algorithm using the tree-based algorithm of
+  \citet{ChanPrivateContinualRelease2010,DworkContinualObservation2010},
+  and upper bound the resulting algorithms' regret and test their
+  performance empirically. We also give (the first) lower bound of the
+  \emph{additional} regret private algorithms encoure.
  \end{abstract}
 
 \section{Introduction}
@@ -303,7 +319,17 @@ environment which the agent aims to learn so that she can maximize reward. The g
 \subsubsection{Joint Differential Privacy.}\label{sec:joint-dp}
 
 As discussed above, the context and reward may be considered private
-information about the users which we wish to keep private from all \emph{other} users. We thus introduce the notion of joint differentially private learners under continuous observation \citep[a combination of the two definitions given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First, we say two sequences $S = \langle (\mathcal{D}_1, y_1), (\mathcal{D}_2, y_2), ..., (\mathcal{D}_n, y_n) \rangle$ and $S' = \langle (\mathcal{D}'_1, y'_1), ..., (\mathcal{D}'_n, y'_n) \rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that $(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
+information about the users which we wish to keep private from all
+\emph{other} users. We thus introduce the notion of joint
+differentially private learners under continuous observation, a
+combination of the two definitions
+\citep[given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First,
+we say two sequences
+$S = \langle (\mathcal{D}_1, y_1), (\mathcal{D}_2, y_2), ...,
+(\mathcal{D}_n, y_n) \rangle$ and
+$S' = \langle (\mathcal{D}'_1, y'_1), ..., (\mathcal{D}'_n, y'_n)
+\rangle$ are \emph{$t$-neighbors} if for all $t'\neq t$ it holds that
+$(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
 %\os{maybe omit?} We say $S$ and $S'$ are \emph{neighbors} if there exists a $t$ such that the two sequences are $t$-neighbors.
 % For example, a
 % search engine might have a context consisting of a user's search
@@ -331,7 +357,7 @@ In this work, in addition to formulating the definition of JDP under
 continual observation, we also present a framework for implementing
 JDP algorithms for the contextual bandit problem. Not surprisingly,
 our framework combines the tree-based algorithm~\cite{DworkContinualObservation2010}  with the linear
-upper-confidence bound (LinUCB) algorithm~\cite{???????}.  However, for modularity,
+upper-confidence bound (LinUCB) algorithm\todo{Cite LinUCB}.  However, for modularity,
 we choose to analyze a family of linear UCB algorithms where in each
 day one uses a different regularizer, under the premise that all
 regularizers' singular values are bounded. Moreover, we repeat our analysis twice. Once in a general framework,
@@ -345,7 +371,7 @@ one could postulate other reasons why such a change in regularizers
 would be useful (e.g., updating the regularizer when an initial upper
 bound of a parameter turns out to be wrong). This analysis is given in Section~\ref{sec:LinUCB}. We then plug in two
 particular regularizers into our scheme: one based on additive Wishart
-noise \citep{SheffetPrivateApproxRegression2015} which always results
+noise~\citep{SheffetPrivateApproxRegression2015} which always results
 in a PSD, acheiving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
 noise \citep{DworkAnalyzeGauss2014} which doesn't have to result in a PSD, so
 we shift it by $\rho I$ so that w.h.p.\ (over all days in the sequence)
@@ -358,7 +384,7 @@ the standard (non-private) bounds, we show that the regret of
 \emph{any} private algorithm must incur \emph{an additional} cost of
 $\log(T)/\varepsilon$. This resembles the lower bound of the
 adversarial setting, however, the proof technique cannot rely on the
-standard packing arguments \citep[see, for
+standard packing arguments~\citep[see, for
 example,][]{HardtTalwarGeometryDP2010} seeing as the input for the
 problem is stochastic rather than adversarial.  Instead, we apply a
 new result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
@@ -369,15 +395,36 @@ $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
 
 
 \todo[inline]{Complete this section.}
-\section{Preliminaries, Background and Related Works}
+\section{Preliminaries, Background and Related Work}
 \label{sec:background}
 
 \subsection{Differential Privacy.} Differential privacy was first introduced by
-\citet{DworkCalibratingNoiseSensitivity2006, DworkKenthrapdai...2006}, and it is a rigorous mathermatical notion that determines that the probability of any event changes very little with the change of a single datum. (We omit the definition as the Joint-DP was already defined.) A classic result~\cite{DworkKenthrapdai...2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and vairance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. Among its many elegant traits is the notion of group privacy: should $k$ datums change the data, the change to any every is still limited, by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkRothblumVadhan2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\left( O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'  \right)$-differentially private for any $\delta'>0$.
+\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion that determines that the probability of any event changes very little with the change of a single datum. (We omit the definition as the Joint-DP was already defined.) A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. Among its many elegant traits is the notion of group privacy: should $k$ datums change the data, the change to any every is still limited, by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
 
-The notion of differential privacy under continual observation was first defined in~\cite{DworkContinualObservation2010} have also been defined, using the \textbf{tree-based algorithm} (originally appearing in~\cite{ChanPrivateContinualRelease2010}). This algorithm maintains a binary tree whose $n$ leafs correspond to the $n$ entries in the input sequence. Each node in the tree maintains a noisy (privacy-preserving) count of the sum of the input entries in its subtree, thus enabling us to maintain a running count of the sum of inputs thus far by combining no more than $\log(n)$ noisy counts. This algorithm is the key ingredient in a variety of works the deal with privacy in an noline setting, including counts~\cite{DworkContinualObservation2010}, online convex optimization~\cite{Jain,someone,thakurta,colt2012/3}, and regret minimization~\cite{SmithThakurta2013},\cite{MishraNearlyOptimalDPBandits2015} and~\cite{TussouDimitrikakis twice} in both the adversarial and stoachastic setting. We comment that~\cite{MishraNearlyOptimalDPBandits2015} proposed an algorithm similar to our own for the contextual bandit setting, however (i) without maintaining PSD, (ii) without any analysis only empirical evidence and (iii) without presenting lower bounds.
+The notion of differential privacy under continual observation was
+first defined by \citet{DworkContinualObservation2010} have also been
+defined, using the \textbf{tree-based algorithm}~\citep[originally
+appearing in][]{ChanPrivateContinualRelease2010}). This algorithm
+maintains a binary tree whose $n$ leafs correspond to the $n$ entries
+in the input sequence. Each node in the tree maintains a noisy
+(privacy-preserving) count of the sum of the input entries in its
+subtree, thus enabling us to maintain a running count of the sum of
+inputs thus far by combining no more than $\log(n)$ noisy counts. This
+algorithm is the key ingredient in a variety of works the deal with
+privacy in an online setting, including
+counts~\cite{DworkContinualObservation2010}, online convex
+optimization~\cite{JainDPOnlineLearning2012}, and regret minimization
+in both the
+adversarial~\citep{SmithThakurtaPrivateOnlineLearning2013,TossouAchievingPrivacyAdversarial2017}
+and
+stochastic~\cite{MishraNearlyOptimalDPBandits2015,TossouAlgDPBandits2016}
+settings. We comment that \citet{MishraNearlyOptimalDPBandits2015}
+proposed an algorithm similar to our own for the contextual bandit
+setting, however (i) without maintaining PSD, (ii) without any
+analysis, only empirical evidence, and (iii) without presenting lower
+bounds.
 
-In the offline setting, there have been numerous works studying differentially private linear regression~\cite{ChaudhuriMonteleoniSarwate2011, BassilySmithThakurta2014}. In this work we rely on two techniques that maintain a private version of the $2^{\rm nd}$-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkTTZ14} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
+In the offline setting, there have been numerous works studying differentially private linear regression~\citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}. In this work we rely on two techniques that maintain a private version of the second-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkAnalyzeGauss2014} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
 \subsection{The MAB and the Contextual MAB Problems.}
 
@@ -687,7 +734,21 @@ Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ 
 \subsection{Differential Privacy via Additive Gaussian Noise}
 \label{sec:dp-gauss}
 
-Our second alternative is to plug into the tree-based algorithm Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices which are symmetric and their upper-diagonal entries taken from a Gaussian distribution. Recall that each datum has a bounded $L_2$-norm of $\tilde L$, hence a change to a single datum may alter the Forbenius norm of $M_t$ by $\tilde L^2$. It follows that in order to make sure each node in the tree-based algorithm  preserves $(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}}, \nicefrac{\delta}{2})$-differential privacy,\footnote{We use here the slightly better bounds for the composition of Gaussian noise based on zero-Concentrated DP, see~\cite{BunSteinke2016}.} the variance of each coordinate must be $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 / \varepsilon^2$.
+Our second alternative is to plug into the tree-based algorithm
+Gaussian noise, namely, $\left((d+1)\times (d+1)\right)$-matrices
+which are symmetric and their upper-diagonal entries taken from a
+Gaussian distribution. Recall that each datum has a bounded $L_2$-norm
+of $\tilde L$, hence a change to a single datum may alter the
+Forbenius norm of $M_t$ by $\tilde L^2$. It follows that in order to
+make sure each node in the tree-based algorithm preserves
+$(\tfrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
+\nicefrac{\delta}{2})$-differential privacy,%
+\footnote{We use here the slightly better bounds for the composition
+  of Gaussian noise based on zero-Concentrated
+  DP~\citep{BunConcentratedDifferentialPrivacy2016}.} %
+the variance of each coordinate must be
+$\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 /
+\varepsilon^2$.
 
 Instead of ensuring the noise is symmtertic by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $Z$ using $\tfrac 1 {\sqrt 2}(Z+\transp{Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top signular value of $Z$ give that $\Pr[ \|Z\| > \sigma_{\rm noise}(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
@@ -779,14 +840,14 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
 \subsection{Differential Privacy}
 \label{apx_subsec:DP}
 
-In the offline setting, a dataset $D$ is a $n$-tuple of elements from some universe $\mathcal{U}$. Two datasets are called neighbors if they differ just on a single element. An algorithm $A$ is said to be $(\varepsilon,\delta)$-differentially private if for any pair of neighboring datasets $D$ and $D'$ and any subset of possible outputs $\mathcal{S}$ we have that $\Pr[A(D)\in\mathcal{S}]\leq e^\varepsilon\Pr[A(D')\in\mathcal{S}] + \delta$. A common technique~\cite{DWorkKentrapadi...2006} for approximating the value of a query $f$ on dataset $D$ is to first find its $L_2$-sensitivity, $GS_2 :=\max_{D,D'\textrm{ neighboring}} \|f(D)-f(D')\|_2$, and then add Gaussian noise of $0$-mean and variance $\tfrac{2GS_2^2\ln(\nicefrac 2 \delta)}{\varepsilon^2}$.
+In the offline setting, a dataset $D$ is a $n$-tuple of elements from some universe $\mathcal{U}$. Two datasets are called neighbors if they differ just on a single element. An algorithm $A$ is said to be $(\varepsilon,\delta)$-differentially private if for any pair of neighboring datasets $D$ and $D'$ and any subset of possible outputs $\mathcal{S}$ we have that $\Pr[A(D)\in\mathcal{S}]\leq e^\varepsilon\Pr[A(D')\in\mathcal{S}] + \delta$. A common technique~\cite{DworkOurData2006} for approximating the value of a query $f$ on dataset $D$ is to first find its $L_2$-sensitivity, $GS_2 :=\max_{D,D'\textrm{ neighboring}} \|f(D)-f(D')\|_2$, and then add Gaussian noise of $0$-mean and variance $\tfrac{2GS_2^2\ln(\nicefrac 2 \delta)}{\varepsilon^2}$.
 
 \subsection{The Tree-Based Mechanism}
 
 Assume for simplicity that $n=2^i$ for some positive integer $i$. Let $T$ be a complete binary tree with its leaf nodes being $l_1,...,l_n$. Each internal
 node $x\in T$ stores the sum of all the leaf nodes in the tree
 rooted at $x$. First notice that one can compute any partial sum $\sum_{j=1}^i l_i$ using at most $m:=\lceil\log(n)+1\rceil$ nodes of $T$. Second, notice that for any two neighbor-
-ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkRothblumVadhan2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$).
+ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkBoosting2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$).
 
 \section{Proofs from Section~\ref{sec:LinUCB}}
 
