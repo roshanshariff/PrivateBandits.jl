@@ -186,7 +186,7 @@
   sequentially selects actions that maximize a reward, which may
   depend on a provided per-round \emph{context}. Though the context
   can be chosen arbitrarily or adversarially, the reward is assumed to
-  be a linear function of a \emph{feature vector} that encodes the
+  be a linear function of a feature vector that encodes the
   context and selected action, with added random noise. Our goal in
   this work is devise differentially private learners for the
   contextual linear bandit problem.
@@ -234,9 +234,9 @@ drawback of ignoring the variety of users' preferences; whereas
 learning each user's preference separately prevents generalization
 between users.  Therefore it is common to model the task as a
 contextual \emph{linear bandit} problem: Based on the user-given
-context, each product (action) is mapped to a feature vector; the
-purchase probability is assumed to be the \emph{same} unknown linear
-function of the feature vector for all users.
+context, each action is mapped to a feature vector; the
+reward probability is assumed to be the \emph{same} unknown linear
+function of the feature vector for all users. 
 
 The above example motivates the need for privacy in the contextual
 bandit setting: users' past purchases are sensitive personal
@@ -277,7 +277,7 @@ $\Ex{y_t\given a_t}$ that depends only on which action was selected.
 In the stochastic contextual bandit problem, the learner also receives
 a \emph{context} $c_t\in\C$ at the beginning of each round, and the
 expected reward $\Ex{y_t\given c_t,a_t}$ depends on both $c_t$ and
-$a_t$.  One way to take advantage of the context is to assume that it
+$a_t$.  It is common to assume that the context
 affects the reward in a linear way: map every context-action pair to a
 \emph{feature vector} $\phi(c_t,a_t)\in\Real^d$ (where $\phi$ is an
 arbitrary but known function) and assume that
@@ -296,6 +296,7 @@ consists of repeated rounds in which the learner
 \item receives a stochastic \emph{reward}
   $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$.
 \end{enumerate*}
+Note that when the context is identical over all days (with orthogonal vectors) the problem reduces to standard MAB.
 
 The objective is to maximize cumulative reward, which is equivalent to
 minimizing a quantity called \emph{regret} --- the extra reward a
@@ -348,7 +349,7 @@ $(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
 \begin{definition}
 \label{def:joint-dp}
   A randomized algorithm $A$ for the contextual bandit problem is
-  \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{T}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Pr[A(S)\in \mathcal{S}_{>t}] \leq e^\varepsilon\Pr[A(S')\in \mathcal{S}'_{>t}] +\delta$.
+  \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{n}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Pr[A(S)\in \mathcal{S}_{>t}] \leq e^\varepsilon\Pr[A(S')\in \mathcal{S}'_{>t}] +\delta$.
 \end{definition}
 Note that the standard definition of differential privacy requires the
 distribution proximity to hold for any subset of sequences of actions
@@ -366,7 +367,7 @@ back to the setting of different contexts with fixed action set. See
 In this work, in addition to formulating the definition of JDP under
 continual observation, we also present a framework for implementing
 JDP algorithms for the contextual bandit problem. Not surprisingly,
-our framework combines the tree-based algorithm~\cite{DworkContinualObservation2010}  with the linear
+our framework combines the tree-based algorithm~\cite{ChanPrivateContinualRelease2010,DworkContinualObservation2010}  with the linear
 upper-confidence bound (LinUCB) algorithm\todo{Cite LinUCB}.  However, for modularity,
 we choose to analyze a family of linear UCB algorithms where in each
 day one uses a different regularizer, under the premise that all
@@ -392,10 +393,9 @@ We also give lower bound for the $\varepsilon$-differentially private
 MAB problem. Whereas all previous work on the private MAB problem uses
 the standard (non-private) bounds, we show that the regret of
 \emph{any} private algorithm must incur \emph{an additional} cost of
-$\log(T)/\varepsilon$. This resembles the lower bound of the
+$\Omega(k\log(T)/\varepsilon)$. This resembles the lower bound of the
 adversarial setting, however, the proof technique cannot rely on the
-standard packing arguments~\citep[see, for
-example,][]{HardtTalwarGeometryDP2010} seeing as the input for the
+standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} seeing as the input for the
 problem is stochastic rather than adversarial.  Instead, we apply a
 new result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
 that the effective group-privacy between two possible inputs of $n$
