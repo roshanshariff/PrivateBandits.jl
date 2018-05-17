@@ -210,11 +210,12 @@
 The well-known \emph{stochastic multi-armed bandit} (MAB) is a
 sequential decision-making task in which a learner repeatedly chooses
 an action (or arm) and receives a noisy reward.  The objective is to
-maximize cumulative reward by quickly discovering the optimal arm: the
-one with the best reward in expectation.  The \emph{contextual} bandit
-problem is an extension of MAB, where the learner also receives a
-\emph{context} in each round, and the expected reward depends on
-\emph{both} the context and the selected action.
+maximize cumulative reward by \emph{exploring} the actions to discover
+optimal ones (having the best expected reward), balanced with
+\emph{exploiting} them.  The \emph{contextual} bandit problem is an
+extension of MAB, where the learner also receives a \emph{context} in
+each round, and the expected reward depends on \emph{both} the context
+and the selected action.
 
 % Since the agent only observes the reward for actions it takes, this
 % is an online learning task with partial information.  Learning the
@@ -272,9 +273,9 @@ In the classic multi-armed bandit, in every round $t$ a learner
 selects an \emph{action} $a_t$ from a fixed set $\A$ and receives a
 \emph{reward} $y_t$.  In the (stationary) \emph{stochastic} MAB, the
 reward is noisy with a fixed but unknown expectation
-$\Ex{y_t\given a_t}$ that depends only which action was selected.  In
-the stochastic contextual bandit problem, the learner also receives a
-\emph{context} $c_t\in\C$ at the beginning of each round, and the
+$\Ex{y_t\given a_t}$ that depends only on which action was selected.
+In the stochastic contextual bandit problem, the learner also receives
+a \emph{context} $c_t\in\C$ at the beginning of each round, and the
 expected reward $\Ex{y_t\given c_t,a_t}$ depends on both $c_t$ and
 $a_t$.  One way to take advantage of the context is to assume that it
 affects the reward in a linear way: map every context-action pair to a
@@ -309,7 +310,7 @@ quantity called \emph{pseudo-regret}, which is the extra
 the cumulative pseudo-regret after $n$ rounds is
 $\widehat{R}_n \defeq
 \sum_{t=1}^n\max_{x\in\D_t}\innerp{\vec\theta^*}{\vec x - \vec x_t}$.%
-\footnote{The pseudo-reward ignores the reward noise but not the
+\footnote{The pseudo-regret ignores the reward noise but not the
   randomness in the learner's choice of actions.  It equals the reward
   in expectation, but is more amenable to high-probability bounds such
   as ours, because the learner's effectiveness is not masked by the
@@ -594,7 +595,7 @@ $H_t$ and $\vec h_t$.
     &\le \sigma\sqrt{2\log\tfrac{2}{\alpha} + d\log\paren[\Big]{\tfrac{\rho_{\max}}{\rho_{\min}}
       + \tfrac{tL^2}{d\rho_{\min}}}}
       + S\sqrt{\rho_{\max}} + \gamma.
-      &\text{(Under \cref{ass:x-bound})}
+    &\text{(Under \cref{ass:x-bound})}
   \end{align*}
 \end{restatable}
 
@@ -668,18 +669,20 @@ post-processes $G_t$ and $\vec u_t$.
   chosen $\vec x_t$ (as discussed in \cref{sec:joint-dp}).
 \end{remark}
 
-To make the following exposition simpler, define the matrix
+To make the following exposition simpler, define the matrices
 $A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
-\Real^{n\times(d+1)}$, and the matrices $A_t$ holding the top $t-1$ rows of $A$ (and
-$A_1 = \vec 0_{1\times(d+1)}$).  Denote $M_t \defeq \XtX{A_t}$, and note that the top-left $d\times d$
-sub-matrix of $M_t$ is the Gram matrix $G_t$ and the
-first $d$ entries of its last column are
-$\vec u_t = \transp{\vec X_{t-1}}\vec y_{t-1}$.  It therefore suffices
-to maintain a differentially private approximation of $M_t$. Since
-\cref{alg:linucb} allows for additive perturbations $H_t$ and $h_t$,
-we can use any privacy mechanism that uses additive noise, releasing
-$M_t + N_t$.  The top-left $d\times d$ sub-matrix of $N_t$ becomes
-$H_t$ and the first $d$ entries of its last column become $\vec h_t$. Lastly, in order to maintain a private estimation of $M_t$ we require the following assumption.
+\Real^{n\times(d+1)}$, with $A_t$ holding the top $t-1$ rows of $A$
+(and $A_1 = \vec 0_{1\times(d+1)}$).  Denote $M_t \defeq \XtX{A_t}$
+--- then the top-left $d\times d$ sub-matrix of $M_t$ is the Gram
+matrix $G_t$ and the first $d$ entries of its last column are
+$\vec u_t$.  It therefore suffices to maintain a differentially
+private approximation of $M_t$. Since \cref{alg:linucb} allows for
+additive perturbations $H_t$ and $h_t$, we can use any privacy
+mechanism that uses additive noise, releasing $M_t + N_t$.  The
+top-left $d\times d$ sub-matrix of $N_t$ becomes $H_t$ and the first
+$d$ entries of its last column become $\vec h_t$. Lastly, in order to
+maintain a private estimation of $M_t$ we require the following
+assumption.
 \begin{assumption}\label{ass:bounded-data}
   Each row of $A$ is bounded:
   $\norm{}{\vec x_t}^2 + y_t^2 \le \tilde L^2$ for all rounds $t$.  In
@@ -697,7 +700,7 @@ private, we add noise to each node in the tree so that each noisy
 count on its own preserves
 $(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
 \nicefrac{\delta}{2m})$-differential privacy. Thus in each day, the
-noise $N_t$, that we add to $M_t$, comes from the sum of at most $m$
+noise $N_t$ that we add to $M_t$ comes from the sum of at most $m$
 such counters.
 
 % \subsection{Pan-Privacy with Tree-Based Aggregation}
