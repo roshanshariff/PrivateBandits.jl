@@ -203,7 +203,7 @@
   \citet{ChanPrivateContinualRelease2010,DworkContinualObservation2010},
   and upper bound the resulting algorithms' regret and test their
   performance empirically. We also give (the first) lower bound of the
-  \emph{additional} regret private algorithms encoure.
+  \emph{additional} regret private algorithms incur.
  \end{abstract}
 
 \section{Introduction}
@@ -430,7 +430,7 @@ In the offline setting, there have been numerous works studying differentially p
 
 \begin{multicols}{2}[\paragraph{Notation.}\label{sec:notation}]
   \nolinenumbers
-  \begin{description}[style=sameline,leftmargin=5em]
+  \begin{description}[style=sameline,leftmargin=5em,nosep]
   \item[$n$] horizon, i.e. number of rounds
   \item[$s,t$] indices of rounds
   \item[$d$] dimensionality of action space
@@ -599,10 +599,10 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
     ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
-  probability at least $1-\alpha$ the pseudo-regret of
-  \cref{alg:linucb}
-    $\widehat R_n
-    \defeq \sum\limits_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec\theta^*}{\vec x - \vec x_t}$ \os{isn't it $\vec x_t^*$?} satisfies
+  probability at least $1-\alpha$ the pseudo-regret
+  $\widehat R_n \defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}}
+  \innerp{\vec\theta^*}{\vec x - \vec x_t}$ \todo{isn't it
+    $\vec x_t^*$?} of \cref{alg:linucb} satisfies
     \begin{align}
     \label{eq:regret_general_formula}
     \widehat R_n
@@ -822,7 +822,7 @@ Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFinite
 
 
 \bibliographystyle{plainnat}
-\bibliography{references,zotero-references}
+{\small\bibliography{references,zotero-references}}
 
 
 \cleardoublepage
@@ -1159,7 +1159,7 @@ different regularizer at each round.
 \end{claim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\cleardoublepage
 \todo[inline]{Remove following material from final version.}
 
 \section{Ellipsoidal Confidence Sets}
