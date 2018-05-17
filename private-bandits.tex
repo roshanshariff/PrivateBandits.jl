@@ -562,7 +562,7 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
     &\le \sqrt{8n}\brck*{\sigma\paren*{2\log\frac{2}{\alpha}
       + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \frac{nL^2}{d\rho_{\min}}}}}
-  \end{align*}
+  \end{align}
 \end{restatable}
 
 \begin{restatable}[Gap-Dependent Regret of
@@ -581,7 +581,7 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
     &\le \frac{8}{\Delta} \brck*{\sigma\paren*{2\log\frac{2}{\alpha}
       + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}}^2
-  \end{align*}
+  \end{align}
 \end{restatable}
 
 
@@ -679,7 +679,7 @@ Seeing as $H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on t
 All that is left is to plug-in the above bounds and derive that the regret of Algorithm~\ref{alg:linucb} when the regularizers are based on Wishart noise.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\EyeNoSub, k )$ gives a pseudo-regret bound of
+Applying Algorithm~\ref{alg:linucb} where the regularizers $H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node samples noise independently from $\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$ gives a pseudo-regret bound of
 \[ O(\sqrt n\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right) )  \] in general, and a gap-dependent pseudo-regret bound of
 \[ O(\tfrac1 \Delta\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right)^2 ) \]
 \end{corollary}
