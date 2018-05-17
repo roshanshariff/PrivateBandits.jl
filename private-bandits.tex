@@ -131,14 +131,11 @@
 %% Other symbols
 \newcommand{\A}{\mathcal{A}}
 \newcommand{\C}{\mathcal{C}}
+\newcommand{\D}{\mathcal{D}}
 \newcommand{\E}{\mathcal{E}}
 \providecommand\transp{\top}
 \let\transpsymbol\transp
 \renewcommand{\transp}[1]{#1^\transpsymbol}
-\newcommand{\Aset}[1]{\mathcal{A}_{#1}}
-\newcommand{\Dset}[1]{\mathcal{D}_{#1}}
-\newcommand{\Cset}[1]{\mathcal{C}_{#1}}
-\newcommand{\Eset}[1]{\mathcal{E}_{#1}}
 \newcommand{\scrF}{\mathscr{F}}
 \newcommand{\Wishart}{\mathcal{W}}
 \newcommand{\Normal}{\mathcal{N}}
@@ -186,16 +183,16 @@
 \begin{abstract}
   We study the contextual linear bandit problem, a version of the
   standard stochastic mutli-armed bandit problem where an algorithm
-  sequentially selects actions that maximize an associated reward,
-  which may depend on a provided per-round \emph{context}. Though the
-  context can be chosen arbitrarily or adversarially, the reward is
-  assumed to be a linear function of a \emph{feature vector} that
-  encodes the context and selected action, with added stochastic
-  noise. Our goal in this work is devise differentially private
-  learners for the contexutal linear bandit problem.
+  sequentially selects actions that maximize a reward, which may
+  depend on a provided per-round \emph{context}. Though the context
+  can be chosen arbitrarily or adversarially, the reward is assumed to
+  be a linear function of a \emph{feature vector} that encodes the
+  context and selected action, with added random noise. Our goal in
+  this work is devise differentially private learners for the
+  contextual linear bandit problem.
 
   We first show that using the standard definition of differential
-  privacy results in linear regret. And so we swtich to \emph{joint}
+  privacy results in linear regret. Instead, we adopt \emph{joint}
   differential privacy, where we assume that the action chosen on day
   $t$ is only revealed to user $t$ and thus needn't be kept private
   that day, only on following days. We give a general scheme
@@ -203,8 +200,8 @@
   private algorithm using the tree-based algorithm of
   \citet{ChanPrivateContinualRelease2010,DworkContinualObservation2010},
   and upper bound the resulting algorithms' regret and test their
-  performance empirically. We also give (the first) lower bound of the
-  \emph{additional} regret private algorithms incur.
+  performance empirically. We also give the first lower bound of the
+  \emph{additional} regret private algorithms must incur.
  \end{abstract}
 
 \section{Introduction}
@@ -268,53 +265,69 @@ preferences to users at times $t'>t$.\footnote{The guarantee of
   context, they still have very limited advantage over a random
   guess.}
 
-\subsection{Background and Problem Formulation}
+\subsection{Background and Problem Formulation}%
 \label{subsec:intro_background}
 
-\subsubsection{Stochastic Contextual Linear Bandits.}%
+\subsubsection{Stochastic Contextual Linear Bandits}%
 \label{sec:contextual-bandits}
 
-In the classic MAB task, in every round $t$ a learner selects an
-\emph{action} $a_t$ from a fixed set $\A$ and receives a \emph{reward}
-$r_t$.  In the (stationary) \emph{stochastic} MAB, the reward is noisy
-with a fixed but unknown expectation $\Ex{r_t\given a_t}$ that depends
-only on the selected action.
-
-In the contextual bandit problem, the algorithm also receives a
+In the classic multi-armed bandit, in every round $t$ a learner
+selects an \emph{action} $a_t$ from a fixed set $\A$ and receives a
+\emph{reward} $y_t$.  In the (stationary) \emph{stochastic} MAB, the
+reward is noisy with a fixed but unknown expectation
+$\Ex{y_t\given a_t}$ that depends only which action was selected.  In
+the stochastic contextual bandit problem, the learner also receives a
 \emph{context} $c_t\in\C$ at the beginning of each round, and the
-reward is assumed to depend on both the context and the choset action $a_t$.  To
-take advantage of the context while choosing actions, we will assume
-that the context affects the reward in a linear way, in the following
-sense.  We assume the existence of a known \emph{mapping}
-$\phi:\Cset{}\times\Aset{}\to\Real^d$ that maps every context-action
-pair to a $d$-dimensional \emph{feature vector}.  We will assume that
-the reward is a linear function of the feature vector, with some added
-noise: $r_t = \innerp{\vec\theta^*}{\phi(c_t,a_t)} + \eta_t$ for some
-unknown vector $\vec\theta^*\in\Real^d$. In fact, we simplify the
-problem statement to include the \emph{decision set}
-$\Dset{t} \defeq \set{\phi(c_t,a)\given a\in\Aset{}} \subset \Real^d$
-(where the context is implicitly encoded in the decision set), and so,
-rather than choosing an action out of $\Aset{}$ the algorithm chooses
-some $x_t\in\Dset{t}$.  Thus, the contextual stochastic linear bandit
-framework is composed of repeated rounds in which
-\begin{enumerate}
-\item The learner receives an arbitrarily chosen \emph{decision set} $\mathcal{D}_t \subset
-  \Real^d$.
-\item The learner chooses an \emph{action} $\vec x_t \in \mathcal{D}_t$.
-\item The learner receives a stochastic \emph{reward}
+expected reward $\Ex{y_t\given c_t,a_t}$ depends on both $c_t$ and
+$a_t$.  One way to take advantage of the context is to assume that it
+affects the reward in a linear way: map every context-action pair to a
+\emph{feature vector} $\phi(c_t,a_t)\in\Real^d$ (where $\phi$ is an
+arbitrary but known function) and assume that
+$\Ex{y_t\given c_t,a_t} = \innerp{\vec\theta^*}{\phi(c_t,a_t)}$.  The
+vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
+environment which the agent aims to learn so that she can maximize
+reward.  Indeed, everything a learner needs to know about the context
+is now implicitly encoded by the \emph{decision set}
+$\D_t \defeq \set{\phi(c_t,a)\given a\in\A \subset \Real^d}$, and
+choosing some $x_t\in\A_t$ effectively determines the action
+$a_t\in\A_t$.  Thus, the contextual stochastic linear bandit framework
+is composed of repeated rounds in which the learner
+\begin{enumerate*}[(i),before=\unskip{: },itemjoin={{; }},itemjoin*={{; and }}]
+\item receives a \emph{decision set} $\mathcal{D}_t \subset \Real^d$
+\item chooses an \emph{action} $\vec x_t \in \mathcal{D}_t$
+\item receives a stochastic \emph{reward}
   $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$.
-\end{enumerate}
-The vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
-environment which the agent aims to learn so that she can maximize reward. The goal of the learner is thus to minimize her expected regret...\os{Define the objective: minimizing expected regret --- perhaps justify why we chose this objective (standard, implies similar objectives etc)}
+\end{enumerate*}
 
-\subsubsection{Joint Differential Privacy.}\label{sec:joint-dp}
+The objective is to maximizing cumulative reward, which is equivalent
+to minimizing a quantity called \emph{regret}, the extra cumulative
+reward a learner would have received had it always chosen the best
+available action.  An effective learner may nevertheless earn only a
+small reward if all the actions are poor, but it would then have low
+regret.  In other words, the regret characterizes the cost of
+\emph{learning} the optimal action rather than knowing it beforehand.
+For stochastic problems, we are usually interested in a related
+quantity called \emph{pseudo-regret}, which is the extra
+\emph{expected} reward that could have been earned.  In our setting,
+the cumulative pseudo-regret after $n$ rounds is
+$\widehat{R}_n \defeq
+\sum_{t=1}^n\max_{x\in\D_t}\innerp{\vec\theta^*}{\vec x - \vec x_t}$.%
+\footnote{The pseudo-reward ignores the reward noise but not the
+  randomness in the learner's choice of actions.  It equals the reward
+  in expectation, but is more amenable to high-probability bounds such
+  as ours, because the learner's effectiveness is not masked by the
+  unavoidable reward noise.}
+
+
+\subsubsection{Joint Differential Privacy.}%
+\label{sec:joint-dp}
 
 As discussed above, the context and reward may be considered private
 information about the users which we wish to keep private from all
 \emph{other} users. We thus introduce the notion of joint
 differentially private learners under continuous observation, a
-combination of the two definitions
-\citep[given in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First,
+combination of two definitions \citep[given
+in][]{KearnsMechanismDesign2014,DworkContinualObservation2010}. First,
 we say two sequences
 $S = \langle (\mathcal{D}_1, y_1), (\mathcal{D}_2, y_2), ...,
 (\mathcal{D}_n, y_n) \rangle$ and
@@ -339,7 +352,15 @@ $(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
   A randomized algorithm $A$ for the contextual bandit problem is
   \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{T}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Pr[A(S)\in \mathcal{S}_{>t}] \leq e^\varepsilon\Pr[A(S')\in \mathcal{S}'_{>t}] +\delta$.
 \end{definition}
-Note that the standard definition of differential privacy requires the distribution proximity to hold for any subset of sequences of actions ranging from day $t$ to the end of sequence. However, in our problem formulation, with given decision sets, this notion isn't not even well-defined --- as the decision set of day $t$ is different under $S$ and under $S'$. Therefore, when we discuss the impossibility of regret-minimization under standard differential privacy, we result back to the setting of different contexts with fixed action set. See further details in Section~\ref{sec:lower_bounds}.
+Note that the standard definition of differential privacy requires the
+distribution proximity to hold for any subset of sequences of actions
+ranging from day $t$ to the end of sequence. However, in our problem
+formulation, with given decision sets, this notion isn't even
+well-defined --- the decision set of day $t$ is different under $S$
+and under $S'$. Therefore, when we discuss the impossibility of
+regret-minimization under standard differential privacy, we revert
+back to the setting of different contexts with fixed action set. See
+\cref{sec:lower_bounds} for further details.
 
 \subsection{Our Contribution and Paper Organization}
 \label{subsec:contributions}
@@ -425,8 +446,8 @@ In the offline setting, there have been numerous works studying differentially p
   \item[$n$] horizon, i.e. number of rounds
   \item[$s,t$] indices of rounds
   \item[$d$] dimensionality of action space
-  \item[$\Dset{t}\subset\Real^d$] decision set at round $t$
-  \item[$\vec x_t \in \Dset{t}$] action at round $t$
+  \item[$\D_t\subset\Real^d$] decision set at round $t$
+  \item[$\vec x_t \in \D_t$] action at round $t$
   \item[$y_t \in \Real$] reward at round $t$
   \item[$\vec X_t \in \Real^{t\times d}$] matrix with $\vec X_s = \transp{\vec
       x_s}$ for $s\in[t]$
@@ -447,10 +468,10 @@ Confidence Bound (UCB) idea to stochastic linear bandits
 At every round $t$, LinUCB constructs a \emph{confidence set} $\E_t$
 containing the unknown parameter vector $\vec\theta^*$ with high
 probability.  It then computes an upper confidence bound on the reward
-of each action in the decision set $\Dset{t}$, and ``optimistically''
+of each action in the decision set $\D_t$, and ``optimistically''
 chooses the action with the highest UCB:
 \begin{align}\label{eq:def-ucb}
-  \vec x_t &\gets \argmax_{\vec x\in\Dset{t}} \UCB_t(\vec x),
+  \vec x_t &\gets \argmax_{\vec x\in\D_t} \UCB_t(\vec x),
   &\text{where }
   \UCB_t(\vec x) &\defeq \max_{\vec\theta\in\E_t} \innerp{\vec\theta}{\vec x}.
 \end{align}
@@ -496,11 +517,11 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
     \State \textbf{Initialize:} $G_1 \gets 0_{d\times d}$,
     $u_1\gets \vec 0_{d}$.
     \For{each round $t = 1,2,\dotsc,n$}
-    \State Receive $\Dset{t} \gets{}$ decision set ${} \subset \Real^d$.
+    \State Receive $\D_t \gets{}$ decision set ${} \subset \Real^d$.
     \State Receive regularized $V_t \gets G_t + H_t$ and perturbed $\tilde{\vec u}_t \gets \vec u_t + \vec h_t$
     \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{V_{t}}\tilde{\vec u}_{t}$
     \State Compute confidence-set bound $\beta_t$ based on Porposition~\ref{prop:calc-beta}.
-    \State Pick action $\vec x_t \gets \argmax_{\vec x\in\Dset{t}}
+    \State Pick action $\vec x_t \gets \argmax_{\vec x\in\D_t}
     \innerp{\tilde{\vec \theta}_t}{\vec x} +
     \beta_t\norm{\inv{V_t}}{\vec x}$.
     %\Comment{Choose action.}
@@ -516,7 +537,7 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
 We now collect our assumptions about the environment and inputs to the
 algorithm; we will indicate where each of these is used.
 \begin{assumptions*}[\Cref{alg:linucb}]{%
-    For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\Dset{t}$:}
+    For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\D_t$:}
   \assume[ass:x-bound] $\norm{}{\vec x} \le L$.
   \assume[ass:meanreward-bound]
   $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$.
@@ -591,7 +612,7 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
     ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
   probability at least $1-\alpha$ the pseudo-regret
-  $\widehat R_n \defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}}
+  $\widehat R_n \defeq \sum_{t=1}^n \max_{\vec x\in\D_t}
   \innerp{\vec\theta^*}{\vec x - \vec x_t}$ \todo{isn't it
     $\vec x_t^*$?} of \cref{alg:linucb} satisfies
     \begin{align}
@@ -609,7 +630,7 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
     ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  If the optimal
-  actions in every decision set $\Dset{t}$ are separated from the
+  actions in every decision set $\D_t$ are separated from the
   sub-optimal arms by a reward gap of at least $\Delta$, then with
   probability at least $1-\alpha$ the pseudo-regret of
   \cref{alg:linucb} satisfies
@@ -648,7 +669,7 @@ post-processes $G_t$ and $\vec u_t$.
   the history maintains full differential privacy.  This is because
   the chosen action depends not only on the past contexts $c_s$
   ($s < t$, via the differentially private $\vec X_{t-1}$) but also on
-  the current context $c_t$ via the decision set $\Dset{t}$.  Since
+  the current context $c_t$ via the decision set $\D_t$.  Since
   this use of $c_t$ is not differentially private, it is revealed by
   the algorithm's chosen $\vec x_t$ (as discussed in
   \cref{sec:joint-dp}).
@@ -766,14 +787,14 @@ in general, and a gap-dependent pseudo-regret bound of
 \section{Lower Bounds}
 \label{sec:lower_bounds}
 
-In this section, we present lower bounds for two versions of the problem we deal with in this work. The first, and probably the more obvious of the two, deals with the impossibility of obtaining sub-linear regret for the contextual bandit problem under the standard notion of differential privacy (under continual observation). Here, we assume user $t$ provides a context $c_t$ which actually determines the mapping of the arms into feature vectors: $\phi(c_t, a) \in \Real^d$. The sequence of choice thus made by the learner is $a_1,..., a_n \in \Aset{}^n$ which we aim to maintain private. Formally, two sequences $S = \langle (c_1, y_1),..., (c_n,y_n)\rangle$ and $S' = \langle (c'_1, y'_1),..., (c'_n,y'_n)\rangle$ are called neighbors if there exists a single $t$ such that for any $t'\neq t$ we have $(c_{t'},y_{t'}) = (c'_{t'},y'_{t'})$); and an algorithm $A$ is $(\varepsilon,\delta)$-differentially private if for any two neigboring sequences $S$ and $S'$ and any subsets of sequences of actions ${\cal S}\subset \Aset{}^n$ it holds that $\Pr[A(S)\in\mathcal{S}] \leq e^\varepsilon \Pr[A(S')\in \mathcal{S}] +\delta$.
+In this section, we present lower bounds for two versions of the problem we deal with in this work. The first, and probably the more obvious of the two, deals with the impossibility of obtaining sub-linear regret for the contextual bandit problem under the standard notion of differential privacy (under continual observation). Here, we assume user $t$ provides a context $c_t$ which actually determines the mapping of the arms into feature vectors: $\phi(c_t, a) \in \Real^d$. The sequence of choice thus made by the learner is $a_1,..., a_n \in \A^n$ which we aim to maintain private. Formally, two sequences $S = \langle (c_1, y_1),..., (c_n,y_n)\rangle$ and $S' = \langle (c'_1, y'_1),..., (c'_n,y'_n)\rangle$ are called neighbors if there exists a single $t$ such that for any $t'\neq t$ we have $(c_{t'},y_{t'}) = (c'_{t'},y'_{t'})$); and an algorithm $A$ is $(\varepsilon,\delta)$-differentially private if for any two neigboring sequences $S$ and $S'$ and any subsets of sequences of actions ${\cal S}\subset \A^n$ it holds that $\Pr[A(S)\in\mathcal{S}] \leq e^\varepsilon \Pr[A(S')\in \mathcal{S}] +\delta$.
 
 \begin{claim}
 \label{clm:standard_contextual_DP_implies_linear_regret}
 For any $\varepsilon < \ln(2)$ and $\delta < 0.25$, any $(\varepsilon,\delta)$-differentially private algorithm $A$ for the contextual bandit problem must incur pseudo-regret of $\Omega(n)$.
 \end{claim}
 \begin{proof}
-We consider a setting with two arms $\Aset{}=\{a^1,a^2\}$ and two possible contexts: $c^1$ which maps $a^1\mapsto \vec\theta^*$ and $a^2 \mapsto -\vec\theta^*$; and $c^2$ which flips the mapping. Assuming $\|\vec\theta^*\|=1$ it is evident we incur a pseudo-regret of $2$ when pulling arm $a^1$ is under context $c^2$ or pulling arm $a^2$ under $c^1$. Fix a day $t$ and a history of previous inputs and arm pulls $H_{t-1}$. Consider a pair of neighboring sequences that agree on the history $H_{t-1}$ and differ just on day $t$ --- in $S$ the context $c_t =c^1$ whereas in $S'$ it is set as $c_t =c^2$. Denote $\mathcal{S}$ as the subset of action sequences that are fixed on the first $t-1$ days according to $H_{t-1}$, have the $t$-th action be $a^1$ and on days $>t$ may have any action. Thus, applying the guarantee of differential privacy w.r.t to $\mathcal{S}$ we get that $\Pr[a_t = a^1 |~S] = \Pr[A(S)\in \mathcal{S}] \leq e^\varepsilon \Pr[a_t=a^1 |~S'] + \delta$. Consider an adversary that sets the context of day $t$ to be either $c^1$ or $c^2$ uniformly at random and independently of other days. The pseudo-regret incurred on day $t$ is thus: $2\cdot \tfrac 1 2 \left( \Pr[a_t=a^2|~S] + \Pr[a_t=a^1|~S'] \right)  \geq (1- \Pr[a_t=a^1|~S]) + e^{-\varepsilon}(\Pr[a_t=a^1|~S]-\delta) = 1 + (e^{-\varepsilon}-1)\Pr[a_t=a^2|~S] - \delta > 1 - 1\cdot \tfrac 1 2 - \tfrac 1 4 = \tfrac 1 4$. As the above applies to any day $t$,  the algorithm's pseudo-regret is $\geq \tfrac n 4$ against such random adversary.
+We consider a setting with two arms $\A=\{a^1,a^2\}$ and two possible contexts: $c^1$ which maps $a^1\mapsto \vec\theta^*$ and $a^2 \mapsto -\vec\theta^*$; and $c^2$ which flips the mapping. Assuming $\|\vec\theta^*\|=1$ it is evident we incur a pseudo-regret of $2$ when pulling arm $a^1$ is under context $c^2$ or pulling arm $a^2$ under $c^1$. Fix a day $t$ and a history of previous inputs and arm pulls $H_{t-1}$. Consider a pair of neighboring sequences that agree on the history $H_{t-1}$ and differ just on day $t$ --- in $S$ the context $c_t =c^1$ whereas in $S'$ it is set as $c_t =c^2$. Denote $\mathcal{S}$ as the subset of action sequences that are fixed on the first $t-1$ days according to $H_{t-1}$, have the $t$-th action be $a^1$ and on days $>t$ may have any action. Thus, applying the guarantee of differential privacy w.r.t to $\mathcal{S}$ we get that $\Pr[a_t = a^1 |~S] = \Pr[A(S)\in \mathcal{S}] \leq e^\varepsilon \Pr[a_t=a^1 |~S'] + \delta$. Consider an adversary that sets the context of day $t$ to be either $c^1$ or $c^2$ uniformly at random and independently of other days. The pseudo-regret incurred on day $t$ is thus: $2\cdot \tfrac 1 2 \left( \Pr[a_t=a^2|~S] + \Pr[a_t=a^1|~S'] \right)  \geq (1- \Pr[a_t=a^1|~S]) + e^{-\varepsilon}(\Pr[a_t=a^1|~S]-\delta) = 1 + (e^{-\varepsilon}-1)\Pr[a_t=a^2|~S] - \delta > 1 - 1\cdot \tfrac 1 2 - \tfrac 1 4 = \tfrac 1 4$. As the above applies to any day $t$,  the algorithm's pseudo-regret is $\geq \tfrac n 4$ against such random adversary.
 \end{proof}
 
 The second lower bound we show is more challenging. We show that any $\varepsilon$-differentially private algorithm for the classic MAB problem must incur \emph{an additional} pseudo-regret of $\Omega( k\log(n)/\epsilon)$ on top of the standard (non-private) regret bounds.  We consider an instance of the MAB where the leading arm is $a^1$, the rewards are drawn from a distribution over $\{-1,1\}$, and the gap between the means of arm $a^1$ and arm $a\neq a^1$ is $\Delta_a$. Simple calculation shows that for such distributions, the total-variation distance between two distributions whose means are $\mu$ and $\mu-\Delta$ is $\Delta/2$. Fix $\Delta_2, \Delta_3,...,\Delta_k$ as some small constants, and we now argue the following.
@@ -895,7 +916,7 @@ different regularizer at each round.
   Suppose \cref{ass:meanreward-bound,ass:psd-reg} hold (i.e.\
   $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$ and all $H_t \succeq 0$)
   and $\bar\beta_n \ge \max\set{\beta_1,\dotsc,\beta_n,1}$.  If all
-  the confidence sets $\Eset{t}$ contain $\vec\theta^*$ (i.e.,
+  the confidence sets $\E_t$ contain $\vec\theta^*$ (i.e.,
   $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
   \beta_t$), then the pseudo-regret of \cref{alg:linucb} is bounded by
   \begin{align*}
@@ -909,16 +930,16 @@ different regularizer at each round.
   action $\vec x_t$ satisfying
   \begin{align}\label{eq:optimistic-action}
     (\vec x_t,\bar{\vec\theta}_t)
-    &\in \argmax_{(\vec x, \vec\theta) \in\Dset{t}\times\Eset{t}} \innerp{\vec\theta}{\vec x}.
+    &\in \argmax_{(\vec x, \vec\theta) \in\D_t\times\E_t} \innerp{\vec\theta}{\vec x}.
   \end{align}
-  Let $\vec x_t^* \in \argmax_{\vec x\in\Dset{t}}\innerp{\vec\theta^*}{\vec x}$ be an optimal
+  Let $\vec x_t^* \in \argmax_{\vec x\in\D_t}\innerp{\vec\theta^*}{\vec x}$ be an optimal
   action and $r_t = \innerp{\vec\theta^*}{\vec x_t^* - \vec x_t}$ be the immediate
   pseudo-regret suffered for round $t$:
   \begin{align*}
     r_t &= \innerp{\vec\theta^*}{\vec x_t^*} - \innerp{\vec\theta^*}{\vec x_t} \\
         &\le \innerp{\bar{\vec\theta}_t}{\vec x_t} - \innerp{\vec\theta^*}{\vec x_t}
         &\text{from \eqref{eq:optimistic-action} since }
-          (\vec x_t^*,\vec\theta^*) \in \Dset{t}\times\Eset{t} \\
+          (\vec x_t^*,\vec\theta^*) \in \D_t\times\E_t \\
         &= \innerp{\bar{\vec\theta}_t - \vec\theta^*}{\vec x_t} \\
        &= \innerp{V_t^{1/2}(\bar{\vec\theta}_t - \vec\theta^*)}{V_t^{-1/2} \vec x_t}
         &\text{since } V_t \succeq H_t \succeq 0 \\
@@ -929,7 +950,7 @@ different regularizer at each round.
           \norm{\inv{V_t}}{\vec x_t}
         &\text{by the triangle inequality}\\
         &\le 2\beta_t\norm{\inv{V_t}}{\vec x_t}
-        &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \Eset{t} \\
+        &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \E_t \\
         &\le 2\bar\beta_n\norm{\inv{V_t}}{\vec x_t}
         &\text{since } \bar\beta_n \ge \beta_t.
   \end{align*}
@@ -1024,7 +1045,7 @@ different regularizer at each round.
 %   are $(\alpha,n)$-accurate.
 %   \begin{align*}
 %     \widehat R_n
-%     &\defeq \sum_{t=1}^n \max_{\vec x\in\Dset{t}} \innerp{\vec x}{\vec\theta^*}
+%     &\defeq \sum_{t=1}^n \max_{\vec x\in\D_t} \innerp{\vec x}{\vec\theta^*}
 %       \shortintertext{satisfies}
 %       \widehat R_n
 %     &\le 2B\beta_n \sqrt{2n \log\frac{\det V_n}{\det H}}. \\
