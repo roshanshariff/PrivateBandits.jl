@@ -826,12 +826,16 @@ $n/\log(n)\gg k$, we get a pseudo-regret bound of
 \label{sec:dp-gauss}
 
 Our second alternative is to instantiate the tree-based algorithm with
-symmetric Gaussian noise: $\left((d+1)\times (d+1)\right)$-matrices
-which are symmetric and their upper-diagonal entries taken from a
-Gaussian distribution. Recall that each datum has a bounded $L_2$-norm
-of $\tilde L$, hence a change to a single datum may alter the
-Frobenius norm of $\vec M_t$ by $\tilde L^2$. It follows that in order to
-make sure each node in the tree-based algorithm preserves
+symmetric Gaussian noise: sample $\vec Z'\in\Real^{(d+1)\times(d+1)}$
+with each $\vec Z_{i,j}' \sim \Normal(0,\sigma_{\rm noise}^2)$ \iid{}
+and symmetrize to get $\vec Z = (\vec Z'+\transp{\vec Z'})/\sqrt 2$.%
+\footnote{This increases the variance along the diagonal entries
+  beyond the noise magnitude required to preserve privacy, but only by
+  a constant factor of $2$.} %
+Recall that each datum has a bounded $L_2$-norm of $\tilde L$, hence a
+change to a single datum may alter the Frobenius norm of $\vec M_t$ by
+$\tilde L^2$. It follows that in order to make sure each node in the
+tree-based algorithm preserves
 $(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
 \nicefrac{\delta}{2})$-differential privacy,%
 \footnote{We use here the slightly better bounds for the composition
@@ -839,10 +843,38 @@ $(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
   DP~\citep{BunConcentratedDifferentialPrivacy2016}.} %
 the variance in each coordinate must be
 $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 /
-\varepsilon^2$. Thus for each node we sample a matrix $\vec Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $\vec Z$ using $\tfrac 1 {\sqrt 2}(\vec Z+\transp{\vec Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $\vec Z$ are sampled from $\Normal(0,1)$, known concentration results~\cite{TaoRandomMatrixTheory2012} on the top singular value of $\vec Z$ give that $\Pr[ \|\vec Z\| > (4\sqrt{d+1} + 2\ln(\nicefrac {2n} \alpha)) ] < \nicefrac{\alpha}{2n}$. Note however that in each day $t$ the noist $\vec N_t$ is the sum of $\leq m$ such matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma_{\rm noise}^2$. Focusing on the top-left $(d\times d)$-submatrix of $\vec N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
+\varepsilon^2$.  When all entries on $\vec Z$ are sampled from
+$\Normal(0,1)$, known concentration
+results~\cite{TaoRandomMatrixTheory2012} on the top singular value of
+$\vec Z$ give that
+$\Pr[ \|\vec Z\| > (4\sqrt{d+1} + 2\ln(\nicefrac {2n} \alpha)) ] <
+\nicefrac{\alpha}{2n}$. Note however that in each day $t$ the noise
+$\vec N_t$ is the sum of $\leq m$ such matrices, thus the variance of
+each coordinate is $m\sigma_{\rm noise}^2$.  The top-left
+$(d\times d)$-submatrix of $\vec N_t$ has operator norm of at most
+\begin{align*}\textstyle
+\Upsilon \defeq \sigma_{\rm noise}\sqrt{2m}(4\sqrt{d} +
+2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4
+\delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon.
+\end{align*}
 
 However, it is important to note that the result of adding Gaussian
-noise may not preserve the PSD property of the noisy Gram matrix. To that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $\vec H_t$ is given by (1) summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, (2) symmetrizing the result as shown above, and (3) adding $(\upsilon+1)\Eye$; and $\vec h_t$ is given by summing $\leq m$ $d$-dimensional vectors whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $\vec H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{\vec H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
+noise may not preserve the PSD property of the noisy Gram matrix. To
+that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order
+to make sure that we maintain strictly positive eigenvalues throughout
+the execution of the algorithm. The end result is that for each day
+$t$ we have that $\vec H_t$ is given by (i) summing $\leq m$ matrices
+whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$;
+(ii) symmetrizing the result as shown above; and (iii) adding
+$(\upsilon+1)\Eye$; $\vec h_t$ is given by summing $\leq m$
+$d$-dimensional vectors whose entries are sampled iid from
+$\Normal(0,\sigma_{\rm noise}^2)$ (the symmetrization doesn't change
+the distribution of each coordinate). As the least eigenvalue of
+$\vec H_t$ (we can guarantee) is $1$, then
+$\norm{\inv{\vec H_t}}{\vec h_t} \leq \norm{}{\vec h_t}$ which we can
+bound using standard concentration bounds on the $\chi^2$-distribution
+(see Claim~\ref{claim:chi2-tails}). This culminates in the following
+bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Gaussian}
 Fix any $\alpha>0$. Given that for each $t$ the regularizers $\vec H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $(\alpha/2n)$-accurate bounds:
@@ -851,10 +883,10 @@ Fix any $\alpha>0$. Given that for each $t$ the regularizers $\vec H_t, \vec h_t
   \end{align*}
 \end{proposition}
 Note how $\gamma=O(\Upsilon)$ (the only difference is $\sqrt{\log(\tfrac n \alpha)}$).
-As a result we get a bound on the regret of Algorithm~\ref{alg:linucb} using the tree-based algorithm using Gaussian noise.
+As a result we get a bound on the regret of Algorithm~\ref{alg:linucb} with the tree-based algorithm using Gaussian noise.
 \begin{corollary}
 \label{cor:regret_with_Gaussian}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmterized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $(\Upsilon+1)\Eye$, assuming $n/d>\Upsilon$, we get a regret bound of
+Applying Algorithm~\ref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmetrized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $(\Upsilon+1)\Eye$, assuming $n/d>\Upsilon$, we get a regret bound of
 \[O(\sqrt n \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right) )\]
 in general, and a gap-dependent pseudo-regret bound of
 \[O(\tfrac 1 \Delta \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right)^2 )\]
@@ -865,9 +897,28 @@ A comparison of the bounds in Corollaries~\ref{cor:regret_with_Wishart} and~\ref
 \section{Lower Bounds}
 \label{sec:lower_bounds}
 
-In this section, we present lower bounds for two versions of the problem we deal with in this work. The first, and probably the more obvious of the two, deals with the impossibility of obtaining sub-linear regret for the contextual bandit problem with the standard notion of differential privacy (under continual observation). Here, we assume user $t$ provides a context $c_t$ which actually determines the mapping of the arms into feature vectors: $\phi(c_t, a) \in \Real^d$. The sequence of choice thus made by the learner is $a_1,..., a_n \in \A^n$ which we aim to maintain private. The next claim, proof deferred to the supplementary material (Section~\ref{apx_sec:privacy_proofs}) shows that it is impossible without effectively losing any reasonable notion of utility.
-\DeclareRobustCommand{\DPDefinition}
-{Formally, two sequences $S = \langle (c_1, y_1),..., (c_n,y_n)\rangle$ and $S' = \langle (c'_1, y'_1),..., (c'_n,y'_n)\rangle$ are called neighbors if there exists a single $t$ such that for any $t'\neq t$ we have $(c_{t'},y_{t'}) = (c'_{t'},y'_{t'})$); and an algorithm $A$ is $(\varepsilon,\delta)$-differentially private if for any two neigboring sequences $S$ and $S'$ and any subsets of sequences of actions ${\cal S}\subset \A^n$ it holds that $\Pr[A(S)\in\mathcal{S}] \leq e^\varepsilon \Pr[A(S')\in \mathcal{S}] +\delta$.}
+In this section, we present lower bounds for two versions of the
+problem we deal with in this work. The first, and probably the more
+obvious of the two, deals with the impossibility of obtaining
+sub-linear regret for the contextual bandit problem with the standard
+notion of differential privacy (under continual observation). Here, we
+assume user $t$ provides a context $c_t$ which actually determines the
+mapping of the arms into feature vectors: $\phi(c_t, a) \in
+\Real^d$. The sequence of choice thus made by the learner is
+$a_1,..., a_n \in \A^n$ which we aim to keep private. The next
+claim, whose proof is deferred to Section~\ref{apx_sec:privacy_proofs}
+in the supplementary material, shows that this is impossible without
+effectively losing any reasonable notion of utility.
+\DeclareRobustCommand{\DPDefinition} {Formally, two sequences
+  $S = \langle (c_1, y_1),..., (c_n,y_n)\rangle$ and
+  $S' = \langle (c'_1, y'_1),..., (c'_n,y'_n)\rangle$ are called
+  neighbors if there exists a single $t$ such that for any $t'\neq t$
+  we have $(c_{t'},y_{t'}) = (c'_{t'},y'_{t'})$); and an algorithm $A$
+  is $(\varepsilon,\delta)$-differentially private if for any two
+  neigboring sequences $S$ and $S'$ and any subsets of sequences of
+  actions ${\cal S}\subset \A^n$ it holds that
+  $\Pr[A(S)\in\mathcal{S}] \leq e^\varepsilon \Pr[A(S')\in
+  \mathcal{S}] +\delta$.}
 
 \begin{restatable}{claim}{clmLinearRegretDP}
 %\begin{claim}
@@ -889,20 +940,27 @@ We comment that the bound $n^{3/4}$ was chosen arbitrarily, and we only require 
 As an immediate corollary we obtain the following \emph{private} regret bound:
 \begin{corollary}
 \label{cor:LB_private_MAB}
-The expected pseudo-regret of any $\varepsilon$-differentially private algorithm from the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\left( \sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$ we get that the private regret bound of the $\max$ of the two terms, i.e.: $\Omega\left( \tfrac {k\log(n)}{\varepsilon}+\sum\limits_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$.
+The expected pseudo-regret of any $\varepsilon$-differentially private algorithm for the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\paren[\Big]{\sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}}$ we get that the private regret bound is the $\max$ of the two terms, i.e.: $\Omega\paren[\Big]{\tfrac {k\log(n)}{\varepsilon}+\sum{a\neq a^1} \tfrac{\log(n)}{\Delta_a}}$.
 \end{corollary}
 \vspace{-5mm}
 \begin{proof}
-Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum\limits_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.\todo{deal with ugly spacing commands}
+Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.\todo{deal with ugly spacing commands}
 \end{proof}
 \vspace{-5mm}
 \begin{proof}[Proof of Claim~\ref{clm:LB_pulling_any_arms_many_times}]
-Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions associated with the $k$ arms. Denote $E$ as the event that arm $a$ is pulled $<\tfrac{\log(n)}{100\varepsilon\Delta_a} := t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
+Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions associated with the $k$ arms. Denote $E$ as the event that arm $a$ is pulled $<\nicefrac{\log(n)}{100\varepsilon\Delta_a} := t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
 
-To that end, we postulate a different distribution for the rewards of arm $a$ -- a new distribution whose mean is \emph{greater} by $\Delta_a$ than the mean reward of arm $a^1$. The total-variation distance between the given distribution and the postulated distribution is $\Delta_a$. Denote $\bar Q$ as the vector of distributions of arm-rewards (where only $P_a \neq Q_a$). We now argue that should the rewards be drawn from $\bar Q$, then the event $E$ is  very unlikely: $\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \tfrac 2{\Delta_a}n^{-1/4}$. Indeed, the argument is based on a standard Markov-like argument: the expected pseudo-regret of $A$ is at most $n^{3/4}$, yet it is at least $\Pr_{A;~{\rm rewards}\sim \bar Q}[E]\cdot (n-t_a) \Delta_a \geq  n\tfrac{\Delta_a}2\Pr_{A;~{\rm rewards}\sim \bar Q}[E]$, for sufficiently large $n$.
+To that end, we postulate a different distribution for the rewards of
+arm $a$ -- a new distribution whose mean is \emph{greater} by
+$\Delta_a$ than the mean reward of arm $a^1$. The total-variation
+distance between the given distribution and the postulated
+distribution is $\Delta_a$. Denote $\bar Q$ as the vector of
+distributions of arm-rewards (where only $P_a \neq Q_a$). We now argue
+that should the rewards be drawn from $\bar Q$, then the event $E$ is
+very unlikely: $\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq 2n^{-1/4}/\Delta_a$. Indeed, the argument is based on a standard Markov-like argument: the expected pseudo-regret of $A$ is at most $n^{3/4}$, yet it is at least $\Pr_{A;~{\rm rewards}\sim \bar Q}[E]\cdot (n-t_a) \Delta_a \geq  (n\Delta_a/2)\Pr_{A;~{\rm rewards}\sim \bar Q}[E]$, for sufficiently large $n$.
 
 
-We now apply a beautiful result of~\cite{KarwaVadhanFiniteSampleDP2017} (Lemma 6.1), stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or from distribution $Q$ is proportional to $\varepsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that we only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is strictly smaller than $t_a$, and the elegant coupling arguming of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. To better illustrate the argument, consider a version of the algorithm described in~\cite{KarwaVadhanFiniteSampleDP2017}: it generates a collection of $t_a$ \emph{pairs} of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$, and, in expectation, in $(1-\Delta_a)$ fraction of the pairs the right- and the left-samples are identical. This algorithm declares {\tt success} when it never runs out of samples and {\tt failure} otherwise. Due to group privacy, oracle invocations coming from $A$ to this algorithm that either always ask for the left sample or always ask for the right sample should therefore trigger {\tt success} with similar probability, different only up to a factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as {\tt success} is quite unlikely when asked only for right-samples, it is only fairly unlikely when asked only for left-samples.
+We now apply a beautiful result of~\citet[Lemma~6.1]{KarwaVadhanFiniteSampleDP2017}, stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or from distribution $Q$ is proportional to $\varepsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that we only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is strictly smaller than $t_a$, and the elegant coupling argument of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. To better illustrate the argument, consider a version of the algorithm described in~\cite{KarwaVadhanFiniteSampleDP2017}: it generates a collection of $t_a$ \emph{pairs} of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$, and, in expectation, in $(1-\Delta_a)$ fraction of the pairs the right- and the left-samples are identical. This algorithm declares {\tt success} when it never runs out of samples and {\tt failure} otherwise. Due to group privacy, oracle invocations coming from $A$ to this algorithm that either always ask for the left sample or always ask for the right sample should therefore trigger {\tt success} with similar probability, different only up to a factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as {\tt success} is quite unlikely when asked only for right-samples, it is only fairly unlikely when asked only for left-samples.
 
 Formally, we conclude the proof by applying the result
 of~\cite{KarwaVadhanFiniteSampleDP2017} to infer that $\Pr_{A;~{\rm
