@@ -1395,13 +1395,14 @@ As we were unable to prove a lower bound of $\Omega(d^2)$, we resulted into the 
 
 We varied $d \in \{ \}$.
 
-\paragraph{Results.} We measured the pseudo-regret of our algorithm as a function of the dimension. The results of the experiment are plotted in Figure~\ref{fig:regret_dim} (and in log-scale in Figure~\ref{fig:regret_dim_logscale}). 
+\paragraph{Results.} We measured the pseudo-regret of our algorithm as a function of the dimension. The results of the experiment are plotted in Figure~\ref{fig:regret_dim} (and in log-scale in Figure~\ref{fig:regret_dim_logscale}). The results clearly point our to super-linear dependency on $d$. In fact, on our log-scale plot we see a slope of roughly $1.66$, giving rise to the conjecture that the dependency of the pseudo-regret on $d$ in this setting is $\Omega(d^{5/3})$.
+
 \begin{figure}[h]
 \centering
     \begin{subfigure}[h]{0.45\textwidth}
         \includegraphics[scale=0.4]{dim-regret.png}
         \caption{Pseudo-regret as a function of the dimension\label{fig:regret_dim}}
-    \end{subfigure}
+    \end{subfigure}~~~~
     \begin{subfigure}[h]{0.45\textwidth}
         \includegraphics[scale=0.4]{dim-regret-logspace.png}
         \caption{\label{fig:regret_dim_logscale}Pseudo-regret as a function of the dimension}      
