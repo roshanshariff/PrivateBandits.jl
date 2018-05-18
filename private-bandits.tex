@@ -612,6 +612,8 @@ $\vec H_t$ and $\vec h_t$.
   for all rounds $t=1,\dotsc,n$ simultaneously.
 \end{definition}
 
+We now argue that 3 parameters are the key to establishing accurate confidence-set bounds $(\beta_t)_{t=1}^n$.
+
 \begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
   $\gamma$]\label{def:accurate-params}
   The bounds $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
@@ -685,6 +687,7 @@ the proof techniques used and the significance of the results to
   \end{align}
 \end{restatable}
 
+\os{You seem to have a space of 2-4 lines here which you can use to discuss: Assumption 2, interplay between parameters, or the open problem in Section~\ref{sec:regret-discussion}. Your call.}
 
 \section{Linear UCB with Joint Differential Privacy}
 \label{sec:alg-dp}
@@ -892,7 +895,7 @@ in general, and a gap-dependent pseudo-regret bound of
 \[O(\tfrac 1 \Delta \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right)^2 )\]
 \end{corollary}
 
-A comparison of the bounds in Corollaries~\ref{cor:regret_with_Wishart} and~\ref{cor:regret_with_Gaussian} appears in Section~\ref{apx_sec:privacy_proofs} in the supplementary material.
+A comparison of the bounds in Corollaries~\ref{cor:regret_with_Wishart} and~\ref{cor:regret_with_Gaussian} appears in the supplementary material, Section~\ref{apx_sec:privacy_proofs}.
 
 \section{Lower Bounds}
 \label{sec:lower_bounds}
@@ -1154,6 +1157,8 @@ gap-dependent analysis later avoids this, but has other trade-offs.
   \end{align*}
 \end{lemma}
 
+\os{This, where you use Assumption 2 for the first time, would be a terrific place to discuss why is it OK to set $1$ as the bound.}
+
 \begin{proof}
   At every round $t$, \cref{alg:linucb} selects an ``optimistic''
   action $\vec x_t$ satisfying
@@ -1331,7 +1336,7 @@ Cauchy-Schwarz inequality.
 
 \end{proof}
 
-\subsection{Discussion of Regret Bounds}
+\subsection{Regret Bounds Open Problem}
 \label{sec:regret-discussion}
 
 The first conclusion from these regret bounds is that allowing
@@ -1346,10 +1351,9 @@ MAB) is much worse, with $O(d)$ in the minimax case and $O(d^2)$ in
 the gap-dependent case.
 
 It is an interesting open question whether the $O(d^2)$ dependence on
-$d$ is necessary to achieve $O(\log n)$ regret bounds.  Some empirical
-evidence with bandits running on synthetic data with fixed reward gaps
-seem to indicate approximately an $O(d^{5/3})$ dependency, which would
-seem to rule out an $O(d)$ bound, at least.
+$d$ is necessary to achieve $O(\log n)$ gap-dependent regret bounds.  Some empirical
+evidence running on synthetic data with fixed reward gaps
+seem to indicate approximately an $\Omega(d^{5/3})$ dependency, which shows a super-linear dependency on $d$.
 
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
