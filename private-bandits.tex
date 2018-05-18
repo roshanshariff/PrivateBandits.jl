@@ -1167,21 +1167,26 @@ gap-dependent analysis later avoids this, but has other trade-offs.
 \begin{remark}[On the quantity $B$ appearing in
   \cref{ass:meanreward-bound}]%
   \label{remark:meanreward-bound}
-  For the rest of this proof, we assume (as in this lemma) that
-  \cref{ass:meanreward-bound} holds with $B=1$.  Our ultimate regret
-  bounds end up with a factor $B'$, which is $B$ clamped to the
-  $[1, LS]$ interval.  It is easy to see that $B$ is trivially at most
-  $LS$, because $\abs{\innerp{\vec\theta^*}{\vec x_t}}$ is bounded by
-  $\norm{}{\vec\theta^*}\norm{}{\vec x_t}$ using Cauchy-Schwarz.  If
-  $B<1$ then clearly we can take $B=1$ without violating the
-  assumption.  It remains to deal with the situation where $B>1$.
+  For the following proofs, we assume (as in this lemma) that
+  \cref{ass:meanreward-bound} holds with $B=1$.  Eventually, however,
+  our regret bounds end up with a factor $B$; we now explain how.
+  First note that $B$ is trivially at most $LS$ by Cauchy-Schwarz:
+  $\abs{\innerp{\vec\theta^*}{\vec x_t}} \le
+  \norm{}{\vec\theta^*}\norm{}{\vec x_t} \le LS$.  If $B<1$ then
+  clearly we can take $B=1$ without violating the assumption.  It
+  remains to deal with the situation where $B>1$.
 
   In this case, we can pre-process the rewards to the algorithm,
   scaling them down by a factor of $B$.  If we also scale down all the
   actions $\vec x\in\D_t$, then the rest of the assumptions remain
-  unviolated and the regret bound for $B=1$ applies.  However, this
-  bounds the regret in the scaled problem; in the original problem the
-  rewards and hence regret must be scaled up by a factor of $B$.
+  inviolate and the regret bound for $B=1$ applies.  However, this
+  bounds the regret in the scaled problem: in the original problem the
+  rewards and hence regret must be scaled up by a factor of $B$.  Note
+  that by only scaling the $\D_t$, we are not modifying any
+  quantities used in the actual algorithm, just the regret bound; this
+  would not be true if we scaled $\vec\theta^*$ (whose maximum norm
+  appears in the $\beta_t$), which is the other
+  possibility to maintain the linearity of rewards.
 
   Indeed, in the scaled-down problem the regret is somewhat lower than
   the bound because both $L$ and $\sigma$ can be scaled down by $B$
