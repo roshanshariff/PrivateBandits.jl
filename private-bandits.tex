@@ -582,11 +582,17 @@ and algorithm:
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\D_t$:}
   \assume[ass:x-bound] Bounded action set: $\norm{}{\vec x} \le L$.
   \assume[ass:meanreward-bound] Bounded \emph{mean} reward:
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$.
-  \assume[ass:thetastar-bound] Bounded target parameter: $\norm{}{\vec\theta^*} \le S$.
-  \assume[ass:psd-reg] All regularizers are PSD $\vec H_t \succeq 0$.
-  \assume[ass:subgaussian] $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$ where $\eta_t$ is $\sigma^2$-conditionally
-  subgaussian on previous actions and rewards, i.e.:
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ with $1\le B\le LS$.%
+  \footnote{See \cref{remark:meanreward-bound} preceding the proof of
+    \cref{lemma:linucb-regret} in \cref{sec:more-linucb-discussion} of
+    the supplementary material for a discussion of this assumption and
+    how $B$ affects the regret bound.} %
+  \assume[ass:thetastar-bound] Bounded target parameter:
+  $\norm{}{\vec\theta^*} \le S$.  \assume[ass:psd-reg] All
+  regularizers are PSD $\vec H_t \succeq 0$.  \assume[ass:subgaussian]
+  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$ where $\eta_t$ is
+  $\sigma^2$-conditionally subgaussian on previous actions and
+  rewards, i.e.:
   %\begin{align*}
     $\Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
     \le \exp(\lambda^2\sigma^2/2)$, for all $\lambda\in\Real$.
@@ -650,9 +656,7 @@ We now argue that 3 parameters are the key to establishing accurate confidence-s
 We now present bounds on the maximum regret of \cref{alg:linucb}.
 However, due to space constraints, we defer an extensive discussion of
 the proof techniques used and the significance of the results to
-\cref{sec:more-linucb-discussion} in the supplementary material.  The
-constant $\hat{B}$ that appears below is the bound $B$ of
-\cref{ass:meanreward-bound}, clamped to the $[1,LS]$ interval; see \cref{remark:meanreward-bound} in the aforementioned discussion.
+\cref{sec:more-linucb-discussion} in the supplementary material.
 
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
@@ -664,7 +668,7 @@ constant $\hat{B}$ that appears below is the bound $B$ of
     \begin{align}
     \label{eq:regret_general_formula}
     \widehat R_n
-    &\le B' \sqrt{8n}\brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
+    &\le B \sqrt{8n}\brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
       + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \tfrac{nL^2}{d\rho_{\min}}}}}
   \end{align}
@@ -683,7 +687,7 @@ constant $\hat{B}$ that appears below is the bound $B$ of
   \begin{align}
   \label{eq:regret_gap_general_formula}
     \widehat R_n
-    &\le B' \frac{8}{\Delta} \brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
+    &\le B \frac{8}{\Delta} \brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
       + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\tfrac{nL^2}{d\rho_{\min}}}}}^2
   \end{align}
