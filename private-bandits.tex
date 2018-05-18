@@ -246,7 +246,7 @@ information, yet they strongly predict future purchases.
 % aggregated information to choose better in the future, but an
 % adversary analyzing these ad choices must not be able to learn too
 % much about any individual user.
-In this work, we give the upper- and lower-bounds for the
+In this work, we give upper and lower bounds for the
 problem of (joint) \emph{differentially private} contextual linear
 bandits. Differential privacy is the de facto gold-standard of
 privacy-preserving data analysis in both academia and industry,
@@ -384,18 +384,17 @@ would be useful (e.g., updating the regularizer when an initial upper
 bound of a parameter turns out to be wrong). This analysis is given in Section~\ref{sec:LinUCB}. We then plug in two
 particular regularizers into our scheme: one based on additive Wishart
 noise~\citep{SheffetPrivateApproxRegression2015} which always results
-in a PSD, acheiving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
-noise \citep{DworkAnalyzeGauss2014} which doesn't have to result in a PSD, so
-we shift it by $\Upsilon\Eye$ so that w.h.p.\ (over all days in the sequence)
-the shifted eigenvalues of the noise are all positive, and obtain a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.
+in a PSD matrix, achieving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
+noise \citep{DworkAnalyzeGauss2014} shifted by $\Upsilon\Eye$ to make
+it PSD w.h.p.\ over all days, giving a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.
 %We also present empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
-We also give lower bound for the $\varepsilon$-differentially private
+We also give a lower bound for the $\varepsilon$-differentially private
 MAB problem. Whereas all previous work on the private MAB problem uses
-the standard (non-private) bounds, we show that the regret of
-\emph{any} private algorithm must incur \emph{an additional} cost of
+the standard (non-private) bounds, we show that
+\emph{any} private algorithm must incur \emph{an additional} regret of
 $\Omega(k\log(T)/\varepsilon)$. This resembles the lower bound of the
-adversarial setting, however, the proof technique cannot rely on the
+adversarial setting, however the proof technique cannot rely on the
 standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} seeing as the input for the
 problem is stochastic rather than adversarial.  Instead, we apply a
 recent result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
@@ -412,20 +411,26 @@ The MAB dates to the seminal work of Robbins~\cite{robbins1952}, with the UCB ap
 
 
 %\paragraph{Differential Privacy.}
-Differential privacy was first introduced by
-\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion ascerning that the probability of any event changes very little with a change to a single datum. (We omit the formal definition as the JDP was already defined.)
+Differential privacy, first introduced by
+\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, is a
+rigorous mathematical notion of privacy that requires the probability
+of any observable output to change very little when any single datum
+changes.  (We omit the formal definition because we already defined JDP.)
 %A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy.
-Among its many elegant traits is the notion of group privacy: should $k$ datums change then the change to any event is still limited by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
+Among its many elegant traits is the notion of group privacy: should
+$k$ datums change then the change in the probability of any event is
+still limited by (roughly) $k$ times the change when a single datum
+was changed.  A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
 %
 The notion of differential privacy under continual observation was
 first defined by \citet{DworkContinualObservation2010} using the \textbf{tree-based algorithm}~\citep[originally
 appearing in][]{ChanPrivateContinualRelease2010}. This algorithm
-maintains a binary tree whose $n$ leafs correspond to the $n$ entries
+maintains a binary tree whose $n$ leaves correspond to the $n$ entries
 in the input sequence. Each node in the tree maintains a noisy
 (privacy-preserving) count of the sum of the input entries in its
 subtree, thus enabling us to maintain a running count of the sum of
 inputs by combining at most $\log(n)$ noisy counts. This
-algorithm is the key ingredient in a variety of works the deal with
+algorithm is the key ingredient of a variety of works that deal with
 privacy in an online setting, including
 counts~\cite{DworkContinualObservation2010}, online convex
 optimization~\cite{JainDPOnlineLearning2012}, and regret minimization
@@ -439,7 +444,7 @@ setting, however (i)~without maintaining PSD, (ii)~without any
 analysis, only empirical evidence, and (iii)~without presenting lower
 bounds. Further details about acheiving differential privacy via additive noise and the tree-based algorithm appear in Section~\ref{apx_sec:more_background} of the supplementary material.
 %
-The related problem of private linear regression, have also been extensively studied in the offline setting
+The related problem of private linear regression have also been extensively studied in the offline setting
 %In the offline setting, there have been numerous works studying differentially private linear regression
 \citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}.
 % \os{consider omitting:}
@@ -448,27 +453,46 @@ The related problem of private linear regression, have also been extensively stu
 \section{Preliminaries and Notation}
 \label{sec:preliminaries}
 
-We use $\vec{bold}$ character to denote vectors and bold $\vec{CAPITAL}$ letters to denote matrices. Given a $d$-column matrix $\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix $\transp{\vec M}\vec M$. A matrix $\vec M$ is positive-semidefinite (PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that $\transp{\vec  x} \vec M \vec x \geq 0$. We use $\vec M\succeq \vec N$ to denote the fact that $(\vec M-\vec N)$ is PSD. It is known that such $\vec M$ defines a dot-product between vectors and so we define $\|\vec x\|_{\vec M} = \sqrt{\transp{\vec  x} \vec M \vec x}$. The Gaussian distribution $\Normal(\mu,\sigma^2)$ is defined by the density function $(2\pi\sigma^2)^{-0.5}\exp(-\nicefrac{(x-\mu)^2}{2\sigma^2})$. The $L_2$-norm squared of a $d$-dimensional vector whose coordinates are drawn iid from $\Normal(0,1)$ is given by the $\chi^2$-distribution, which is tightly concentrated around $d$. Given two distributions $P$ and $Q$ we denote their \emph{total variation} distances as $d_{\rm TV}(P,Q) = \max_{{\rm event}~E}|\Pr_P[E]-\Pr_Q[E]|$.  %Explicit concentration bounds are given in Section~\ref{}
+We use $\vec{bold}$ character to denote vectors and bold
+$\vec{CAPITAL}$ letters to denote matrices.  Given a $d$-column matrix
+$\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix
+$\transp{\vec M}\vec M$.  A matrix $\vec M$ is positive-semidefinite
+(PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that
+$\transp{\vec x} \vec M \vec x \geq 0$.  We use $\vec M\succeq \vec N$
+to denote the fact that $(\vec M-\vec N)$ is PSD; any such $\vec M$
+defines an inner product between vectors, so we define
+$\norm{M}{x} = \transp{\vec x} \vec M \vec x$.  The
+Gaussian distribution $\Normal(\mu,\sigma^2)$ is defined by the density
+function
+$(2\pi\sigma^2)^{-0.5}\exp(-\nicefrac{(x-\mu)^2}{2\sigma^2})$. The
+$L_2$-norm squared of a $d$-dimensional vector whose coordinates are
+drawn iid from $\Normal(0,1)$ is given by the $\chi^2$-distribution,
+which is tightly concentrated around $d$. Given two distributions $P$
+and $Q$ we denote their \emph{total variation} distances as
+$d_{\rm TV}(P,Q) = \max_{{\rm
+    event}~E}|\Pr_P[E]-\Pr_Q[E]|$.  %Explicit concentration bounds are given in Section~\ref{}
 
-\paragraph{Notation.}\label{sec:notation} Our bound depends on many parameters of the problem, specified below. Additional parameters (bounds) as specified in Assumptions~\ref{ass:x-bound}-\ref{ass:bounded-data} below.
+\paragraph{Notation.}\label{sec:notation} Our bound depends on many
+parameters of the problem, specified below. Additional parameters
+(bounds) are specified in the assumptions stated below.
 \begin{multicols}{2}[]
   \nolinenumbers
-  \begin{description}[style=sameline,leftmargin=5.5em,nosep]
+  \begin{description}[style=sameline,leftmargin=2em,nosep]
   \item[$n$] horizon, i.e. number of rounds
   \item[$s,t$] indices of rounds
   \item[$d$] dimensionality of action space
-  \item[$\D_t\subset\Real^d$] decision set at round $t$
-  \item[$\vec x_t \in \D_t$] action at round $t$ \todo{Is this necessary? It was specified in the problem definition. Can it be merged with 6?}
-  \item[$y_t \in \Real$] reward at round $t$
-  \item[$\vec X_{<t} \in \Real^{(t-1)\times d}$] matrix with $\vec X_{<t,s} = \transp{\vec
+  \item[$\D_t$] $\subset\Real^d$; decision set at round $t$
+  \item[$\vec x_t$] $\in \D_t$; action at round $t$ \todo{Is this necessary? It was specified in the problem definition. Can it be merged with 6?}
+  \item[$y_t$] $\in \Real$; reward at round $t$
+  \item[$\vec\theta^*$] unknown parameter vector in $\Real^d$
+  \item[$\vec X_{<t}$] $(t-1)\times d$ matrix with $\vec X_{<t,s} = \transp{\vec
       x_s}$ for $s<t$
-  \item[$\vec G_t = \XtX{\vec X_{<t}}$] The Gram matrix of the actions
-  \item[$\vec H_t$] The regularizer at day $t$
-  \item[$\vec y_{<t} \in \Real^{t-1}$] vector of rewards up to day $t-1$
-  \item[$\vec u_t = \transp{\vec X_{<t}} \vec y_{<t}$] The action-reward product
-  \item[$\vec h_t$] The perturbation of $\vec u_t$
-  \item[$\vec\theta^* \in \Real^d$] unknown parameter vector
-  \item[$m \defeq \lceil\log_2(n)+1 \rceil$]
+  \item[$\vec G_t$] Gram matrix of the actions: $\XtX{\vec X_{<t}}$
+  \item[$\vec H_t$] regularizer at day $t$
+  \item[$\vec y_{<t}$] vector of rewards up to day $t-1$
+  \item[$\vec u_t$] action-reward product: $\transp{\vec X_{<t}} \vec y_{<t}$
+  \item[$\vec h_t$] perturbation of $\vec u_t$
+  \item[$m$] $\defeq \lceil\log_2(n)+1 \rceil$
   %\item[$\norm{V}{\vec x}$] $\defeq \sqrt{\transp{\vec x} V \vec x}$
 %   \item[$L$] a bound on the norm of all actions (in all rounds)
 %   \item[$B$] a bound on the mean of the rewards: $|\langle \vec x,\vec\theta^*\rangle| \leq B$.
@@ -742,7 +766,7 @@ First, we instantiate the tree-based algorithm with noise from a
 suitably chosen Wishart distribution $\Wishart_{d+1}(\vec V, k)$, which is the
 result of sampling $k$ independent $(d+1)$-dimensional Gaussians from
 $\Normal(\vec 0_{d+1}, \vec V)$ and computing their Gram
-matrix. 
+matrix.
 %Under suitably chosen $\vec V$ and $k$, this noise preserves $(\varepsilon,\delta)$-differential privacy.
 
 \begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]%
@@ -1274,7 +1298,7 @@ seem to rule out an $O(d)$ bound, at least.
 
 Before giving the omitted proofs from the body of the paper, we wish to have a short comparison between the regret bounds we get with the two different techniques to introduce differential privacy. In particular, omitting dependencies on any parameter but $n,d$ and $\varepsilon$, we have that the pseudo-regret bound of the Wishart noise (Corollary~\ref{cor:regret_with_Wishart}) is $\tilde O(\sqrt n(d+\tfrac{\sqrt d}\varepsilon))$; and that pseudo-regret bound of the Gaussian noise (Corollary~\ref{cor:regret_with_Gaussian}) is $\tilde O(\sqrt nd/\varepsilon)$. Before explaining how it came to be that the former has a better dependency on $\varepsilon$ than the latter, we first emphasize that (1) these bounds are only asymptotic (Wishart noise has far worst constants than the constants in the Gaussian bound), and that (2) this is an over simplification, as the many parameters of the problem may affect the regret bounds in favor of the Gaussian noise.
 
-So, how come with Gaussian noise we get a worse dependency on $\varepsilon$ than in the Wishart case? The reason lies in the two factors. First, the degrees of freedom $k$ in the Wishart noise are of the form $k=d+O(\varepsilon^{-2})$, making the top eigenvalue of the added noise $\|\vec H_t\|$ proportional to $O(\sqrt{\log(n)k}+\sqrt d) = O(\sqrt{d\log(n)}+ \tfrac{\sqrt{\log(n)}}{\varepsilon})$, so we get an additive relation rather than a multiplicative relation. In contrast, sampling a Gaussian noise, even though the variance in each coordinate is $O(\log(n)\cdot \varepsilon^{-2})$ and independent of $d$, the bound on the noise in this case is greater by a factor of $\sqrt{d}$, resultsing in the bound $\|\vec H_t\| = O(\sqrt{d\log(n)}/\varepsilon)$. Second, the bound on $\gamma$ is different in the two cases. For Wishart noise, we are able to use the special structure of $\vec H_t$ being the Gram matrix of multivariate Gaussian samples to infer the $\|\vec h_t\|_{\inv{\vec H_t}}$ is basically a projection of a sample from a spherical Gaussian onto a $d$-dimensional space~--- making the bound $\gamma$ \emph{independent} of $mk$ (the degrees of freedom in the Wishart noise) and depends solely on $d$. As a result, $\gamma \ll \rho_{\max}$ in the Wishart noise case, and we have already established that $\rho_{\max}$ has additive dependencies between $\sqrt d$ and $\varepsilon^{-1}$. In contrast, we are unable to leverage on any structure in the Gaussian noise case, making our $\gamma$ bound very similar to $\rho_{\max}$ which is in this case $O(\sqrt d/\varepsilon)$. 
+So, how come with Gaussian noise we get a worse dependency on $\varepsilon$ than in the Wishart case? The reason lies in the two factors. First, the degrees of freedom $k$ in the Wishart noise are of the form $k=d+O(\varepsilon^{-2})$, making the top eigenvalue of the added noise $\|\vec H_t\|$ proportional to $O(\sqrt{\log(n)k}+\sqrt d) = O(\sqrt{d\log(n)}+ \tfrac{\sqrt{\log(n)}}{\varepsilon})$, so we get an additive relation rather than a multiplicative relation. In contrast, sampling a Gaussian noise, even though the variance in each coordinate is $O(\log(n)\cdot \varepsilon^{-2})$ and independent of $d$, the bound on the noise in this case is greater by a factor of $\sqrt{d}$, resultsing in the bound $\|\vec H_t\| = O(\sqrt{d\log(n)}/\varepsilon)$. Second, the bound on $\gamma$ is different in the two cases. For Wishart noise, we are able to use the special structure of $\vec H_t$ being the Gram matrix of multivariate Gaussian samples to infer the $\|\vec h_t\|_{\inv{\vec H_t}}$ is basically a projection of a sample from a spherical Gaussian onto a $d$-dimensional space~--- making the bound $\gamma$ \emph{independent} of $mk$ (the degrees of freedom in the Wishart noise) and depends solely on $d$. As a result, $\gamma \ll \rho_{\max}$ in the Wishart noise case, and we have already established that $\rho_{\max}$ has additive dependencies between $\sqrt d$ and $\varepsilon^{-1}$. In contrast, we are unable to leverage on any structure in the Gaussian noise case, making our $\gamma$ bound very similar to $\rho_{\max}$ which is in this case $O(\sqrt d/\varepsilon)$.
 
 Admittedly, we do not know if this is merely an artifact of our analysis, or rather truly a difference in the bound. It is possible that slightly revising the proof of Theorem~\ref{thm:linucb-regret} could leads to different bounds, which are identical between the two privacy-preserving techniques. To attempt to test this empirically requires ridicolously large $d$ and $1/\varepsilon$, which is far beyond what we could handle.
 
