@@ -369,7 +369,7 @@ In this work, in addition to formulating the definition of JDP under
 continual observation, we also present a framework for implementing
 JDP algorithms for the contextual bandit problem. Not surprisingly,
 our framework combines the tree-based algorithm~\cite{ChanPrivateContinualRelease2010,DworkContinualObservation2010}  with the linear
-upper-confidence bound (LinUCB) algorithm\todo{Cite LinUCB}.  However, for modularity,
+upper-confidence bound (LinUCB) algorithm~\cite{DaniStochasticLinearOptimization2008}.  However, for modularity,
 we choose to analyze a family of linear UCB algorithms where in each
 day one uses a different regularizer, under the premise that all
 regularizers' singular values are bounded. Moreover, we repeat our analysis twice. Once in a general framework,
@@ -406,10 +406,13 @@ $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
 \subsection{Related Work}
 \label{subsec:related_work}
 
-\paragraph{MAB and the Contextual Bandit Problem.} \todo[inline]{Complete this section.}
+%\paragraph{MAB and the Contextual Bandit Problem.} 
+The MAB dates to the seminal work of Robbins~\cite{robbins1952}, with the UCB approach developed in a series of works~\cite{BanditBook85,Agrawal95} culminating in~\cite{Auer2002}.  Stochastic linear bandits were formally first introduced in~\cite{Abe2003}, and~\cite{Auer2003UCB} was the first paper to consider UCB-style algorithms. An algorithm that is based on a confidence ellipsoid is described in~\cite{DaniStochasticLinearOptimization2008}, with a variant based on ridge regression given in~\cite{ChuLRS11}, or explore-then-commit variant in~\cite{RusmevichientongT10}, and a variant related to a sparse setting appears in~\cite{Abbasi-YadkoriPS12}. \cite{AbbasiYadkoriImprovedAlgorithmsLinear2011} gives an instance dependent bound for linear bandits, which we convert to the contextual setting.
+%\todo[inline]{Complete this section.}
 
 
-\paragraph{Differential Privacy.} Differential privacy was first introduced by
+%\paragraph{Differential Privacy.} 
+Differential privacy was first introduced by
 \citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion ascerning that the probability of any event changes very little with a change to a single datum. (We omit the formal definition as the JDP was already defined.) 
 %A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. 
 Among its many elegant traits is the notion of group privacy: should $k$ datums change then the change to any event is still limited by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
@@ -439,8 +442,8 @@ bounds. Further details about acheiving differential privacy via additive noise 
 The related problem, of private linear regression, have also been extensively studied in the offline setting
 %In the offline setting, there have been numerous works studying differentially private linear regression
 \citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}. 
-\os{consider omitting:}
-In this work we rely on two techniques that maintain a private version of the second-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkAnalyzeGauss2014} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
+% \os{consider omitting:}
+% In this work we rely on two techniques that maintain a private version of the second-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkAnalyzeGauss2014} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
 \section{Preliminaries and Notation}
 \label{sec:preliminaries}
@@ -461,7 +464,8 @@ We use $\vec{bold}$ character to denote vectors and bold $\vec{CAPITAL}$ letters
       x_s}$ for $s\in[t]$
   \item[$\vec G_t = \transp{\vec X_t}\vec X_t$] The gram-matrix of the actions
   \item[$\vec H_t$] The regularizer at day $t$ 
-  \item[$\vec y_t \in \Real^t$] vector of rewards up to day $t$\os{Can we make this notation slightly different? say, $\vec y_{\leq t}$?}
+  \item[$\vec y_t \in \Real^t$] vector of rewards up to day $t$
+  \os{Can we make this notation slightly different? say, $\vec y_{\leq t}$?}
   \item[$\vec u_t = \transp{\vec X_t} \vec y_t$] The action-reward product 
   \item[$\vec h_t$] The regularizer / perturbation of $\vec u_t$
   \item[$\vec\theta^* \in \Real^d$] unknown parameter vector
@@ -506,10 +510,10 @@ version of the Gram matrix $\vec G_t$.  Whenever the learner chooses an
 action vector $\vec x\in \D_t$, the corresponding reward gives it some information
 about the projection of $\vec\theta^*$ onto $\vec x$.  In other
 words, the estimate $\hat{\vec\theta}$ is probably closer to
-$\vec\theta^*$ along directions of $\Real^d$ where many actions have
+$\vec\theta^*$ along the directions where many actions have
 been taken.  This motivates the use of ellipsoidal confidence sets
-that are smaller in these directions, inversely related to the
-corresponding eigenvalues of $\vec G_t$ (or $\vec V_t$). The ellipsoid
+that are smaller in such directions, inversely 
+corresponding to the eigenvalues of $\vec G_t$ (or $\vec V_t$). The ellipsoid
 is uniformly scaled by $\beta_t$ to achieve the desired confidence
 level, as prescribed by \cref{prop:calc-beta}.
 \begin{align}\label{eq:def-ellip}
@@ -526,7 +530,7 @@ $\tilde{\vec u}_t \defeq \vec u_t + \vec h_t$.  The estimate
 $\hat{\vec\theta}_t$ is replaced by
 $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
 
-\begin{algorithm}
+\begin{algorithm}[h]
   \caption{Linear UCB with Changing Perturbations}\label{alg:linucb}
   \begin{algorithmic}
     \State \textbf{Initialize:} $\vec G_1 \gets \vec 0_{d\times d}$,
@@ -557,15 +561,13 @@ and algorithm:
   \assume[ass:meanreward-bound] Bounded \emph{mean} reward:
   $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$.
   \assume[ass:thetastar-bound] Bounded target parameter: $\norm{}{\vec\theta^*} \le S$.
-  \assume[ass:linear-reward]
-  $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$ \todo{Is it necesary? Already defined in the problem formulation. Merge with 6 perhaps?}
-  \assume[ass:psd-reg] All regularizers are PSD $H_t \succeq 0$.
-  \assume[ass:subgaussian] $\eta_t$ is $\sigma^2$-conditionally
-  subgaussian one previous actions and rewards, i.e.:
-  \begin{align*}
-    \Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
-    &\le \exp(\lambda^2\sigma^2/2), &\text{for all } \lambda\in\Real.
-  \end{align*}
+  \assume[ass:psd-reg] All regularizers are PSD $\vec H_t \succeq 0$.
+  \assume[ass:subgaussian] $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$ where $\eta_t$ is $\sigma^2$-conditionally
+  subgaussian on previous actions and rewards, i.e.:
+  %\begin{align*}
+    $\Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
+    \le \exp(\lambda^2\sigma^2/2)$, for all $\lambda\in\Real$.
+  %\end{align*}
 \end{assumptions*}
 \cref{ass:x-bound,ass:meanreward-bound} are not needed for the
 correctness of the algorithm (i.e.\ its confidence sets), only for the
@@ -577,7 +579,7 @@ The algorithm relies upon the confidence ellipsoids to be accurate but
 nevertheless tightly concentrated around the unknown $\vec\theta^*$.
 In other words, the $\beta_t$ should be as small as possible while
 accounting for the noise $\eta_t$ and the perturbations caused by
-$H_t$ and $\vec h_t$.
+$\vec H_t$ and $\vec h_t$.
 
 \begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
   A sequence $(\beta_t)_{t=1}^n$ is $(\alpha, n)$-\emph{accurate} for
@@ -601,7 +603,7 @@ $H_t$ and $\vec h_t$.
 \begin{restatable}[Calculating $\beta_t$]{proposition}{CalcBeta}%
   \label{prop:calc-beta}
   Suppose
-  \cref{ass:thetastar-bound,ass:linear-reward,ass:psd-reg,ass:subgaussian}
+  \cref{ass:thetastar-bound,ass:psd-reg,ass:subgaussian}
   hold and let $\rho_{\min}$, $\rho_{\max}$, and $\gamma$ be
   $(\alpha/2n)$-accurate for some $\alpha\in(0,1)$ and horizon $n$.
   Then $(\beta_t)_{t=1}^n$ is $(\alpha,n)$-accurate where
@@ -623,7 +625,7 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
-    ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
+    ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  Then with
   probability at least $1-\alpha$ the pseudo-regret of
   \cref{alg:linucb} is bounded by
@@ -640,7 +642,7 @@ Having established that the bounds on the confidence sets $\beta_t$ require only
   \Cref{alg:linucb}]{theorem}{ThmLinUCBGapRegret}%
   \label{thm:linucb-gap-regret}
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
-    ass:linear-reward,ass:psd-reg,ass:subgaussian} hold and the
+    ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  If the optimal
   actions in every decision set $\D_t$ are separated from the
   sub-optimal arms by a reward gap of at least $\Delta$, then with
@@ -686,13 +688,12 @@ post-processes $\vec G_t$ and $\vec u_t$.
   chosen $\vec x_t$.
 \end{remark}
 
-To make the following exposition simpler, define the matrices
-$\vec A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
+Rather than applying the tree-based algorithm twice, once for $\vec G_t$ and once for $\vec u_t$, we aggregate both into a single matrix an apply the tree-based algorithm to this $(d+1)\times(d+1)$-matrix. Denote $\vec A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
 \Real^{n\times(d+1)}$, with $\vec A_t$ holding the top $t-1$ rows of $\vec A$
 (and $\vec A_1 = \vec 0_{1\times(d+1)}$).  Denote $\vec M_t \defeq \XtX{\vec A_t}$
 --- then the top-left $d\times d$ sub-matrix of $\vec M_t$ is the Gram
 matrix $\vec G_t$ and the first $d$ entries of its last column are
-$\vec u_t$.  It therefore suffices to maintain a differentially
+$\vec u_t$. We maintain a differentially
 private approximation of $\vec M_t$. Since \cref{alg:linucb} allows for
 additive perturbations $\vec H_t$ and $\vec h_t$, we can use any privacy
 mechanism that uses additive noise, releasing $\vec M_t + \vec N_t$.  The
@@ -865,13 +866,15 @@ As an immediate corollary we obtain the following \emph{private} regret bound:
 \label{cor:LB_private_MAB}
 The expected pseudo-regret of any $\varepsilon$-differentially private algorithm from the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\left( \sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$ we get that the private regret bound of the $\max$ of the two terms, i.e.: $\Omega\left( \tfrac {k\log(n)}{\varepsilon}+\sum\limits_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}\right)$.
 \end{corollary}
+\vspace{-5mm}
 \begin{proof}
-Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum\limits_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
+Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum\limits_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.\todo{deal with ugly spacing commands}
 \end{proof}
+\vspace{-5mm}
 \begin{proof}[Proof of Claim~\ref{clm:LB_pulling_any_arms_many_times}]
 Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions associated with the $k$ arms. Denote $E$ as the event that arm $a$ is pulled $<\tfrac{\log(n)}{100\varepsilon\Delta_a} := t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
 
-To that end, we postulate a different distribution for the rewards of arm $a$ -- a new distribution whose mean is \emph{greater} by $\Delta_a$ than the mean reward of arm $a^1$. The total-variation distance between the given distribution and the postulated distribution is $\Delta_a$. Denote $\bar Q$ as the vector of distributions of arm-rewards (where only $P_a \neq Q_a$). We now argue that should the rewards be drawn from $\bar Q$, then the event $E$ is  very unlikely: $\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \tfrac 2{\Delta_a}n^{-1/4}$. Indeed, the argument is based on a standard Markov-like argument: the expected pseudo-regret of $A$ is $<n^{3/4}$, yet it is $\geq \Pr_{A;~{\rm rewards}\sim \bar Q}[E]\cdot (n-t_a) \Delta_a \geq n\tfrac{\Delta_a}2\Pr_{A;~{\rm rewards}\sim \bar Q}[E]$, for sufficiently large $n$.
+To that end, we postulate a different distribution for the rewards of arm $a$ -- a new distribution whose mean is \emph{greater} by $\Delta_a$ than the mean reward of arm $a^1$. The total-variation distance between the given distribution and the postulated distribution is $\Delta_a$. Denote $\bar Q$ as the vector of distributions of arm-rewards (where only $P_a \neq Q_a$). We now argue that should the rewards be drawn from $\bar Q$, then the event $E$ is  very unlikely: $\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \tfrac 2{\Delta_a}n^{-1/4}$. Indeed, the argument is based on a standard Markov-like argument: the expected pseudo-regret of $A$ is at most $n^{3/4}$, yet it is at least $\Pr_{A;~{\rm rewards}\sim \bar Q}[E]\cdot (n-t_a) \Delta_a \geq  n\tfrac{\Delta_a}2\Pr_{A;~{\rm rewards}\sim \bar Q}[E]$, for sufficiently large $n$.
 
 
 We now apply a beautiful result of~\cite{KarwaVadhanFiniteSampleDP2017} (Lemma 6.1), stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or from distribution $Q$ is proportional to $\varepsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that we only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is strictly smaller than $t_a$, and the elegant coupling arguming of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. To better illustrate the argument, consider a version of the algorithm described in~\cite{KarwaVadhanFiniteSampleDP2017}: it generates a collection of $t_a$ \emph{pairs} of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$, and, in expectation, in $(1-\Delta_a)$ fraction of the pairs the right- and the left-samples are identical. This algorithm declares {\tt success} when it never runs out of samples and {\tt failure} otherwise. Due to group privacy, oracle invocations coming from $A$ to this algorithm that either always ask for the left sample or always ask for the right sample should therefore trigger {\tt success} with similar probability, different only up to a factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as {\tt success} is quite unlikely when asked only for right-samples, it is only fairly unlikely when asked only for left-samples.
@@ -879,15 +882,15 @@ We now apply a beautiful result of~\cite{KarwaVadhanFiniteSampleDP2017} (Lemma 6
 Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFiniteSampleDP2017} to infer that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\varepsilon\Delta_a t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot \tfrac 2{\Delta_a}n^{-1/4} = n^{-0.19}\tfrac 2{\Delta_a} \leq \nicefrac 1 2$ for sufficiently large $n$s, proving the required.
 \end{proof}
 
-\section{Conclusions and Future Work}
-\label{sec:conclusions}
+% \section{Conclusions and Future Work}
+% \label{sec:conclusions}
 
-\subsection{Future Work}
-\label{sec:future-work}
+% \subsection{Future Work}
+% \label{sec:future-work}
 
-\todo[inline]{Consider non-contextual bandits; only the rewards are
-  private.  Does this help with the counter-example against optimism
-  in Tor's paper?}
+% \todo[inline]{Consider non-contextual bandits; only the rewards are
+%   private.  Does this help with the counter-example against optimism
+%   in Tor's paper?}
 
 
 \bibliographystyle{plainnat}
@@ -925,11 +928,11 @@ In this work, we repeatedly apply the following facts about PSD matrices, the Ga
 
 \begin{claim}[{\citealp[Theorem~7.8]{ZhangMatrixTheory2011}}]%
   \label{claim:psd-matrix-props}%
-  If $A \succeq B \succeq 0$, then
+  If $\vec A \succeq \vec B \succeq 0$, then
   \begin{enumerate}[nolistsep]
-  \item $\rank(A) \ge \rank(B)$
-  \item $\det A \ge \det B$
-  \item $\inv{B} \succeq \inv{A}$ if $A$ and $B$ are nonsingular.
+  \item $\rank(\vec A) \ge \rank(\vec B)$
+  \item $\det \vec A \ge \det \vec B$
+  \item $\inv{\vec B} \succeq \inv{\vec A}$ if $\vec A$ and $\vec B$ are nonsingular.
   \end{enumerate}
 \end{claim}
 
@@ -938,29 +941,30 @@ In this work, we repeatedly apply the following facts about PSD matrices, the Ga
   \label{claim:chi2-tails}
   If $U\sim\chi^2(d)$ and $\alpha\in(0,1)$,
   \begin{align*}
-    \Prob[\bigg]{U \ge d + 2\sqrt{d\ln\frac{1}{\alpha}} + 2\ln\frac{1}{\alpha}} &\le \alpha,
-    & \Prob[\bigg]{U \le d - 2\sqrt{d\ln\frac{1}{\alpha}}} &\le \alpha.
+    \Prob[\bigg]{U \ge d + 2\sqrt{d\ln\tfrac{1}{\alpha}} + 2\ln\tfrac{1}{\alpha}} &\le \alpha,
+    & \Prob[\bigg]{U \le d - 2\sqrt{d\ln\tfrac{1}{\alpha}}} &\le \alpha.
   \end{align*}
 \end{claim}
 
 \begin{claim}[{\citealp[Adaptation
     of][Corollary~5.35]{VershyninRandomMatrices2010}}]%
   \label{claim:gaussian-matrix-tails}
-  Let $A$ be an $n\times d$ matrix whose entries are independent
+  Let $\vec A$ be an $n\times d$ matrix whose entries are independent
   standard normal variables.  Then for every $\alpha\in(0,1)$, with
   probability at least $1-\alpha$ it holds that
   \begin{align*}
-    \sigma_{\min}(A), \sigma_{\max}(A) &\in \sqrt{n} \pm (\sqrt{d} + \sqrt{2\ln(2/\alpha)})
+    \sigma_{\min}(\vec A), \sigma_{\max}(\vec A) &\in \sqrt{n} \pm (\sqrt{d} + \sqrt{2\ln(2/\alpha)})
   \end{align*}
+  with $\sigma_{\min}(\vec A)$ and $\sigma_{\max}(\vec A)$ denoting the smallest- and largest signular values of $\vec A$ resp.
 \end{claim}
 
 \begin{claim}[{\citealp[Lemma~A.3]{SheffetPrivateApproxRegression2015}}]%
   \label{claim:wishart-tails}
-  Fix $\alpha\in(0,1/e)$ and let $W\sim\Wishart_d(V, k)$ with $\sqrt{m}
-  > \sqrt{d} + \sqrt{2\ln(2/\alpha)}$.  Then with probability at least
+  Fix $\alpha\in(0,1/e)$ and let $\vec W\sim\Wishart_d(\vec V, k)$ with $\sqrt{m}
+  > \sqrt{d} + \sqrt{2\ln(2/\alpha)}$.  Then, denoting the $j$-t largest eigenvalue of $\vec W$ as $\sigma_j(\vec W)$, with probability at least
   $1-\alpha$ it holds that for every $j = 1,2,\dotsc,d$:
   \begin{align*}
-    \sigma_j(W) &\in \paren*{\sqrt{m} \pm \paren[\Big]{\sqrt{d} + \sqrt{2\ln(2/\alpha)}}}^2 \sigma_j(V).
+    \sigma_j(\vec W) &\in \paren*{\sqrt{m} \pm \paren[\Big]{\sqrt{d} + \sqrt{2\ln(2/\alpha)}}}^2 \sigma_j(\vec V).
   \end{align*}
 \end{claim}
 
