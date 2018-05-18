@@ -261,7 +261,7 @@ regret.  We therefore adopt the more relaxed notion of \emph{joint
 intuitively, allows us to present the $t$-th user with products
 corresponding to her preferences, without revealing (much) about those
 preferences to all users at times $t'>t$.\footnote{The guarantee of
-  differential privacy under continuous observation assures that 
+  differential privacy under continuous observation assures that
   even if all later user collude in an effort to learn user $t$'s
   context, they still have very limited advantage over a random
   guess.}
@@ -379,7 +379,7 @@ day there's a significant gap of at least $\Delta$ between the best arm and any 
 arms, obtaining a regret upper bound of $\mathrm{polylog}(n)/\Delta$.
 % \footnote{The analysis carries through to $k-1$ gaps between the $i$th
 % arm and the leading one, yet its result is too cumbersome so we omit
-% this analysis.} 
+% this analysis.}
 Our leading application of course is privacy, though
 one could postulate other reasons why such a change in regularizers
 would be useful (e.g., updating the regularizer when an initial upper
@@ -398,7 +398,7 @@ $\Omega(k\log(n)/\varepsilon)$. While the result resembles the lower bound in th
 adversarial setting, the proof technique cannot rely on standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} since the input for the
 problem is stochastic rather than adversarial.  Instead, we rely on a recent coupling argument given in~\cite{KarwaVadhanFiniteSampleDP2017} to prove any private algorithm must substantially explore suboptimal arms.
 
-\paragraph{Future Directions.} The linear-UCB algorithm we adapt in this work is a canonical approach to the linear MAB problem, also referred to as ``optimism in the face of uncertainty.'' However, a recent work~\cite{LattimoreS17} shows that in certain situations it is best to adjust to the actions in the decision set in a very particular way, that utilizes a complicated optimization problem. We pose here the question of devising a private version of the algorithm in~\cite{LattimoreS17} which interpolates between UCB and fine-tuning to the specific action set. 
+\paragraph{Future Directions.} The linear-UCB algorithm we adapt in this work is a canonical approach to the linear MAB problem, also referred to as ``optimism in the face of uncertainty.'' However, a recent work~\cite{LattimoreS17} shows that in certain situations it is best to adjust to the actions in the decision set in a very particular way, that utilizes a complicated optimization problem. We pose here the question of devising a private version of the algorithm in~\cite{LattimoreS17} which interpolates between UCB and fine-tuning to the specific action set.
 \vspace{-0.5mm}
 \subsection{Related Work}
 \label{subsec:related_work}
@@ -448,7 +448,7 @@ The related problem of private linear regression have also been extensively stud
 \label{sec:preliminaries}
 
 We use $\vec{bold}$ character to denote vectors and bold
-$\vec{CAPITAL}$ letters to denote matrices. 
+$\vec{CAPITAL}$ letters to denote matrices.
 Given a $d$-column matrix
 $\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix
 $\transp{\vec M}\vec M$.  A matrix $\vec M$ is positive-semidefinite
@@ -608,7 +608,7 @@ and algorithm:
 % important to note that of these, only \cref{ass:x-bound} is needed for
 % differential privacy (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
 
-To fully describe Algorithm~\ref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accuracte~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain. 
+To fully describe Algorithm~\ref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accuracte~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain.
 In other words, the $\beta_t$ should be as small as possible subject to being accurate.
 
 \begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
@@ -1389,13 +1389,9 @@ the gap-dependent case.
 
 It is an interesting open question whether the $O(d^2)$ dependence on
 $d$ is necessary to achieve $O(\log n)$ gap-dependent regret bounds.
-As we were unable to prove a lower bound of $\Omega(d^2)$, we resulted into the following experiment, aimed at empirically checking the performance of LinUCB on such a $\Delta$-dap instance.
-
-\paragraph{Setting.} For a given $d$ we have set $\vec\theta^*$ and the decision set $\D_t$... so that $\Delta = $... The regularizers we use are... so that $\beta_t=$. The noise in the reward is drawn from... We set the horizon $n = $...  
-
-We varied $d \in \{ \}$.
-
-\paragraph{Results.} We measured the pseudo-regret of our algorithm as a function of the dimension. The results of the experiment are plotted in Figure~\ref{fig:regret_dim} (and in log-scale in Figure~\ref{fig:regret_dim_logscale}). The results clearly point our to super-linear dependency on $d$. In fact, on our log-scale plot we see a slope of roughly $1.66$, giving rise to the conjecture that the dependency of the pseudo-regret on $d$ in this setting is $\Omega(d^{5/3})$.
+As we were unable to prove a lower bound of $\Omega(d^2)$, we resorted
+to the following experiment, aimed at empirically checking the
+performance of the (non-private) LinUCB on such a $\Delta$-gap instance.
 
 \begin{figure}[h]
 \centering
@@ -1405,9 +1401,29 @@ We varied $d \in \{ \}$.
     \end{subfigure}~~~~
     \begin{subfigure}[h]{0.45\textwidth}
         \includegraphics[scale=0.4]{dim-regret-logspace.png}
-        \caption{\label{fig:regret_dim_logscale}Pseudo-regret as a function of the dimension}      
+        \caption{\label{fig:regret_dim_logscale}Pseudo-regret as a function of the dimension}
     \end{subfigure}
 \end{figure}
+
+
+\paragraph{Setting.} For each $d$ we use decision sets $\D_t$ of size
+$d^2$, with an optimal arm having reward 0.75 and suboptimal actions
+having rewards in $[-1, 0.25]$, so that $\Delta = 0.5$.  All the
+actions are unit norm, lying on the hyper-sphere: the optimal arm is
+distributed uniformly on the intersection of the sphere with the
+0.75-reward hyperplane, and the suboptimal arms uniformly on the
+intersection with the $<0.25$ reward half-space.  We use the same
+regularizer $\rho\Eye$ on each round, with
+$\rho=0.1=\rho_{\min},\rho_{\max}$ and $\gamma=0$.  The number of
+rounds is $d^2$.  The noise in the rewards is drawn from the standard
+gaussian $\Normal(0,1)$.  The error bars are the result of running
+each experiment 160 times, and represent the range of $\pm 1$ standard
+error in the mean.
+
+We varied $d$ in the range $[10, 100]$, linearly spaced for the first
+graph and logarithmically spaced for the second graph.
+
+\paragraph{Results.} We measured the pseudo-regret of our algorithm as a function of the dimension. The results of the experiment are plotted in Figure~\ref{fig:regret_dim} (and in log-scale in Figure~\ref{fig:regret_dim_logscale}). The results clearly point our to super-linear dependency on $d$. In fact, on our log-scale plot we see a slope of roughly $1.66$, giving rise to the conjecture that the dependency of the pseudo-regret on $d$ in this setting is $\Omega(d^{5/3})$.
 
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
