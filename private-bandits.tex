@@ -260,8 +260,7 @@ regret.  We therefore adopt the more relaxed notion of \emph{joint
 intuitively, allows us to present the $t$-th user with products
 corresponding to her preferences, without revealing (much) about those
 preferences to all users at times $t'>t$.\footnote{The guarantee of
-  differential privacy under continuous observation assures that the
-  entire sequence of actions and rewards preserve privacy.  Hence,
+  differential privacy under continuous observation assures that 
   even if all later user collude in an effort to learn user $t$'s
   context, they still have very limited advantage over a random
   guess.}
@@ -370,18 +369,20 @@ continual observation, we also present a framework for implementing
 JDP algorithms for the contextual bandit problem. Not surprisingly,
 our framework combines the tree-based algorithm~\cite{ChanPrivateContinualRelease2010,DworkContinualObservation2010}  with the linear
 upper-confidence bound (LinUCB) algorithm~\cite{DaniStochasticLinearOptimization2008}.  However, for modularity,
-we choose to analyze a family of linear UCB algorithms where in each
+in Section~\ref{sec:LinUCB} we first analyze a family of linear UCB algorithms where in each
 day one uses a different regularizer, under the premise that all
 regularizers' singular values are bounded. Moreover, we repeat our analysis twice. Once in a general framework,
 obtaining an upper bound on the regret which is proportional to
 $\tilde O(\sqrt n)$; and once in an instance dependent setting, where in each
-day there's a significant gap of at least $\Delta$ between the best arm of each round and any other
-arms, obtaining a regret upper bound of $\mathrm{polylog}(n)/\Delta$.\footnote{The analysis carries through to $k-1$ gaps between the $i$th
-arm and the leading one, yet its result is too cumbersome so we omit
-this analysis.} Our leading application of course is privacy, though
+day there's a significant gap of at least $\Delta$ between the best arm and any other
+arms, obtaining a regret upper bound of $\mathrm{polylog}(n)/\Delta$.
+% \footnote{The analysis carries through to $k-1$ gaps between the $i$th
+% arm and the leading one, yet its result is too cumbersome so we omit
+% this analysis.} 
+Our leading application of course is privacy, though
 one could postulate other reasons why such a change in regularizers
 would be useful (e.g., updating the regularizer when an initial upper
-bound of a parameter turns out to be wrong). This analysis is given in Section~\ref{sec:LinUCB}. We then plug in two
+bound of a parameter turns out to be wrong). We then plug-in two
 particular regularizers into our scheme: one based on additive Wishart
 noise~\citep{SheffetPrivateApproxRegression2015} which always results
 in a PSD matrix, achieving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
@@ -389,22 +390,17 @@ noise \citep{DworkAnalyzeGauss2014} shifted by $\Upsilon\Eye$ to make
 it PSD w.h.p.\ over all days, giving a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.
 %We also present empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
-We also give a lower bound for the $\varepsilon$-differentially private
-MAB problem. Whereas all previous work on the private MAB problem uses
-the standard (non-private) bounds, we show that
+In Section~\ref{sec:lower_bounds} we also give a lower bound for the $\varepsilon$-differentially private
+MAB problem. Whereas all previous work on the private MAB problem uses standard (non-private) bounds, we show that
 \emph{any} private algorithm must incur \emph{an additional} regret of
-$\Omega(k\log(T)/\varepsilon)$. This resembles the lower bound of the
-adversarial setting, however the proof technique cannot rely on the
-standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} seeing as the input for the
-problem is stochastic rather than adversarial.  Instead, we apply a
-recent result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
-that the effective group-privacy between two possible inputs of $n$
-samples drawn iid from distributions $P$ and $Q$ respectively is about
-$n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
+$\Omega(k\log(n)/\varepsilon)$. While the result resembles the lower bound in the
+adversarial setting, the proof technique cannot rely on standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} since the input for the
+problem is stochastic rather than adversarial.  Instead, we rely on a recent coupling argument given in~\cite{KarwaVadhanFiniteSampleDP2017} to prove any private algorithm must substantially explore suboptimal arms.
 
+\paragraph{Future Directions.} The linear-UCB algorithm we adapt in this work is a canonical approach to the linear MAB problem, also referred to as ``optimism in the face of uncertainty.'' However, a recent work~\cite{LattimoreS17} shows that in certain situations it is best to adjust to the actions in the decision set in a very particular way, that utilizes a complicated optimization problem. We pose here the question of devising a private version of the algorithm in~\cite{LattimoreS17} which interpolates between UCB and fine-tuning to the specific action set. 
+\vspace{-0.5mm}
 \subsection{Related Work}
 \label{subsec:related_work}
-
 %\paragraph{MAB and the Contextual Bandit Problem.}
 The MAB dates to the seminal work of Robbins~\cite{robbins1952}, with the UCB approach developed in a series of works~\cite{BanditBook85,Agrawal95} culminating in~\cite{Auer2002}.  Stochastic linear bandits were formally first introduced in~\cite{Abe2003}, and~\cite{Auer2003UCB} was the first paper to consider UCB-style algorithms. An algorithm that is based on a confidence ellipsoid is described in~\cite{DaniStochasticLinearOptimization2008}, with a variant based on ridge regression given in~\cite{ChuLRS11}, or explore-then-commit variant in~\cite{RusmevichientongT10}, and a variant related to a sparse setting appears in~\cite{Abbasi-YadkoriPS12}. \cite{AbbasiYadkoriImprovedAlgorithmsLinear2011} gives an instance dependent bound for linear bandits, which we convert to the contextual setting.
 %\todo[inline]{Complete this section.}
@@ -445,16 +441,14 @@ analysis, only empirical evidence, and (iii)~without presenting lower
 bounds. Further details about acheiving differential privacy via additive noise and the tree-based algorithm appear in Section~\ref{apx_sec:more_background} of the supplementary material.
 %
 The related problem of private linear regression have also been extensively studied in the offline setting
-%In the offline setting, there have been numerous works studying differentially private linear regression
 \citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}.
-% \os{consider omitting:}
-% In this work we rely on two techniques that maintain a private version of the second-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkAnalyzeGauss2014} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
 \section{Preliminaries and Notation}
 \label{sec:preliminaries}
 
 We use $\vec{bold}$ character to denote vectors and bold
-$\vec{CAPITAL}$ letters to denote matrices.  Given a $d$-column matrix
+$\vec{CAPITAL}$ letters to denote matrices. 
+Given a $d$-column matrix
 $\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix
 $\transp{\vec M}\vec M$.  A matrix $\vec M$ is positive-semidefinite
 (PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that
@@ -475,6 +469,7 @@ $d_{\rm TV}(P,Q) = \max_{{\rm
 \paragraph{Notation.}\label{sec:notation} Our bound depends on many
 parameters of the problem, specified below. Additional parameters
 (bounds) are specified in the assumptions stated below.
+\setlength{\multicolsep}{4.0pt plus 2.0pt minus 1.5pt}
 \begin{multicols}{2}[]
   \nolinenumbers
   \begin{description}[style=sameline,leftmargin=2em,nosep]
@@ -501,7 +496,6 @@ parameters of the problem, specified below. Additional parameters
   \end{description}
   \linenumbers
 \end{multicols}
-
 \section{Linear UCB with Changing Regularizers}
 \label{sec:LinUCB}
 
@@ -582,11 +576,10 @@ and algorithm:
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\D_t$:}
   \assume[ass:x-bound] Bounded action set: $\norm{}{\vec x} \le L$.
   \assume[ass:meanreward-bound] Bounded \emph{mean} reward:
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ with $1\le B\le LS$.%
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ with $B\ge 1$.%
   \footnote{See \cref{remark:meanreward-bound} preceding the proof of
     \cref{lemma:linucb-regret} in \cref{sec:more-linucb-discussion} of
-    the supplementary material for a discussion of this assumption and
-    how $B$ affects the regret bound.} %
+    the supplementary material for a discussion as to bounding $B$ by $1$ from below.} %
   \assume[ass:thetastar-bound] Bounded target parameter:
   $\norm{}{\vec\theta^*} \le S$.  \assume[ass:psd-reg] All
   regularizers are PSD $\vec H_t \succeq 0$.  \assume[ass:subgaussian]
@@ -597,18 +590,25 @@ and algorithm:
     $\Ex{\exp(\lambda\eta_t) \given \vec x_1, y_1, \dotsc, \vec x_{t-1}, y_{t-1}, \vec x_t}
     \le \exp(\lambda^2\sigma^2/2)$, for all $\lambda\in\Real$.
   %\end{align*}
+  \assume[ass:bounded-data]
+  Strongest bound on both the action and the reward:
+  $\norm{}{\vec x_t}^2 + y_t^2 \le \tilde L^2$ for all rounds $t$.  In
+  particular, if $\norm{}{\vec x_t} \le L$ (\cref{ass:x-bound}) and
+  the rewards are bounded: $\abs{y_t} \le \tilde B$ (not just their
+  means as in \cref{ass:meanreward-bound}), we can set $\tilde L^2 = L^2 + \tilde B^2$.
 \end{assumptions*}
-\cref{ass:x-bound,ass:meanreward-bound} are not needed for the
-correctness of the algorithm (i.e.\ its confidence sets), only for the
-regret bounds in \cref{sec:regret-bounds}.  Conversely, it is
-important to note that of these, only \cref{ass:x-bound} is needed for
-differential privacy (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
 
-The algorithm relies upon the confidence ellipsoids to be accurate but
-nevertheless tightly concentrated around the unknown $\vec\theta^*$.
-In other words, the $\beta_t$ should be as small as possible while
-accounting for the noise $\eta_t$ and the perturbations caused by
-$\vec H_t$ and $\vec h_t$.
+\cref{ass:x-bound,ass:meanreward-bound} aren't required to have good pseudo-regret bounds, they merely simplify the bounds on the confidence set (see Proposition~\ref{prop:calc-beta} and Section~\ref{sec:regret-bounds}). \cref{ass:bounded-data} is not required at all for now, it is only used for joint-differential privacy in Section~\ref{sec:alg-dp}.
+
+
+% \cref{ass:x-bound,ass:meanreward-bound} are not needed for the
+% correctness of the algorithm (i.e.\ its confidence sets), only for the
+% regret bounds in \cref{sec:regret-bounds}.  Conversely, it is
+% important to note that of these, only \cref{ass:x-bound} is needed for
+% differential privacy (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
+
+To fully describe Algorithm~\ref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accuracte~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain. 
+In other words, the $\beta_t$ should be as small as possible subject to being accurate.
 
 \begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
   A sequence $(\beta_t)_{t=1}^n$ is $(\alpha, n)$-\emph{accurate} for
@@ -618,7 +618,7 @@ $\vec H_t$ and $\vec h_t$.
   for all rounds $t=1,\dotsc,n$ simultaneously.
 \end{definition}
 
-We now argue that 3 parameters are the key to establishing accurate confidence-set bounds $(\beta_t)_{t=1}^n$.
+We now argue that 3 parameters are the key to establishing accurate confidence-set bounds $(\beta_t)_{t=1}^n$~--- taking into account the noise in the setting \emph{and} the noise added by a changing $\vec H_t$ and $\vec h_t$.
 
 \begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
   $\gamma$]\label{def:accurate-params}
@@ -645,7 +645,7 @@ We now argue that 3 parameters are the key to establishing accurate confidence-s
     &\le \sigma\sqrt{2\log({2}/{\alpha}) + d\log\paren[\Big]{\tfrac{\rho_{\max}}{\rho_{\min}}
       + \tfrac{tL^2}{d\rho_{\min}}}}
       + S\sqrt{\rho_{\max}} + \gamma.
-    &\text{(Under \cref{ass:x-bound})}
+    &\text{(if \cref{ass:x-bound} also holds)}
   \end{align*}
 \end{restatable}
 
@@ -656,7 +656,8 @@ We now argue that 3 parameters are the key to establishing accurate confidence-s
 We now present bounds on the maximum regret of \cref{alg:linucb}.
 However, due to space constraints, we defer an extensive discussion of
 the proof techniques used and the significance of the results to
-\cref{sec:more-linucb-discussion} in the supplementary material.
+\cref{sec:more-linucb-discussion} in the supplementary material. We comment that the proofs are based on those of
+\citet{AbbasiYadkoriImprovedAlgorithmsLinear2011} who analyzed LinUCB under constant regularizers. On the one hand, these changes are mostly technical; however, it turns out that multiple expressions in various parts of the proof diverge and now depend on $\rho_{\max} / \rho_{\min}$ and tracing all of them is somewhat hairy. While we weren't able to ``pull it off,'' it is an interesting question to see if one could establish similar bounds using known results only as a black-box.
 
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
@@ -687,7 +688,7 @@ the proof techniques used and the significance of the results to
   \begin{align}
   \label{eq:regret_gap_general_formula}
     \widehat R_n
-    &\le B \frac{8}{\Delta} \brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
+    &\le \frac{8B}{\Delta} \brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
       + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\tfrac{nL^2}{d\rho_{\min}}}}}^2
   \end{align}
@@ -731,14 +732,8 @@ matrix $\vec G_t$ and the first $d$ entries of its last column are
 $\vec u_t$. We maintain a differentially
 private approximation of $\vec M_t$. The tree-based algorithm maintains a private estimation of $\vec M_t$ using additive noise, releasing $\vec M_t + \vec N_t$.  The
 top-left $d\times d$ sub-matrix of $\vec N_t$ becomes $\vec H_t$ and the first
-$d$ entries of its last column become $\vec h_t$. Lastly, to have a private estimation of $\vec M_t$ we also assume the following.
-\begin{assumption}\label{ass:bounded-data}
-  Each row of $\vec A$ is bounded:
-  $\norm{}{\vec x_t}^2 + y_t^2 \le \tilde L^2$ for all rounds $t$.  In
-  particular, if $\vec x_t \le L$ (\cref{ass:x-bound}) and
-  the rewards are bounded: $\abs{y_t} \le \tilde B$ (not just their
-  means as in \cref{ass:meanreward-bound}), we can set $\tilde L^2 = L^2 + \tilde B^2$.
-\end{assumption}
+$d$ entries of its last column become $\vec h_t$. Lastly, to have a private estimation of $\vec M_t$, \Cref{ass:bounded-data} must hold.
+
 Below we present two techniques for maintaining (and updating) the
 private estimations of $\vec M_t$. As mentioned in
 Section~\ref{subsec:related_work}, the key component of our technique is
@@ -969,7 +964,7 @@ that should the rewards be drawn from $\bar Q$, then the event $E$ is
 very unlikely: $\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq 2n^{-1/4}/\Delta_a$. Indeed, the argument is based on a standard Markov-like argument: the expected pseudo-regret of $A$ is at most $n^{3/4}$, yet it is at least $\Pr_{A;~{\rm rewards}\sim \bar Q}[E]\cdot (n-t_a) \Delta_a \geq  (n\Delta_a/2)\Pr_{A;~{\rm rewards}\sim \bar Q}[E]$, for sufficiently large $n$.
 
 
-We now apply a beautiful result of~\citet[Lemma~6.1]{KarwaVadhanFiniteSampleDP2017}, stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or from distribution $Q$ is proportional to $\varepsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that we only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is strictly smaller than $t_a$, and the elegant coupling argument of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. To better illustrate the argument, consider a version of the algorithm described in~\cite{KarwaVadhanFiniteSampleDP2017}: it generates a collection of $t_a$ \emph{pairs} of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$, and, in expectation, in $(1-\Delta_a)$ fraction of the pairs the right- and the left-samples are identical. This algorithm declares {\tt success} when it never runs out of samples. Due to group privacy, oracle invocations coming from $A$ to this algorithm that either always ask for the left sample or always ask for the right sample should therefore trigger {\tt success} with similar probability, different only up to a factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as {\tt success} is quite unlikely when asked only for right-samples, it is only fairly unlikely when asked only for left-samples.
+We now apply a beautiful result of~\citet[Lemma~6.1]{KarwaVadhanFiniteSampleDP2017}, stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or from distribution $Q$ is proportional to $\varepsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that we only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is strictly smaller than $t_a$, and the elegant coupling argument of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. To better illustrate the argument, consider the coupling argument of~\cite{KarwaVadhanFiniteSampleDP2017} as an oracle $\mathcal{O}$. The oracle generates a collection of precisely $t_a$ \emph{pairs} of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$, and, in expectation, in $(1-\Delta_a)$ fraction of the pairs the right- and the left-samples are identical. Whenever the learner $A$ pulls arm $a$ it makes an oracle call to $\mathcal{O}$, and depends on the evironment (whether the distribtuion of rewards is $\bar P$ or $\bar Q$) $\mathcal{O}$ provides either a fresh left-sample or a right-sample. Moreover, suppose there exists a counter $\mathcal{C}$ that stands between $A$ and $\mathcal{O}$, and in case $\mathcal{O}$ runs out of examples then $\mathcal{C}$ routes $A$'s oracle calls to a different oracle. Now,~\citet[Lemma~6.1]{KarwaVadhanFiniteSampleDP2017} assures that the probability of the event ``$\mathcal{C}$ never re-routes the requests'' happens with similar probability under $P$ or under $Q$, different only up to a multiplicative factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as the event ``$\mathcal{C}$ never re-routes the requests'' is quite unlikely when $\mathcal{O}$ only provides right-samples (from $\bar Q$), it is also fairly unlikely when $\mathcal{O}$ only provides left-samples (from $\bar P$).
 
 Formally, we conclude the proof by applying the result
 of~\cite{KarwaVadhanFiniteSampleDP2017} to infer that $\Pr_{A;~{\rm
@@ -989,7 +984,7 @@ t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot
 %   private.  Does this help with the counter-example against optimism
 %   in Tor's paper?}
 
-
+\newpage
 \bibliographystyle{plainnat}
 {\small\bibliography{references,zotero-references}}
 
