@@ -150,7 +150,7 @@
 \declaretheorem[style=plain,sibling=theorem]{corollary}
 \declaretheorem[style=plain,sibling=theorem]{proposition}
 \declaretheorem[style=plain,sibling=theorem]{claim}
-\declaretheorem[style=definition]{definition}
+\declaretheorem[style=definition,sibling=theorem]{definition}
 \declaretheorem[style=definition]{assumption}
 \declaretheorem[style=remark,numbered=no]{remark}
 
@@ -398,7 +398,7 @@ $\Omega(k\log(T)/\varepsilon)$. This resembles the lower bound of the
 adversarial setting, however, the proof technique cannot rely on the
 standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} seeing as the input for the
 problem is stochastic rather than adversarial.  Instead, we apply a
-new result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
+recent result of \citet{KarwaVadhanFiniteSampleDP2017} showing, in essence,
 that the effective group-privacy between two possible inputs of $n$
 samples drawn iid from distributions $P$ and $Q$ respectively is about
 $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
@@ -439,7 +439,7 @@ setting, however (i)~without maintaining PSD, (ii)~without any
 analysis, only empirical evidence, and (iii)~without presenting lower
 bounds. Further details about acheiving differential privacy via additive noise and the tree-based algorithm appear in Section~\ref{apx_sec:more_background} of the supplementary material.
 %
-The related problem, of private linear regression, have also been extensively studied in the offline setting
+The related problem of private linear regression, have also been extensively studied in the offline setting
 %In the offline setting, there have been numerous works studying differentially private linear regression
 \citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}. 
 % \os{consider omitting:}
@@ -694,9 +694,7 @@ Rather than applying the tree-based algorithm twice, once for $\vec G_t$ and onc
 --- then the top-left $d\times d$ sub-matrix of $\vec M_t$ is the Gram
 matrix $\vec G_t$ and the first $d$ entries of its last column are
 $\vec u_t$. We maintain a differentially
-private approximation of $\vec M_t$. Since \cref{alg:linucb} allows for
-additive perturbations $\vec H_t$ and $\vec h_t$, we can use any privacy
-mechanism that uses additive noise, releasing $\vec M_t + \vec N_t$.  The
+private approximation of $\vec M_t$. The tree-based algorithm maintains a private estimation of $\vec M_t$ using additive noise, releasing $\vec M_t + \vec N_t$.  The
 top-left $d\times d$ sub-matrix of $\vec N_t$ becomes $\vec H_t$ and the first
 $d$ entries of its last column become $\vec h_t$. Lastly, to have a private estimation of $\vec M_t$ we also assume the following.
 \begin{assumption}\label{ass:bounded-data}
@@ -740,8 +738,8 @@ First, we instantiate the tree-based algorithm with noise from a
 suitably chosen Wishart distribution $\Wishart_{d+1}(\vec V, k)$, which is the
 result of sampling $k$ independent $(d+1)$-dimensional Gaussians from
 $\Normal(\vec 0_{d+1}, \vec V)$ and computing their Gram
-matrix. Under suitably chosen $\vec V$ and $k$, this noise preserves
-$(\varepsilon,\delta)$-differential privacy.
+matrix. 
+%Under suitably chosen $\vec V$ and $k$, this noise preserves $(\varepsilon,\delta)$-differential privacy.
 
 \begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]%
   \label{thm:wishart-cont-dp}
@@ -782,7 +780,7 @@ are $(\alpha/2n)$-accurate bounds:
                  - \sqrt{d} - \sqrt{2\ln(8n/\alpha})}^2,
     \rho_{\max} \defeq \tilde L^2 \paren[\big]{\sqrt{mk}
                  + \sqrt{d} + \sqrt{2\ln(8n/\alpha)}}^2,
-    \gamma \defeq \tilde L\sqrt{m}(\sqrt{d} + \sqrt{2\ln(2n/\alpha)}).
+    \gamma \defeq \tilde L(\sqrt{d} + \sqrt{2\ln(2n/\alpha)}).
  \end{align*}}
 \end{restatable}
 Plugging-in the above bounds to Theorems~\ref{thm:linucb-regret} and~\ref{thm:linucb-gap-regret} we get the following pseudo-regret upper-bounds.
@@ -811,11 +809,9 @@ $(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
 \footnote{We use here the slightly better bounds for the composition
   of Gaussian noise based on zero-Concentrated
   DP~\citep{BunConcentratedDifferentialPrivacy2016}.} %
-the variance of each coordinate must be
+the variance in each coordinate must be
 $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 /
-\varepsilon^2$.
-
-Instead of ensuring the noise is symmetric by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $\vec Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $\vec Z$ using $\tfrac 1 {\sqrt 2}(\vec Z+\transp{\vec Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $\vec Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top singular value of $\vec Z$ give that $\Pr[ \|\vec Z\| > \sigma_{\rm noise}(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $\vec Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $\vec N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $\vec N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
+\varepsilon^2$. Thus for each node we sample a matrix $\vec Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $\vec Z$ using $\tfrac 1 {\sqrt 2}(\vec Z+\transp{\vec Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $\vec Z$ are sampled from $\Normal(0,1)$, known concentration results~\cite{TaoRandomMatrixTheory2012} on the top singular value of $\vec Z$ give that $\Pr[ \|\vec Z\| > (4\sqrt{d+1} + 2\ln(\nicefrac {2n} \alpha)) ] < \nicefrac{\alpha}{2n}$. Note however that in each day $t$ the noist $\vec N_t$ is the sum of $\leq m$ such matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma_{\rm noise}^2$. Focusing on the top-left $(d\times d)$-submatrix of $\vec N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
 However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $\vec H_t$ is given by (1) summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, (2) symmetrizing the result as shown above, and (3) adding $(\upsilon+1)\Eye$; and $\vec h_t$ is given by summing $\leq m$ $d$-dimensional vectors whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $\vec H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{\vec H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
 \begin{proposition}
@@ -828,14 +824,14 @@ Fix any $\alpha>0$. Given that for each $t$ the regularizers $\vec H_t, \vec h_t
 Note how $\gamma=O(\Upsilon)$ (the only difference is $\sqrt{\log(\tfrac n \alpha)}$).
 As a result we get a bound on the regret of Algorithm~\ref{alg:linucb} using the tree-based algorithm using Gaussian noise.
 \begin{corollary}
-\label{cor:regret_with_Wishart}
+\label{cor:regret_with_Gaussian}
 Applying Algorithm~\ref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmterized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $(\Upsilon+1)\Eye$, assuming $n/d>\Upsilon$, we get a regret bound of
 \[O(\sqrt n \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right) )\]
 in general, and a gap-dependent pseudo-regret bound of
 \[O(\tfrac 1 \Delta \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right)^2 )\]
 \end{corollary}
 
-
+A comparison of the bounds in Corollaries~\ref{cor:regret_with_Wishart} and~\ref{cor:regret_with_Gaussian} appears in Section~\ref{apx_sec:privacy_proofs} in the supplementary material.
 
 \section{Lower Bounds}
 \label{sec:lower_bounds}
@@ -1211,11 +1207,17 @@ different regularizer at each round.
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
 
-First, we give the omitted proof from Section~\ref{sec:dp-wishart}.
+Before giving the omitted proofs from the body of the paper, we wish to have a short comparison between the regret bounds we get with the two different techniques to introduce differential privacy. In particular, omitting dependencies on any parameter but $n,d$ and $\varepsilon$, we have that the pseudo-regret bound of the Wishart noise (Corollary~\ref{cor:regret_with_Wishart}) is $\tilde O(\sqrt n(d+\tfrac{\sqrt d}\varepsilon))$; and that pseudo-regret bound of the Gaussian noise (Corollary~\ref{cor:regret_with_Gaussian}) is $\tilde O(\sqrt nd/\varepsilon)$. Before explaining how it came to be that the former has a better dependency on $\varepsilon$ than the latter, we first emphasize that (1) these bounds are only asymptotic (Wishart noise has far worst constants than the constants in the Gaussian bound), and that (2) this is an over simplification, as the many parameters of the problem may affect the regret bounds in favor of the Gaussian noise.
+
+So, how come with Gaussian noise we get a worse dependency on $\varepsilon$ than in the Wishart case? The reason lies in the two factors. First, the degrees of freedom $k$ in the Wishart noise are of the form $k=d+O(\varepsilon^{-2})$, making the top eigenvalue of the added noise $\|\vec H_t\|$ proportional to $O(\sqrt{\log(n)k}+\sqrt d) = O(\sqrt{d\log(n)}+ \tfrac{\sqrt{\log(n)}}{\varepsilon})$, so we get an additive relation rather than a multiplicative relation. In contrast, sampling a Gaussian noise, even though the variance in each coordinate is $O(\log(n)\cdot \varepsilon^{-2})$ and independent of $d$, the bound on the noise in this case is greater by a factor of $\sqrt{d}$, resultsing in the bound $\|\vec H_t\| = O(\sqrt{d\log(n)}/\varepsilon)$. Second, the bound on $\gamma$ is different in the two cases. For Wishart noise, we are able to use the special structure of $\vec H_t$ being the Gram matrix of multivariate Gaussian samples to infer the $\|\vec h_t\|_{\inv{\vec H_t}}$ is basically a projection of a sample from a spherical Gaussian onto a $d$-dimensional space~--- making the bound $\gamma$ \emph{independent} of $mk$ (the degrees of freedom in the Wishart noise) and depends solely on $d$. As a result, $\gamma \ll \rho_{\max}$ in the Wishart noise case, and we have already established that $\rho_{\max}$ has additive dependencies between $\sqrt d$ and $\varepsilon^{-1}$. In contrast, we are unable to leverage on any structure in the Gaussian noise case, making our $\gamma$ bound very similar to $\rho_{\max}$ which is in this case $O(\sqrt d/\varepsilon)$. 
+
+Admittedly, we do not know if this is merely an artifact of our analysis, or rather truly a difference in the bound. It is possible that slightly revising the proof of Theorem~\ref{thm:linucb-regret} could leads to different bounds, which are identical between the two privacy-preserving techniques. To attempt to test this empirically requires ridicolously large $d$ and $1/\varepsilon$, which is far beyond what we could handle.
+
+We now turn to providing the missing proofs from the main body of the paper. First, we give the omitted proof from Section~\ref{sec:dp-wishart}.
 
 \PropWishartTails*
 \begin{proof}
-Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $\vec H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{\vec H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the $2^{\rm nd}$-moment matrix of Gaussians with itself. Denote this matrix of Gaussians as $[\vec Z ; \vec z]$ where $\vec Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $\vec H_t = \transp{\vec Z} \vec Z$ and $\vec h_t = \transp{\vec Z} \vec z$, thus $\|\vec h_t\|_{\vec H_t^{-1}} = \sqrt{ \transp{\vec z} \vec Z (\transp{\vec  Z} \vec Z)^{-1}  \transp{\vec Z} \vec z }$. The matrix $\vec Z (\transp{\vec Z} \vec Z)^{-1}  \transp{\vec Z}$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{\vec H_t^{-1}}\leq \sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})}$. %Taking a union bound over all $n$ days concludes the proof.
+Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $\vec H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{\vec H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the Gram matrix of samples from a multivariate Gaussian $\Normal(\vec 0, \tilde L^2\Eye)$. Denote this matrix of Gaussians as $[\vec Z ; \vec z]$ where $\vec Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $\vec H_t = \transp{\vec Z} \vec Z$ and $\vec h_t = \transp{\vec Z} \vec z$, thus $\|\vec h_t\|_{\vec H_t^{-1}} = \sqrt{ \transp{\vec z} \vec Z (\transp{\vec  Z} \vec Z)^{-1}  \transp{\vec Z} \vec z }$. The matrix $\vec Z (\transp{\vec Z} \vec Z)^{-1}  \transp{\vec Z}$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{\vec H_t^{-1}}\leq \tilde L(\sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})})$. %Taking a union bound over all $n$ days concludes the proof.
 \end{proof}
 
 \begin{theorem}[{\citealp[Theorem~4.1]{SheffetPrivateApproxRegression2015}}]%
@@ -1232,7 +1234,7 @@ Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds
   changing a single row of $A$.
 \end{theorem}
 
-We now give the proof of the lower bound of any private algorithm under the stadard notion of differential privacy under continual observation. First, of course, we need to define this notion. \DPDefinition
+We now give the proof of the lower bound of any private algorithm under the stadard notion of differential privacy under continual observation, as discussed in Section~\ref{sec:lower_bounds}. First, of course, we need to define this notion. \DPDefinition
 ~We now prove the following.
 \clmLinearRegretDP*
 \DPLowerBoundProof
