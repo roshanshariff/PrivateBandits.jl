@@ -54,6 +54,7 @@
 \usepackage{multicol}
 %\usepackage{fullpage}
 \usepackage{color}
+\usepackage{subcaption}
 \newcommand{\os}[1]{\textcolor{red}{Or's comment:~\textbf{#1}}}
 %\usepackage{dblfloatfix}
 
@@ -1392,9 +1393,19 @@ As we were unable to prove a lower bound of $\Omega(d^2)$, we resulted into the 
 
 \paragraph{Setting.} For a given $d$ we have set $\vec\theta^*$ and the decision set $\D_t$... so that $\Delta = $... The regularizers we use are... so that $\beta_t=$. The noise in the reward is drawn from... We set the horizon $n = $...  
 
-\paragraph{Results.} The results of the experiment are given in
-\begin{figure}[h]
+We varied $d \in \{ \}$.
 
+\paragraph{Results.} We measured the pseudo-regret of our algorithm as a function of the dimension. The results of the experiment are plotted in Figure~\ref{fig:regret_dim} (and in log-scale in Figure~\ref{fig:regret_dim_logscale}). 
+\begin{figure}[h]
+\centering
+    \begin{subfigure}[h]{0.45\textwidth}
+        \includegraphics[scale=0.4]{dim-regret.png}
+        \caption{Pseudo-regret as a function of the dimension\label{fig:regret_dim}}
+    \end{subfigure}
+    \begin{subfigure}[h]{0.45\textwidth}
+        \includegraphics[scale=0.4]{dim-regret-logspace.png}
+        \caption{\label{fig:regret_dim_logscale}Pseudo-regret as a function of the dimension}      
+    \end{subfigure}
 \end{figure}
 
 \section{Privacy Proofs}
