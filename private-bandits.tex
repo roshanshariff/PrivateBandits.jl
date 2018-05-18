@@ -185,8 +185,8 @@
 
 \begin{abstract}
   We study the contextual linear bandit problem, a version of the
-  standard stochastic mutli-armed bandit (MAB) problem, where a learner
-  sequentially selects actions to maximize a reward which 
+  standard stochastic multi-armed bandit (MAB) problem, where a learner
+  sequentially selects actions to maximize a reward which
   depends also on a user provided per-round \emph{context}. Though the context
   is chosen arbitrarily or adversarially, the reward is assumed to
   be a stochastic function of a feature vector that encodes the
@@ -268,7 +268,7 @@ preferences to all users at times $t'>t$.\footnote{The guarantee of
 
 \subsection{Problem Formulation}
 \label{subsec:problem_formulation}
-\paragraph{Stochastic Contextual Linear Bandits.} 
+\paragraph{Stochastic Contextual Linear Bandits.}
 %\label{sec:contextual-bandits}
 In the classic MAB problem, in every round $t$ a learner
 selects an \emph{action} $a_t$ from a fixed set $\A$ and receives a
@@ -284,9 +284,9 @@ affects the reward in a linear way: map every context-action pair to a
 arbitrary but known function) and assume that
 $\Ex{y_t\given c_t,a_t} = \innerp{\vec\theta^*}{\phi(c_t,a_t)}$.  The
 vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
-environment which the learner must discover to maximize reward. 
+environment which the learner must discover to maximize reward.
 Alternatively, we can assume $\phi$ has been computed already, so each round the learner is given a
-%Note how all the learner needs to know about the context is implicitly encoded by the 
+%Note how all the learner needs to know about the context is implicitly encoded by the
 \emph{decision set}
 $\D_t \defeq \set{\phi(c_t,a)\given a\in\A \subset \Real^d}$, where
 choosing $x_t\in\D_t$ effectively determines the action
@@ -303,8 +303,8 @@ When all $\D_t$s are identical (and have orthogonal vectors) the problem reduces
 The learner's objective is to maximize cumulative reward, which is equivalent to
 minimizing \emph{regret} --- the extra reward a
 learner would have received by always choosing the best available
-action. 
-%An effective learner may nevertheless earn only a small reward if all the actions are poor, but would then still achieve low regret.  
+action.
+%An effective learner may nevertheless earn only a small reward if all the actions are poor, but would then still achieve low regret.
 In other words, the regret characterizes the cost of having
 to \emph{learn} the optimal action over just \emph{knowing} it beforehand.
 For stochastic problems, we are usually interested in a related
@@ -387,7 +387,7 @@ noise~\citep{SheffetPrivateApproxRegression2015} which always results
 in a PSD, acheiving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
 noise \citep{DworkAnalyzeGauss2014} which doesn't have to result in a PSD, so
 we shift it by $\Upsilon\Eye$ so that w.h.p.\ (over all days in the sequence)
-the shifted eigenvalues of the noise are all positive, and obtain a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.  
+the shifted eigenvalues of the noise are all positive, and obtain a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.
 %We also present empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
 We also give lower bound for the $\varepsilon$-differentially private
@@ -406,15 +406,15 @@ $n\cdot d_{\rm TV}(P,Q)$. Details appear in Section~\ref{sec:lower_bounds}.
 \subsection{Related Work}
 \label{subsec:related_work}
 
-%\paragraph{MAB and the Contextual Bandit Problem.} 
+%\paragraph{MAB and the Contextual Bandit Problem.}
 The MAB dates to the seminal work of Robbins~\cite{robbins1952}, with the UCB approach developed in a series of works~\cite{BanditBook85,Agrawal95} culminating in~\cite{Auer2002}.  Stochastic linear bandits were formally first introduced in~\cite{Abe2003}, and~\cite{Auer2003UCB} was the first paper to consider UCB-style algorithms. An algorithm that is based on a confidence ellipsoid is described in~\cite{DaniStochasticLinearOptimization2008}, with a variant based on ridge regression given in~\cite{ChuLRS11}, or explore-then-commit variant in~\cite{RusmevichientongT10}, and a variant related to a sparse setting appears in~\cite{Abbasi-YadkoriPS12}. \cite{AbbasiYadkoriImprovedAlgorithmsLinear2011} gives an instance dependent bound for linear bandits, which we convert to the contextual setting.
 %\todo[inline]{Complete this section.}
 
 
-%\paragraph{Differential Privacy.} 
+%\paragraph{Differential Privacy.}
 Differential privacy was first introduced by
-\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion ascerning that the probability of any event changes very little with a change to a single datum. (We omit the formal definition as the JDP was already defined.) 
-%A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy. 
+\citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, and it is a rigorous mathematical notion ascerning that the probability of any event changes very little with a change to a single datum. (We omit the formal definition as the JDP was already defined.)
+%A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy.
 Among its many elegant traits is the notion of group privacy: should $k$ datums change then the change to any event is still limited by (roughly) $k$ times the magnitude of a single entry's change. A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
 %
 The notion of differential privacy under continual observation was
@@ -441,35 +441,34 @@ bounds. Further details about acheiving differential privacy via additive noise 
 %
 The related problem, of private linear regression, have also been extensively studied in the offline setting
 %In the offline setting, there have been numerous works studying differentially private linear regression
-\citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}. 
+\citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}.
 % \os{consider omitting:}
 % In this work we rely on two techniques that maintain a private version of the second-moment matrix of the data (the Gram matrix) --- the work of~\cite{DworkAnalyzeGauss2014} which uses additive Gaussian noise (which doesn't necessarily result in a PSD output) and the work of~\cite{SheffetPrivateApproxRegression2015} which uses additive Wishart noise (and is always PSD).
 
 \section{Preliminaries and Notation}
 \label{sec:preliminaries}
 
-We use $\vec{bold}$ character to denote vectors and bold $\vec{CAPITAL}$ letters to denote matrices. Given a $d$-column matrix $\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix $\transp{\vec M}\vec M$. A matrix $\vec M$ is positive-semidefinite (PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that $\transp{\vec  x} \vec M \vec x \geq 0$. We use $\vec M\succeq \vec N$ to denote the fact that $(\vec M-\vec N)$ is PSD. It is known that such $\vec M$ defines a dot-product between vectors and so we define $\|\vec x\|_{\vec M} = \sqrt{\transp{\vec  x} \vec M \vec x}$. The Gaussian distribution $\Normal(\mu,\sigma^2)$ is defined by the density function $(2\pi\sigma^2)^{-0.5}\exp(-\nicefrac{(x-\mu)^2}{2\sigma^2})$. The $L_2$-norm squared of a $d$-dimensional vector whose coordinates are drawn iid from $\Normal(0,1)$ is given by the $\chi^2$-distribution, which is tightly concentrated around $d$. Given two distributions $P$ and $Q$ we denote their \emph{total variation} distances as $d_{\rm TV}(P,Q) = \max_{{\rm event}~E}|\Pr_P[E]-\Pr_Q[E]|$.  %Explicit concentration bounds are given in Section~\ref{} 
+We use $\vec{bold}$ character to denote vectors and bold $\vec{CAPITAL}$ letters to denote matrices. Given a $d$-column matrix $\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix $\transp{\vec M}\vec M$. A matrix $\vec M$ is positive-semidefinite (PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that $\transp{\vec  x} \vec M \vec x \geq 0$. We use $\vec M\succeq \vec N$ to denote the fact that $(\vec M-\vec N)$ is PSD. It is known that such $\vec M$ defines a dot-product between vectors and so we define $\|\vec x\|_{\vec M} = \sqrt{\transp{\vec  x} \vec M \vec x}$. The Gaussian distribution $\Normal(\mu,\sigma^2)$ is defined by the density function $(2\pi\sigma^2)^{-0.5}\exp(-\nicefrac{(x-\mu)^2}{2\sigma^2})$. The $L_2$-norm squared of a $d$-dimensional vector whose coordinates are drawn iid from $\Normal(0,1)$ is given by the $\chi^2$-distribution, which is tightly concentrated around $d$. Given two distributions $P$ and $Q$ we denote their \emph{total variation} distances as $d_{\rm TV}(P,Q) = \max_{{\rm event}~E}|\Pr_P[E]-\Pr_Q[E]|$.  %Explicit concentration bounds are given in Section~\ref{}
 
 \paragraph{Notation.}\label{sec:notation} Our bound depends on many parameters of the problem, specified below. Additional parameters (bounds) as specified in Assumptions~\ref{ass:x-bound}-\ref{ass:bounded-data} below.
 \begin{multicols}{2}[]
   \nolinenumbers
-  \begin{description}[style=sameline,leftmargin=5em,nosep]
+  \begin{description}[style=sameline,leftmargin=5.5em,nosep]
   \item[$n$] horizon, i.e. number of rounds
   \item[$s,t$] indices of rounds
   \item[$d$] dimensionality of action space
   \item[$\D_t\subset\Real^d$] decision set at round $t$
   \item[$\vec x_t \in \D_t$] action at round $t$ \todo{Is this necessary? It was specified in the problem definition. Can it be merged with 6?}
   \item[$y_t \in \Real$] reward at round $t$
-  \item[$\vec X_t \in \Real^{t\times d}$] matrix with $\vec X_s = \transp{\vec
-      x_s}$ for $s\in[t]$
-  \item[$\vec G_t = \transp{\vec X_t}\vec X_t$] The gram-matrix of the actions
-  \item[$\vec H_t$] The regularizer at day $t$ 
-  \item[$\vec y_t \in \Real^t$] vector of rewards up to day $t$
-  \os{Can we make this notation slightly different? say, $\vec y_{\leq t}$?}
-  \item[$\vec u_t = \transp{\vec X_t} \vec y_t$] The action-reward product 
-  \item[$\vec h_t$] The regularizer / perturbation of $\vec u_t$
+  \item[$\vec X_{<t} \in \Real^{(t-1)\times d}$] matrix with $\vec X_{<t,s} = \transp{\vec
+      x_s}$ for $s<t$
+  \item[$\vec G_t = \XtX{\vec X_{<t}}$] The Gram matrix of the actions
+  \item[$\vec H_t$] The regularizer at day $t$
+  \item[$\vec y_{<t} \in \Real^{t-1}$] vector of rewards up to day $t-1$
+  \item[$\vec u_t = \transp{\vec X_{<t}} \vec y_{<t}$] The action-reward product
+  \item[$\vec h_t$] The perturbation of $\vec u_t$
   \item[$\vec\theta^* \in \Real^d$] unknown parameter vector
-  \item[$m \defeq \lceil\log_2(n)+1 \rceil$] 
+  \item[$m \defeq \lceil\log_2(n)+1 \rceil$]
   %\item[$\norm{V}{\vec x}$] $\defeq \sqrt{\transp{\vec x} V \vec x}$
 %   \item[$L$] a bound on the norm of all actions (in all rounds)
 %   \item[$B$] a bound on the mean of the rewards: $|\langle \vec x,\vec\theta^*\rangle| \leq B$.
@@ -483,7 +482,7 @@ We use $\vec{bold}$ character to denote vectors and bold $\vec{CAPITAL}$ letters
 \label{sec:LinUCB}
 
 %Our differentially private contextual linear bandit algorithm is based on
-In this section we introduce and analyze a variation of 
+In this section we introduce and analyze a variation of
 the well-studied LinUCB algorithm, an application of the Upper
 Confidence Bound (UCB) idea to stochastic linear bandits
 \citep{DaniStochasticLinearOptimization2008,RusmevichientongLinearlyParameterizedBandits2010,AbbasiYadkoriImprovedAlgorithmsLinear2011}.
@@ -500,10 +499,10 @@ natural to center the confidence set $\E_t$ on the (regularized)
 linear regression estimate:
 \begin{align*}
   \hat{\vec\theta}_t
-  &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_{t-1} \hat{\vec\theta}
-    - \vec y_{t-1}}^2 + \norm{H_t}{\hat{\vec\theta}}^2
-    = \inv{(\vec G_t + \vec H_t)} \transp{\vec X_{t-1}} \vec y_{t-1}.
-    &\text{where } \vec G_t \defeq \XtX{\vec X_{t-1}}
+  &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_{<t} \hat{\vec\theta}
+    - \vec y_{<t}}^2 + \norm{\vec H_t}{\hat{\vec\theta}}^2
+    = \inv{(\vec G_t + \vec H_t)} \transp{\vec X_{<t}} \vec y_{<t}.
+    &\text{where } \vec G_t \defeq \XtX{\vec X_{<t}}
 \end{align*}
 The matrix $\vec V_t \defeq \vec G_t + \vec H_t \in \Real^{d\times d}$ is a regularized
 version of the Gram matrix $\vec G_t$.  Whenever the learner chooses an
@@ -512,7 +511,7 @@ about the projection of $\vec\theta^*$ onto $\vec x$.  In other
 words, the estimate $\hat{\vec\theta}$ is probably closer to
 $\vec\theta^*$ along the directions where many actions have
 been taken.  This motivates the use of ellipsoidal confidence sets
-that are smaller in such directions, inversely 
+that are smaller in such directions, inversely
 corresponding to the eigenvalues of $\vec G_t$ (or $\vec V_t$). The ellipsoid
 is uniformly scaled by $\beta_t$ to achieve the desired confidence
 level, as prescribed by \cref{prop:calc-beta}.
@@ -524,11 +523,11 @@ level, as prescribed by \cref{prop:calc-beta}.
 \end{align}
 Just as the changing regularizer $\vec H_t$ perturbs the Gram matrix $\vec G_t$,
 our algorithm allows for the vector
-$\vec u_t \defeq \transp{\vec X_{t-1}} \vec y_{t-1}$ to be perturbed
+$\vec u_t \defeq \transp{\vec X_{<t}} \vec y_{<t}$ to be perturbed
 by $\vec h_t$ to get
 $\tilde{\vec u}_t \defeq \vec u_t + \vec h_t$.  The estimate
 $\hat{\vec\theta}_t$ is replaced by
-$\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
+$\tilde{\vec\theta}_t \defeq \inv{\vec V_t}\tilde{\vec u}_t$.
 
 \begin{algorithm}[h]
   \caption{Linear UCB with Changing Perturbations}\label{alg:linucb}
@@ -538,7 +537,7 @@ $\tilde{\vec\theta}_t \defeq \inv{V_t}\tilde{\vec u}_t$.
     \For{each round $t = 1,2,\dotsc,n$}
     \State Receive $\D_t \gets{}$ decision set ${} \subset \Real^d$.
     \State Receive regularized $\vec V_t \gets \vec G_t + \vec H_t$ and perturbed $\tilde{\vec u}_t \gets \vec u_t + \vec h_t$
-    \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{V_{t}}\tilde{\vec u}_{t}$
+    \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{\vec V_{t}}\tilde{\vec u}_{t}$
     \State Compute confidence-set bound $\beta_t$ based on Porposition~\ref{prop:calc-beta}.
     \State Pick action $\vec x_t \gets \argmax_{\vec x\in\D_t}
     \innerp{\tilde{\vec \theta}_t}{\vec x} +
@@ -592,7 +591,7 @@ $\vec H_t$ and $\vec h_t$.
 \begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
   $\gamma$]\label{def:accurate-params}
   The bounds $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
-  $(\alpha/2n)$-\emph{accurate} for $(\vec H_t)_{t=1}^n$ and $(\vec h_t)_{t=1}^n$ if for a given $t$ w.p. $\leq \alpha/2n$ any of the following does not hold 
+  $(\alpha/2n)$-\emph{accurate} for $(\vec H_t)_{t=1}^n$ and $(\vec h_t)_{t=1}^n$ if for a given $t$ w.p. $\leq \alpha/2n$ any of the following does not hold
   \begin{align*}
     \norm{}{\vec H_t} &\le \rho_{\max},
     &\norm{}{\inv{\vec H_t}} &\le \nicefrac{1}{\rho_{\min}},
@@ -621,7 +620,12 @@ $\vec H_t$ and $\vec h_t$.
 \vspace{-5pt}
 \subsection{Regret Bounds}
 \label{sec:regret-bounds}
-Having established that the bounds on the confidence sets $\beta_t$ require only bounds on the regularizers, we now give the resulting regret bounds of~\Cref{alg:linucb}. The proofs of these theorems, which are rather long yet are by no means novel, are deferred to the supplementary material.
+
+We now present bounds on the maximum regret of \cref{alg:linucb}.
+However, due to space constraints, we defer an extensive discussion of
+the proof techniques used and the significance of the results to
+\cref{sec:more-linucb-discussion} in the supplementary material.
+
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
   Suppose \cref{ass:x-bound,ass:meanreward-bound,ass:thetastar-bound,%
@@ -665,14 +669,14 @@ Notice that \cref{alg:linucb} uses its history of actions and rewards
 up to round $t$ only via the confidence set $\E_t$, which is to say
 via $\vec V_t$ and $\tilde{\vec u}_t$, which are perturbations of the Gram
 matrix $\vec G_t$ and the vector
-$\vec u_t \defeq \transp{\vec X_{t-1}} \vec y_{t-1}$, respectively;
+$\vec u_t \defeq \transp{\vec X_{<t}} \vec y_{<t}$, respectively;
 these also determine $\beta_t$.  By recording this history with
 differential privacy, we obtain a Linear UCB algorithm that is jointly
 differentially private (\cref{def:joint-dp}) because it simply
 post-processes $\vec G_t$ and $\vec u_t$.
 
 \begin{claim}[see {\citet[Proposition~2.1]{DworkAlgorithmicFoundationsDifferential2014}}]
-  If the sequence $(V_t,\tilde{\vec u}_t)_{t=1}^{n-1}$ is
+  If the sequence $(\vec V_t,\tilde{\vec u}_t)_{t=1}^{n-1}$ is
   $(\varepsilon,\delta)$-differentially private with respect to
   $(\vec x_t, y_t)_{t=1}^{n-1}$, then \cref{alg:linucb} is
   $(\varepsilon,\delta)$-jointly differentially private.
@@ -682,13 +686,13 @@ post-processes $\vec G_t$ and $\vec u_t$.
   \Cref{alg:linucb} is only jointly differentially private even though
   the history maintains full differential privacy --- its action
   choice depends not only on the past contexts $c_s$ ($s < t$, via the
-  differentially private $\vec X_{t-1}$) but also on the current
+  differentially private $\vec X_{<t}$) but also on the current
   context $c_t$ via the decision set $\D_t$.  This use of $c_t$
   is \emph{not} differentially private, as it is revealed by the algorithm's
   chosen $\vec x_t$.
 \end{remark}
 
-Rather than applying the tree-based algorithm twice, once for $\vec G_t$ and once for $\vec u_t$, we aggregate both into a single matrix an apply the tree-based algorithm to this $(d+1)\times(d+1)$-matrix. Denote $\vec A \defeq \begin{bmatrix} \vec X_n & \vec y_n \end{bmatrix} \in
+Rather than applying the tree-based algorithm twice, once for $\vec G_t$ and once for $\vec u_t$, we aggregate both into a single matrix and apply the tree-based algorithm to this $(d+1)\times(d+1)$-matrix. Denote $\vec A \defeq \begin{bmatrix} \vec X_{1:n} & \vec y_{1:n} \end{bmatrix} \in
 \Real^{n\times(d+1)}$, with $\vec A_t$ holding the top $t-1$ rows of $\vec A$
 (and $\vec A_1 = \vec 0_{1\times(d+1)}$).  Denote $\vec M_t \defeq \XtX{\vec A_t}$
 --- then the top-left $d\times d$ sub-matrix of $\vec M_t$ is the Gram
@@ -817,7 +821,8 @@ $\sigma_{\rm noise}^2 = 16m\tilde L ^4 \ln(\nicefrac 4 \delta)^2 /
 
 Instead of ensuring the noise is symmetric by copying the upper-diagonal entries to the entries below the diagonal, we analyze here a slight variation --- where for each node we sample a matrix $\vec Z$ which all of entries are sampled iid from a Gaussian, then symmetrize $\vec Z$ using $\tfrac 1 {\sqrt 2}(\vec Z+\transp{\vec Z})$.\footnote{This increases the variance along the diagonal entries beyond the noise magnitude required to preserve privacy, but by only a constant factor of $2$.} When all entries on $\vec Z$ are sampled from $\Normal(0,\sigma_{\rm noise}^2)$, known concentration results on the top singular value of $\vec Z$ give that $\Pr[ \|\vec Z\| > \sigma_{\rm noise}(4\sqrt{d+1} + 2\ln(\nicefrac 1 \alpha)) ] < \alpha$. Note however that in each day $t$ we sum $\leq m$ such $\vec Z$ matrices (then symmetrize the noise), thus the variances of each coordinate is $m\sigma^2$. As a result, applying the union-bound, we have that w.p. $\geq 1-\alpha$ it holds that in all $n$ days our noise $\vec N_t$ has operator norm of at most $\sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d+1} + 2\ln(\nicefrac n \alpha))$. In particular, the top-left $(d\times d)$-submatrix of $\vec N_t$ has operator norm of at most $\Upsilon \defeq \sqrt{2m\sigma_{\rm noise}^2}(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4 \delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon$.
 
-However, it is important to note that the result of adding Gaussian noise may not preserve the PSD property of the noisy Gram-matrix. To that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $\vec H_t$ is given by (1) summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, (2) symmetrizing the result as shown above, and (3) adding $(\upsilon+1)\Eye$; and $\vec h_t$ is given by summing $\leq m$ $d$-dimensional vectors whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $\vec H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{\vec H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
+However, it is important to note that the result of adding Gaussian
+noise may not preserve the PSD property of the noisy Gram matrix. To that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order to make sure that we maintain strictly positive eigenvalues throughout the execution of the algorithm. The end result is that for each day $t$ we have that $\vec H_t$ is given by (1) summing $\leq m$ matrices whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$, (2) symmetrizing the result as shown above, and (3) adding $(\upsilon+1)\Eye$; and $\vec h_t$ is given by summing $\leq m$ $d$-dimensional vectors whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ (the symmterization doesn't change the distribution of each coordinate). As the least eigenvalue of $\vec H_t$ (we can guarantee) is $1$, then $\|\vec h_t\|_{\vec H_t^{-1}} \leq \|\vec h_t\|$ which we can bound using standard concentration bounds on the $\chi^2$-distribution (see Claim~\ref{claim:chi2-tails}). This culminates in the following bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Gaussian}
 Fix any $\alpha>0$. Given that for each $t$ the regularizers $\vec H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $(\alpha/2n)$-accurate bounds:
@@ -879,7 +884,12 @@ To that end, we postulate a different distribution for the rewards of arm $a$ --
 
 We now apply a beautiful result of~\cite{KarwaVadhanFiniteSampleDP2017} (Lemma 6.1), stating that the ``effective'' group privacy between the case where the $n$ datums of the inputs are drawn iid from either distribution $P$ or from distribution $Q$ is proportional to $\varepsilon n\cdot d_{\rm TV}(P,Q)$. In our case, the key point is that we only consider this change \emph{under the event $E$}, thus the number of samples we need to redraw from the distribution $P_a$ rather than $Q_a$ is strictly smaller than $t_a$, and the elegant coupling arguming of~\cite{KarwaVadhanFiniteSampleDP2017} reduces it to $6\Delta_a \cdot t_a$. To better illustrate the argument, consider a version of the algorithm described in~\cite{KarwaVadhanFiniteSampleDP2017}: it generates a collection of $t_a$ \emph{pairs} of points, the left ones are iid samples from $P_a$ and the right ones are iid samples from $Q_a$, and, in expectation, in $(1-\Delta_a)$ fraction of the pairs the right- and the left-samples are identical. This algorithm declares {\tt success} when it never runs out of samples and {\tt failure} otherwise. Due to group privacy, oracle invocations coming from $A$ to this algorithm that either always ask for the left sample or always ask for the right sample should therefore trigger {\tt success} with similar probability, different only up to a factor of $\exp(\epsilon \Delta_a t_a)$. And seeing as {\tt success} is quite unlikely when asked only for right-samples, it is only fairly unlikely when asked only for left-samples.
 
-Formaly, we conclude the proof by applying the result of~\cite{KarwaVadhanFiniteSampleDP2017} to infer that $\Pr_{A;~{\rm rewards}\sim \bar P}[E] \leq \exp(6\varepsilon\Delta_a t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot \tfrac 2{\Delta_a}n^{-1/4} = n^{-0.19}\tfrac 2{\Delta_a} \leq \nicefrac 1 2$ for sufficiently large $n$s, proving the required.
+Formally, we conclude the proof by applying the result
+of~\cite{KarwaVadhanFiniteSampleDP2017} to infer that $\Pr_{A;~{\rm
+    rewards}\sim \bar P}[E] \leq \exp(6\varepsilon\Delta_a
+t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot
+\tfrac 2{\Delta_a}n^{-1/4} = n^{-0.19}\tfrac 2{\Delta_a} \leq \nicefrac 1
+2$ for sufficiently large $n$s, proving the required claim.
 \end{proof}
 
 % \section{Conclusions and Future Work}
@@ -969,61 +979,70 @@ In this work, we repeatedly apply the following facts about PSD matrices, the Ga
 \end{claim}
 
 
-\section{Proofs from Section~\ref{sec:LinUCB}}
+\section{Discussion and Proofs from Section~\ref{sec:LinUCB}}
+\label[section]{sec:more-linucb-discussion}
 
 The proofs in this section are based on those of
-\citet{AbbasiYadkoriImprovedAlgorithmsLinear2011}, modified to allow a
-different regularizer at each round.
+\citet{AbbasiYadkoriImprovedAlgorithmsLinear2011}, who analyze the
+LinUCB algorithm with a constant regularizer.  The main difference
+from that work is that, in our case, quantities involving the
+regularizer must be bounded above or below (as appropriate) by the
+constants $\rho_{\max}$ and $\rho_{\min}$, respectively.  We will make
+extensive use of \cref{claim:psd-matrix-props}, which shows that for
+any two matrices $\vec 0 \preceq \vec V \preceq \vec U$, we have
+$\det\vec V \le \det\vec U$ and $\inv{\vec V} \succeq \inv{\vec U}$.
+We start by proving the following proposition about the sizes of the
+confidence ellipsoid, which illustrates this general idea.
 
 \CalcBeta*
 
 \begin{proof}
-  By definition, $\tilde{\vec\theta}_t = \inv{V_t} \tilde{\vec u}_t$,
+  By definition, $\tilde{\vec\theta}_t = \inv{\vec V_t} \tilde{\vec u}_t$,
   $\tilde{\vec u}_t = \vec u_t + \vec h_t$, and $\vec u_t = \transp{\vec
-    X_{t-1}} \vec y_{t-1}$, so that
+    X_{<t}} \vec y_{<t}$, so that
   \begin{align*}
     \vec\theta^* - \tilde{\vec\theta}_t
-    &= \vec\theta^* - \inv{V_t}(\transp{\vec X_{t-1}} \vec y_{t-1} + \vec h_t) \\
-    &= \vec\theta^* - \inv{V_t}(\XtX{\vec X_{t-1}} \vec\theta^*
-      + \transp{\vec X_{t-1}} \vec\eta_{t-1} + \vec h_t)
-    &\text{since } \vec y_{t-1} = \vec X_{t-1} \vec\theta^* + \vec\eta_{t-1} \\
-    &= \vec\theta^* - \inv{V_t}(V_t \vec\theta^* - H_t \vec\theta^* + \vec z_t + \vec h_t)
-    &\text{defining } \vec z_t \defeq \transp{\vec X_{t-1}} \vec\eta_{t-1} \\
-    &= \inv{V_t}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
-    \shortintertext{Multiplying both sides by $V_t^{1/2}$ gives}
-    V_t^{1/2}(\vec\theta^* - \tilde{\vec\theta}_t)
-    &= V_t^{-1/2}(H_t\vec\theta^* - \vec z_t - \vec h_t) \\
-    \norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}
-    &= \norm{\inv{V_t}}{H_t\vec\theta^* - \vec z_t - \vec h_t}
+    &= \vec\theta^* - \inv{\vec V_t}(\transp{\vec X_{<t}} \vec y_{<t} + \vec h_t) \\
+    &= \vec\theta^* - \inv{\vec V_t}(\XtX{\vec X_{<t}} \vec\theta^*
+      + \transp{\vec X_{<t}} \vec\eta_{t-1} + \vec h_t)
+    &\text{since } \vec y_{<t} = \vec X_{<t} \vec\theta^* + \vec\eta_{t-1} \\
+    &= \vec\theta^* - \inv{\vec V_t}(\vec V_t \vec\theta^* - \vec H_t \vec\theta^* + \vec z_t + \vec h_t)
+    &\text{defining } \vec z_t \defeq \transp{\vec X_{<t}} \vec\eta_{t-1} \\
+    &= \inv{\vec V_t}(\vec H_t\vec\theta^* - \vec z_t - \vec h_t) \\
+    \shortintertext{Multiplying both sides by $\vec V_t^{1/2}$ gives}
+    \vec V_t^{1/2}(\vec\theta^* - \tilde{\vec\theta}_t)
+    &= \vec V_t^{-1/2}(\vec H_t\vec\theta^* - \vec z_t - \vec h_t) \\
+    \norm{\vec V_t}{\vec\theta^* - \tilde{\vec\theta}_t}
+    &= \norm{\inv{\vec V_t}}{\vec H_t\vec\theta^* - \vec z_t - \vec h_t}
     &\text{applying $\norm{}{\wildcard}$ to both sides}\\
-    &\le \norm{\inv{V_t}}{H_t\vec\theta^*} + \norm{\inv{V_t}}{z_t}
-      + \norm{\inv{V_t}}{\vec h_t} &\text{triangle inequality} \\
-    &\le \norm{\inv{V_t}}{\vec z_t} + \norm{\inv{H_t}}{H_t\vec\theta^*}
-      + \norm{\inv{H_t}}{\vec h_t}
-    &\text{by \cref{claim:psd-matrix-props} since } V_t \succeq H_t \\
-    &= \norm{\inv{(G_t+\rho_{\min}\Eye)}}{\vec z_t} + \norm{H_t}{\vec\theta^*} +
-      \norm{\inv{H_t}}{\vec h_t},
-    &\text{since } V_t \succeq G_t + \rho_{\min}\Eye.
+    &\le \norm{\inv{\vec V_t}}{\vec H_t\vec\theta^*} + \norm{\inv{\vec V_t}}{z_t}
+      + \norm{\inv{\vec V_t}}{\vec h_t} &\text{triangle inequality} \\
+    &\le \norm{\inv{\vec V_t}}{\vec z_t} + \norm{\inv{\vec H_t}}{\vec H_t\vec\theta^*}
+      + \norm{\inv{\vec H_t}}{\vec h_t}
+    &\text{by \cref{claim:psd-matrix-props} since } \vec V_t \succeq \vec H_t \\
+    &= \norm{\inv{(\vec G_t+\rho_{\min}\Eye)}}{\vec z_t} + \norm{\vec H_t}{\vec\theta^*} +
+      \norm{\inv{\vec H_t}}{\vec h_t},
+    &\text{since } \vec V_t \succeq \vec G_t + \rho_{\min}\Eye.
   \end{align*}
   We use a union bound over all $n$ rounds to bound
-  $\norm{H_t}{\vec\theta^*} \le
-  \sqrt{\norm{}{H_t}}\norm{}{\vec\theta^*} \le S\sqrt{\rho_{\max}}$
-  and $\norm{\inv{H_t}}{\vec h_t} \le \gamma$ with probability at
+  $\norm{\vec H_t}{\vec\theta^*} \le
+  \sqrt{\norm{}{\vec H_t}}\norm{}{\vec\theta^*} \le S\sqrt{\rho_{\max}}$
+  and $\norm{\inv{\vec H_t}}{\vec h_t} \le \gamma$ with probability at
   least $1-\alpha/2$.  Finally, by the ``self-normalized bound for
   vector-valued martingales'' of
   \citet[Theorem~1]{AbbasiYadkoriImprovedAlgorithmsLinear2011}, with
   probability $1-\alpha/2$ for all rounds simultaneously
   \begin{align*}
-    \norm{\inv{(G_t + \rho_{\min}\Eye)}}{\vec z_t}
-    &\le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\frac{\det(G_t+\rho_{\min}\Eye)}{\det\rho_{\min}\Eye}}
-      \le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\det V_t - d\log\rho_{\min}}.
+    \norm{\inv{(\vec G_t + \rho_{\min}\Eye)}}{\vec z_t}
+    &\le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\frac{\det(\vec G_t+\rho_{\min}\Eye)}{\det\rho_{\min}\Eye}}
+      \le \sigma\sqrt{2\log\frac{2}{\alpha} + \log\det \vec V_t - d\log\rho_{\min}}.
   \end{align*}
   It only remains to show the upper-bound on each $\beta_t$.  By
   \cref{claim:psd-matrix-props}, we have
-  $\det V_t = \det(G_t+H_t) \le \det(G_t+\rho_{\max}\Eye)$ and
+  $\det \vec V_t = \det(\vec G_t+\vec H_t) \le \det(\vec G_t+\rho_{\max}\Eye)$ and
   \begin{align*}
-    \log\det V_t
-    &\le \log\det(G_t + \rho_{\max}\Eye)
+    \log\det \vec V_t
+    &\le \log\det(\vec G_t + \rho_{\max}\Eye)
     \le d\log(\rho_{\max} + tL^2/d).
   \end{align*}
   using the trace-determinant inequality as in the proof of
@@ -1035,16 +1054,25 @@ different regularizer at each round.
   \end{align*}
 \end{proof}
 
-\begin{lemma}[LinUCB Regret]\label{lemma:linucb-regret}
+We now take our first steps towards a regret bound by giving a
+``generic'' version that depends only on LinUCB taking ``optimistic''
+actions, the sizes of the confidence sets, and the rewards being
+bounded.  We rely upon the upper bound for each $\beta_t$ shown in the
+previous proposition.  We use the Cauchy-Schwarz inequality to bound
+the sum of per-round regrets $r_t$ by $\sum r_t^2$; this results in
+the leading $O(\sqrt n)$ factor in the regret bound.  Our
+gap-dependent analysis later avoids this, but has other trade-offs.
+
+\begin{lemma}[Generic LinUCB Regret]\label{lemma:linucb-regret}
   Suppose \cref{ass:meanreward-bound,ass:psd-reg} hold (i.e.\
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$ and all $H_t \succeq 0$)
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$ and all $\vec H_t \succeq 0$)
   and $\bar\beta_n \ge \max\set{\beta_1,\dotsc,\beta_n,1}$.  If all
   the confidence sets $\E_t$ contain $\vec\theta^*$ (i.e.,
-  $\norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
+  $\norm{\vec V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
   \beta_t$), then the pseudo-regret of \cref{alg:linucb} is bounded by
   \begin{align*}
     \widehat{R}_n &\le \bar\beta_n\sqrt{4n \sum_{t=1}^n \min\set{1,
-                   \norm{\inv{V_t}}{\vec x_t}^2}}.
+                   \norm{\inv{\vec V_t}}{\vec x_t}^2}}.
   \end{align*}
 \end{lemma}
 
@@ -1064,33 +1092,40 @@ different regularizer at each round.
         &\text{from \eqref{eq:optimistic-action} since }
           (\vec x_t^*,\vec\theta^*) \in \D_t\times\E_t \\
         &= \innerp{\bar{\vec\theta}_t - \vec\theta^*}{\vec x_t} \\
-       &= \innerp{V_t^{1/2}(\bar{\vec\theta}_t - \vec\theta^*)}{V_t^{-1/2} \vec x_t}
-        &\text{since } V_t \succeq H_t \succeq 0 \\
-        &\le \norm{V_t}{\bar{\vec\theta}_t - \vec\theta^*}\norm{\inv{V_t}}{\vec x_t}
+       &= \innerp{\vec V_t^{1/2}(\bar{\vec\theta}_t - \vec\theta^*)}{\vec V_t^{-1/2} \vec x_t}
+        &\text{since } \vec V_t \succeq \vec H_t \succeq 0 \\
+        &\le \norm{\vec V_t}{\bar{\vec\theta}_t - \vec\theta^*}\norm{\inv{\vec V_t}}{\vec x_t}
         &\text{by Cauchy-Schwarz}\\
-        &\le \paren[\big]{\norm{V_t}{\bar{\vec\theta}_t - \tilde{\vec\theta}_t}
-          + \norm{V_t}{\vec\theta^* - \tilde{\vec\theta}_t}}
-          \norm{\inv{V_t}}{\vec x_t}
+        &\le \paren[\big]{\norm{\vec V_t}{\bar{\vec\theta}_t - \tilde{\vec\theta}_t}
+          + \norm{\vec V_t}{\vec\theta^* - \tilde{\vec\theta}_t}}
+          \norm{\inv{\vec V_t}}{\vec x_t}
         &\text{by the triangle inequality}\\
-        &\le 2\beta_t\norm{\inv{V_t}}{\vec x_t}
+        &\le 2\beta_t\norm{\inv{\vec V_t}}{\vec x_t}
         &\text{since } \bar{\vec\theta}_t, \vec\theta^* \in \E_t \\
-        &\le 2\bar\beta_n\norm{\inv{V_t}}{\vec x_t}
+        &\le 2\bar\beta_n\norm{\inv{\vec V_t}}{\vec x_t}
         &\text{since } \bar\beta_n \ge \beta_t.
   \end{align*}
   From our assumptions that the mean absolute reward is at most $1$
   and $\bar\beta_n \ge 1$, we also get that $r_t \le 2 \le 2\bar\beta_n$.
   Putting these together,
   \begin{align}\label{eq:regret-bound-oneround}
-    r_t &\le 2\bar\beta_n \min\set{1, \norm{\inv{V_t}}{\vec x_t}}
+    r_t &\le 2\bar\beta_n \min\set{1, \norm{\inv{\vec V_t}}{\vec x_t}}
   \end{align}
-  Now we apply Jensen's inequality as follows:
+  Now we apply the Cauchy-Schwarz inequality, since $\widehat{R}_n =
+  \innerp{\vec 1_n}{\vec r/n}$, where $\vec 1_n$ is the all-ones vector
+  and $\vec r$ is the vector of per-round regrets:
   \begin{align*}
     \widehat R_n^2 &= n^2 \paren[\Big]{\sum_{t=1}^n \frac{r_t}{n}}^2
                    \le n^2 \sum_{t=1}^n \frac{r_t^2}{n} = n\sum_{t=1}^nr_t^2
-                   \le 4n\bar\beta_n^2\sum_{t=1}^n\min\set{1,\norm{\inv{V_t}}{\vec x_t}^2}.
+                   \le 4n\bar\beta_n^2\sum_{t=1}^n\min\set{1,\norm{\inv{\vec V_t}}{\vec x_t}^2}.
   \end{align*}
   Taking square roots completes the proof.
 \end{proof}
+
+The following technical lemma relates the quantity from the previous
+result to the volume (i.e.\ determinant) of the $\vec V_n$ matrix.
+We will see shortly that the $\vec U_t$ are all lower bounds on the
+$\vec V_t$.
 
 \begin{lemma}[Elliptical Potential]\label{lemma:elliptical-potential}
   Let $\vec x_1,\dotsc,\vec x_n \in \Real^d$ be vectors with each
@@ -1159,12 +1194,16 @@ different regularizer at each round.
   \end{align*}
 \end{proof}
 
+We are finally in a position to prove the main regret theorem.  The
+proof is straightforward and essentially comes down to plugging in our
+preceding results.
+
 \ThmLinUCBRegret*
 
 \begin{proof}
   We restrict ourselves to the event that all the confidence
   ellipsoids contain $\vec\theta^*$ and all
-  $\rho_{\min}\Eye \preceq H_t \preceq \rho_{\max}\Eye$.
+  $\rho_{\min}\Eye \preceq \vec H_t \preceq \rho_{\max}\Eye$.
   \Cref{prop:calc-beta} assures us that this happens with probability at least
   $1-\alpha$, and furthermore gives us the bound $\beta_t \le \bar\beta_n$:
   \begin{align*}
@@ -1173,8 +1212,8 @@ different regularizer at each round.
                  + S\sqrt{\rho_{\max}} + \gamma.
   \end{align*}
   Next, we have
-  $\norm{\inv{V_t}}{\vec x_t} \le
-  \norm{\inv{(G_t+\rho_{\min}\Eye)}}{\vec x_t}$, which applied to the
+  $\norm{\inv{\vec V_t}}{\vec x_t} \le
+  \norm{\inv{(\vec G_t+\rho_{\min}\Eye)}}{\vec x_t}$, which applied to the
   result of \cref{lemma:linucb-regret} gives, using
   \cref{lemma:elliptical-potential}
   \begin{align*}
@@ -1185,6 +1224,12 @@ different regularizer at each round.
       + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}} \qedhere
   \end{align*}
 \end{proof}
+
+The proof of the gap-dependent regret bound diverges from the previous
+proof in only one major way: the gap is used to bound each $r_t$ by
+$r_t^2/\Delta$.  Then the sum of $r_t^2$ is bounded as before; this
+avoids the $\sqrt n$ factor introduced by the use of the
+Cauchy-Schwarz inequality.
 
 \ThmLinUCBGapRegret*
 
@@ -1197,7 +1242,7 @@ different regularizer at each round.
   \begin{align*}
     \widehat R_n
     &= \sum_{t\in B_n} r_t \le \sum_{t\in B_n} \frac{r_t^2}{\Delta} \\
-    &\le \frac{4}{\Delta} \bar\beta_n^2 \sum_{t\in B_n} \min\set{1, \norm{\inv{V_t}}{\vec x_t}^2}
+    &\le \frac{4}{\Delta} \bar\beta_n^2 \sum_{t\in B_n} \min\set{1, \norm{\inv{\vec V_t}}{\vec x_t}^2}
     &\text{from~\eqref{eq:regret-bound-oneround}} \\
     &\le \frac{8}{\Delta} \bar\beta_n^2d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}} \\
     &\le \frac{8}{\Delta} \brck*{\sigma\paren*{2\log\frac{2}{\alpha}
@@ -1207,6 +1252,26 @@ different regularizer at each round.
   \end{align*}
 
 \end{proof}
+
+\subsection{Discussion of Regret Bounds}
+\label{sec:regret-discussion}
+
+The first conclusion from these regret bounds is that allowing
+changing regularizers does not incur significant additional regret, as
+long as they are bounded both above and below.  Broadly speaking,
+these bounds for contextual linear bandits match those for standard
+MAB algorithms in terms of their dependence on $n$ and $\Delta$ ---
+just like with UCB, for example, the minimax bound is $O(\sqrt n)$ and
+the gap-dependent bound is $O(\log(n)/\Delta)$.  However, the
+dependence on $d$ (which corresponds to the number of arms for the
+MAB) is much worse, with $O(d)$ in the minimax case and $O(d^2)$ in
+the gap-dependent case.
+
+It is an interesting open question whether the $O(d^2)$ dependence on
+$d$ is necessary to achieve $O(\log n)$ regret bounds.  Some empirical
+evidence with bandits running on synthetic data with fixed reward gaps
+seem to indicate approximately an $O(d^{5/3})$ dependency, which would
+seem to rule out an $O(d)$ bound, at least.
 
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
@@ -1243,6 +1308,8 @@ We now give the proof of the lower bound of any private algorithm under the stad
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Graveyard}
 \todo[inline]{Remove following material from final version.}
 
 \section{Ellipsoidal Confidence Sets}
