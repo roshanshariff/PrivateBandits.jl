@@ -152,7 +152,7 @@
 \declaretheorem[style=plain,sibling=theorem]{claim}
 \declaretheorem[style=definition,sibling=theorem]{definition}
 \declaretheorem[style=definition]{assumption}
-\declaretheorem[style=remark,numbered=no]{remark}
+\declaretheorem[style=remark]{remark}
 
 \declaretheorem[style=definition,numbered=no]{assumptions}
 
@@ -485,6 +485,7 @@ parameters of the problem, specified below. Additional parameters
   \item[$\vec x_t$] $\in \D_t$; action at round $t$ \todo{Is this necessary? It was specified in the problem definition. Can it be merged with 6?}
   \item[$y_t$] $\in \Real$; reward at round $t$
   \item[$\vec\theta^*$] unknown parameter vector in $\Real^d$
+  \item[$m$] $\defeq \lceil\log_2(n)+1 \rceil$
   \item[$\vec X_{<t}$] $(t-1)\times d$ matrix with $\vec X_{<t,s} = \transp{\vec
       x_s}$ for $s<t$
   \item[$\vec G_t$] Gram matrix of the actions: $\XtX{\vec X_{<t}}$
@@ -492,7 +493,6 @@ parameters of the problem, specified below. Additional parameters
   \item[$\vec y_{<t}$] vector of rewards up to day $t-1$
   \item[$\vec u_t$] action-reward product: $\transp{\vec X_{<t}} \vec y_{<t}$
   \item[$\vec h_t$] perturbation of $\vec u_t$
-  \item[$m$] $\defeq \lceil\log_2(n)+1 \rceil$
   %\item[$\norm{V}{\vec x}$] $\defeq \sqrt{\transp{\vec x} V \vec x}$
 %   \item[$L$] a bound on the norm of all actions (in all rounds)
 %   \item[$B$] a bound on the mean of the rewards: $|\langle \vec x,\vec\theta^*\rangle| \leq B$.
@@ -582,7 +582,7 @@ and algorithm:
     For all rounds $t=1,\dotsc,n$ and actions $\vec x\in\D_t$:}
   \assume[ass:x-bound] Bounded action set: $\norm{}{\vec x} \le L$.
   \assume[ass:meanreward-bound] Bounded \emph{mean} reward:
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$.
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$.
   \assume[ass:thetastar-bound] Bounded target parameter: $\norm{}{\vec\theta^*} \le S$.
   \assume[ass:psd-reg] All regularizers are PSD $\vec H_t \succeq 0$.
   \assume[ass:subgaussian] $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$ where $\eta_t$ is $\sigma^2$-conditionally
@@ -650,7 +650,9 @@ We now argue that 3 parameters are the key to establishing accurate confidence-s
 We now present bounds on the maximum regret of \cref{alg:linucb}.
 However, due to space constraints, we defer an extensive discussion of
 the proof techniques used and the significance of the results to
-\cref{sec:more-linucb-discussion} in the supplementary material.
+\cref{sec:more-linucb-discussion} in the supplementary material.  The
+constant $\hat{B}$ that appears below is the bound $B$ of
+\cref{ass:meanreward-bound}, clamped to the $[1,LS]$ interval; see \cref{remark:meanreward-bound} in the aforementioned discussion.
 
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
@@ -662,7 +664,7 @@ the proof techniques used and the significance of the results to
     \begin{align}
     \label{eq:regret_general_formula}
     \widehat R_n
-    &\le \sqrt{8n}\brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
+    &\le B' \sqrt{8n}\brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
       + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}} + \gamma)\sqrt{d\log\paren*{1 + \tfrac{nL^2}{d\rho_{\min}}}}}
   \end{align}
@@ -681,13 +683,11 @@ the proof techniques used and the significance of the results to
   \begin{align}
   \label{eq:regret_gap_general_formula}
     \widehat R_n
-    &\le \frac{8}{\Delta} \brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
+    &\le B' \frac{8}{\Delta} \brck[\bigg]{\sigma\paren*{2\log(\tfrac{2}{\alpha})
       + d\log\paren*{\tfrac{\rho_{\max}}{\rho_{\min}} + \tfrac{nL^2}{d\rho_{\min}}}}
       + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\tfrac{nL^2}{d\rho_{\min}}}}}^2
   \end{align}
 \end{restatable}
-
-\os{You seem to have a space of 2-4 lines here which you can use to discuss: Assumption 2, interplay between parameters, or the open problem in Section~\ref{sec:regret-discussion}. Your call.}
 
 \section{Linear UCB with Joint Differential Privacy}
 \label{sec:alg-dp}
@@ -945,11 +945,13 @@ As an immediate corollary we obtain the following \emph{private} regret bound:
 \label{cor:LB_private_MAB}
 The expected pseudo-regret of any $\varepsilon$-differentially private algorithm for the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\paren[\Big]{\sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}}$ we get that the private regret bound is the $\max$ of the two terms, i.e.: $\Omega\paren[\Big]{\tfrac {k\log(n)}{\varepsilon}+\sum{a\neq a^1} \tfrac{\log(n)}{\Delta_a}}$.
 \end{corollary}
-\vspace{-5mm}
-\begin{proof}
-Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.\todo{deal with ugly spacing commands}
-\end{proof}
-\vspace{-5mm}
+{
+  \vspace{-5mm}
+  \begin{proof}
+    Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
+  \end{proof}
+  \vspace{-6mm}
+}
 \begin{proof}[Proof of Claim~\ref{clm:LB_pulling_any_arms_many_times}]
 Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions associated with the $k$ arms. Denote $E$ as the event that arm $a$ is pulled $<\nicefrac{\log(n)}{100\varepsilon\Delta_a} := t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
 
@@ -1073,7 +1075,7 @@ extensive use of \cref{claim:psd-matrix-props}, which shows that for
 any two matrices $\vec 0 \preceq \vec V \preceq \vec U$, we have
 $\det\vec V \le \det\vec U$ and $\inv{\vec V} \succeq \inv{\vec U}$.
 We start by proving the following proposition about the sizes of the
-confidence ellipsoid, which illustrates this general idea.
+confidence ellipsoids, which illustrates this general idea.
 
 \CalcBeta*
 
@@ -1146,8 +1148,9 @@ gap-dependent analysis later avoids this, but has other trade-offs.
 
 \begin{lemma}[Generic LinUCB Regret]\label{lemma:linucb-regret}
   Suppose \cref{ass:meanreward-bound,ass:psd-reg} hold (i.e.\
-  $\abs{\innerp{\vec\theta^*}{\vec x}} \le 1$ and all $\vec H_t \succeq 0$)
-  and $\bar\beta_n \ge \max\set{\beta_1,\dotsc,\beta_n,1}$.  If all
+  $\abs{\innerp{\vec\theta^*}{\vec x}} \le B$ and all $\vec H_t \succeq 0$)
+  and $\bar\beta_n \ge \max\set{\beta_1,\dotsc,\beta_n,1}$; also assume
+  that $B = 1$.  If all
   the confidence sets $\E_t$ contain $\vec\theta^*$ (i.e.,
   $\norm{\vec V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le
   \beta_t$), then the pseudo-regret of \cref{alg:linucb} is bounded by
@@ -1157,9 +1160,33 @@ gap-dependent analysis later avoids this, but has other trade-offs.
   \end{align*}
 \end{lemma}
 
-\os{This, where you use Assumption 2 for the first time, would be a terrific place to discuss why is it OK to set $1$ as the bound.}
+\begin{remark}[On the quantity $B$ appearing in
+  \cref{ass:meanreward-bound}]%
+  \label{remark:meanreward-bound}
+  For the rest of this proof, we assume (as in this lemma) that
+  \cref{ass:meanreward-bound} holds with $B=1$.  Our ultimate regret
+  bounds end up with a factor $B'$, which is $B$ clamped to the
+  $[1, LS]$ interval.  It is easy to see that $B$ is trivially at most
+  $LS$, because $\abs{\innerp{\vec\theta^*}{\vec x_t}}$ is bounded by
+  $\norm{}{\vec\theta^*}\norm{}{\vec x_t}$ using Cauchy-Schwarz.  If
+  $B<1$ then clearly we can take $B=1$ without violating the
+  assumption.  It remains to deal with the situation where $B>1$.
 
-\begin{proof}
+  In this case, we can pre-process the rewards to the algorithm,
+  scaling them down by a factor of $B$.  If we also scale down all the
+  actions $\vec x\in\D_t$, then the rest of the assumptions remain
+  unviolated and the regret bound for $B=1$ applies.  However, this
+  bounds the regret in the scaled problem; in the original problem the
+  rewards and hence regret must be scaled up by a factor of $B$.
+
+  Indeed, in the scaled-down problem the regret is somewhat lower than
+  the bound because both $L$ and $\sigma$ can be scaled down by $B$
+  (the noise variance scales proportionally to the reward).  For
+  simplicity, however, we refrain from replacing $L$ and $\sigma$ in
+  the upper bound with $L/B$ and $\sigma/B$, respectively.
+\end{remark}
+
+\begin{proof}[Proof of \cref{lemma:linucb-regret}]
   At every round $t$, \cref{alg:linucb} selects an ``optimistic''
   action $\vec x_t$ satisfying
   \begin{align}\label{eq:optimistic-action}
@@ -1304,8 +1331,11 @@ preceding results.
     &\le \bar\beta_n\sqrt{8dn\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}} \\
     &\le \sqrt{8n}\brck*{\sigma\paren*{2\log\frac{2}{\alpha}
       + d\log\paren*{\frac{\rho_{\max}}{\rho_{\min}} + \frac{nL^2}{d\rho_{\min}}}}
-      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}} \qedhere
+      + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}}.
   \end{align*}
+  The argument outlined in \cref{remark:meanreward-bound} preceding
+  the proof of \cref{lemma:linucb-regret} tells us how to reintroduce
+  the missing factor of $B'$ in this regret bound.
 \end{proof}
 
 The proof of the gap-dependent regret bound diverges from the previous
@@ -1333,7 +1363,9 @@ Cauchy-Schwarz inequality.
       + (S\sqrt{\rho_{\max}}+\gamma)\sqrt{d\log\paren*{1+\frac{nL^2}{d\rho_{\min}}}}}^2
     &&\qedhere
   \end{align*}
-
+  As before, see \cref{remark:meanreward-bound} preceding
+  the proof of \cref{lemma:linucb-regret} to introduce
+  the missing $B'$ factor.
 \end{proof}
 
 \subsection{Regret Bounds Open Problem}
@@ -1351,9 +1383,10 @@ MAB) is much worse, with $O(d)$ in the minimax case and $O(d^2)$ in
 the gap-dependent case.
 
 It is an interesting open question whether the $O(d^2)$ dependence on
-$d$ is necessary to achieve $O(\log n)$ gap-dependent regret bounds.  Some empirical
-evidence running on synthetic data with fixed reward gaps
-seem to indicate approximately an $\Omega(d^{5/3})$ dependency, which shows a super-linear dependency on $d$.
+$d$ is necessary to achieve $O(\log n)$ gap-dependent regret bounds.
+Some empirical evidence on synthetic data with fixed reward gaps seems
+to indicate approximately an $\Omega(d^{5/3})$ dependency, which is
+super-linear in $d$.
 
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
