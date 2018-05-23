@@ -3,7 +3,7 @@ module Accumulators
 using Base.LinAlg: Cholesky, lowrankupdate!
 
 export AccumStrategy, Accumulator, CholeskyUpdate, SymMatrix,
-    accumulator, accum, accum!, accum, accumulated
+    accumulator, accum, accum!, accum, accumulated, dim
 
 abstract type AccumStrategy end
 
@@ -62,7 +62,9 @@ struct CholeskyUpdate <: AccumStrategy
     dim :: Int
 end
 
-initial(s::CholeskyUpdate) = Cholesky(zeros(s.dim, s.dim), 'U')
+dim(s::CholeskyUpdate) = s.dim
+
+initial(s::CholeskyUpdate) = Cholesky(zeros(dim(s), dim(s)), 'U')
 
 accumulator(::CholeskyUpdate, init) = copy(init)
 
@@ -82,7 +84,9 @@ struct SymMatrix <: AccumStrategy
     dim :: Int
 end
 
-initial(s::SymMatrix) = Symmetric(zeros(s.dim, s.dim))
+dim(s::SymMatrix) = s.dim
+
+initial(s::SymMatrix) = Symmetric(zeros(dim(s), dim(s)))
 
 accumulator(::SymMatrix, init) = copy(init)
 

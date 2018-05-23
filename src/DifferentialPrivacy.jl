@@ -1,8 +1,9 @@
 module DifferentialPrivacy
 
-using Distributions: Wishart
+import Distributions
+import PDMats
+
 using Parameters
-using PDMats: ScalMat
 
 using LinearBandits: RegParams
 using Accumulators
@@ -13,43 +14,53 @@ export ComposedStrategy, TreeStrategy, PanPrivTreeStrategy,
 
 abstract type ComposedStrategy <: AccumStrategy end
 
-basestrategy(s::ComposedStrategy) = # function stub
-    throw(MethodError(basestrategy, typeof((t,))))
-
 numcomposed(T::Type{<:ComposedStrategy}, horizon) = # function stub
     throw(MethodError(numcomposed, Tuple{Type{T}, typeof(horizon)}))
 
-noisetype(T::Type{<:ComposedStrategy}) = # function stub
-    throw(MethodError(noisetype, Tuple{Type{T}}))
+basestrategy(s::ComposedStrategy) = # function stub
+    throw(MethodError(basestrategy, typeof((s,))))
+
+noisedist(s::ComposedStrategy) = # function stub
+    throw(MethodError(noisedist, typeof((s,))))
+
+horizon(s::ComposedStrategy) = # function stub
+    throw(MethodError(horizon, typeof((s,))))
+
+numcomposed(s::ComposedStrategy) = numcomposed(typeof(s), horizon(s))
 
 Accumulators.initial(s::ComposedStrategy) =
     Accumulators.initial(basestrategy(s))
 
+Accumulators.dim(s::ComposedStrategy) = dim(basestrategy(s))
+
 @with_kw struct DiffPrivParams @deftype Float64
-    dim::Int
+    dim :: Int
     ε
     δ
     L̃
+    @assert dim > 0
+    @assert ε ≥ 0
+    @assert δ ≥ 0
+    @assert L̃ ≥ 0
+    @assert isfinite(L̃)
 end
 
-function advanced_composition(m, dp::DiffPrivParams; δfail=p.δ/2)
+function advanced_composition(m, dp::DiffPrivParams; δfail=dp.δ/2)
     @unpack ε, δ = dp
     DiffPrivParams(dp; ε = ε/√(8m*log(1/δfail)), δ = (δ-δfail)/m)
 end
 
 function (T::Type{<:ComposedStrategy})(s::AccumStrategy, Noise::Type,
-                                       dp::DiffPrivParams, horizon::Int)
+                                       horizon::Int, dp::DiffPrivParams)
     noise = Noise(advanced_composition(numcomposed(T, horizon), dp))
     T(s, noise, horizon)
 end
 
-function regparams(T::Type{<:ComposedStrategy}, dp::DiffPrivParams,
-                   α, horizon::Int)
-    m = numcomposed(T, horizon)
-    regparams(noisetype(T), advanced_composition(m, dp), α/horizon; m=m)
-end
+regparams(s::ComposedStrategy, α; m=1) =
+    regparams(noisedist(s), α/horizon(s); m=m*numcomposed(s))
 
 #=========================================================================#
+# Tree Strategy (not pan-private)
 
 struct TreeAccum{State}
     count :: Int  # 0 ≤ count < 2^length(state)
@@ -64,20 +75,22 @@ function TreeAccum(s::ComposedStrategy, horizon::Int, init)
 end
 
 struct TreeStrategy{S<:AccumStrategy, Noise} <: ComposedStrategy
-    horizon :: Int
     strategy :: S
     noise :: Noise
+    horizon :: Int
     function TreeStrategy(s::AccumStrategy, noise, horizon) where {}
         horizon > 0 || throw(ArgumentError("Horizon $horizon ≤ 0"))
-        new{typeof(s), typeof(noise)}(nextpow2(n+1)-1, s, noise)
+        new{typeof(s), typeof(noise)}(s, noise, nextpow2(n+1)-1)
     end
 end
 
 numcomposed(::Type{<:TreeStrategy}, horizon) = nbits(horizon)
 
-noisetype(::Type{TreeStrategy{S, Noise}}) where {S, Noise} = Noise
-
 basestrategy(s::TreeStrategy) = s.strategy
+
+noisedist(s::TreeStrategy) = s.noise
+
+horizon(s::TreeStrategy) = s.horizon
 
 Accumulators.accumulator(s::TreeStrategy, init) =
     TreeAccum(s, s.horizon, init)
@@ -106,22 +119,25 @@ function Accumulators.accumulated(s::TreeStrategy, a::TreeAccum)
 end
 
 #=========================================================================#
+# Pan-Private Tree Strategy
 
 struct PanPrivTreeStrategy{S<:AccumStrategy, Noise} <: ComposedStrategy
-    horizon :: Int
     strategy :: S
     noise :: Noise
+    horizon :: Int
     function PanPrivTreeStrategy(s::AccumStrategy, noise, horizon::Int) where {}
         horizon > 0 || throw(ArgumentError("Horizon $horizon ≤ 0"))
-        new{typeof(s), typeof(noise)}(nextpow2(n), s, noise)
+        new{typeof(s), typeof(noise)}(s, noise, nextpow2(horizon))
     end
 end
 
 numcomposed(::Type{<:PanPrivTreeStrategy}, horizon) = 1 + nbits(horizon-1)
 
-noisetype(::Type{PanPrivTreeStrategy{S, Noise}}) where {S, Noise} = Noise
-
 basestrategy(s::PanPrivTreeStrategy) = s.strategy
+
+noisedist(s::PanPrivTreeStrategy) = s.noise
+
+horizon(s::PanPrivTreeStrategy) = s.horizon
 
 Accumulators.accumulator(s::PanPrivTreeStrategy, init) =
     TreeAccum(s, s.horizon, init)
@@ -153,30 +169,23 @@ function Accumulators.accumulated(s::PanPrivTreeStrategy, a::TreeAccum)
 end
 
 #=========================================================================#
-
-noisefunc() = let i = 0; () -> (i -= 1) end
-
-teststrategy() = PanPrivTreeStrategy(8, ReduceStrategy(Int[], push!), noisefunc())
-
-#=========================================================================#
-
-_wishart_dof(dp::DiffPrivParams) = dp.dim+floor(Int, 28log(4/dp.δ)/dp.ε^2)
+# Wishart Mechanism
 
 struct WishartMechanism
-    dist::Wishart{Float64, ScalMat{Float64}}
+    dist :: Distributions.Wishart{Float64, PDMats.ScalMat{Float64}}
     WishartMechanism(dp::DiffPrivParams) =
-        new(Wishart(_wishart_dof(dp), ScalMat(dp.dim, dp.L̃)))
+        new(Distributions.Wishart(dp.dim + floor(Int, 28log(4/dp.δ)/dp.ε^2),
+                                  PDMats.ScalMat(dp.dim, dp.L̃^2)))
 end
 
-function regparams(::Type{WishartMechanism}, dp::DiffPrivParams, α; m=1)
-    L̃² = dp.L̃^2
-    k = _wishart_dof(dp)
-    d = dp.dim - 1
+function regparams(mechanism::WishartMechanism, α; m=1)
+    (k, S) = Distributions.params(mechanism.dist)
+    d = PDMats.dim(S) - 1
     Δ = √d + √(2(log(4) - log(α)))
     RegParams(
-        ρmin = L̃² * (√(m*k) - Δ)^2,
-        ρmax = L̃² * (√(m*k) + Δ)^2,
-        γ = dp.L̃ * √m * (√d + √-2log(α))
+        ρmin = eigmin(S) * (√(m*k) - Δ)^2,
+        ρmax = eigmax(S) * (√(m*k) + Δ)^2,
+        γ = √eigmax(S) * (√d + √-2log(α))
     )
 end
 
@@ -200,6 +209,13 @@ function Base.next(it::IntBits, s)
     bitpos = 1 + s + trailing_zeros(it.bits >> s)
     (bitpos, bitpos)
 end
+
+#=========================================================================#
+# Test functions
+
+noisefunc() = let i = 0; () -> (i -= 1) end
+
+teststrategy() = PanPrivTreeStrategy(8, ReduceStrategy(Int[], push!), noisefunc())
 
 #=========================================================================#
 

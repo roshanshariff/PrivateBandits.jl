@@ -14,7 +14,7 @@ using LinearBandits
 using Accumulators
 
 export reward_noise, make_alg, make_private_alg, run_episode, orthoarms,
-    unitarms, gaparms, constarms, ExpResult, run_experiment
+    unitarms, gaparms, constarms, ExpResult, pmap_progress, run_experiment
 
 #=========================================================================#
 
@@ -26,25 +26,25 @@ export reward_noise, make_alg, make_private_alg, run_episode, orthoarms,
 # end
 
 function gaparms(env::EnvParams; k=env.dim^2, gap=0.0)
-    @unpack dim, maxθnorm, maxactionnorm, maxrewardmean = env
+    @unpack dim, maxactionnorm = env
 
-    opt = maxrewardmean/(maxθnorm*maxactionnorm)
+    opt = env.maxrewardmean/(env.maxθnorm*maxactionnorm)
     maxsubopt = opt - gap
     minsubopt = -opt
 
     β = (dim-1)/2
     dist = Truncated(Beta(β, β), (1+minsubopt)/2, (1+maxsubopt)/2)
 
-    arms = zeros(env.dim, k)
-    heads = view(arms, 1:1, :)
-    tails = view(arms, 2:env.dim, :)
+    arms = zeros(dim, k)
+    heads = @view arms[1:1, :]
+    tails = @view arms[2:end, :]
 
     function ()
         randn!(tails)
         colwise_sumsq!(heads, tails, 1)
         tails ./= sqrt.(heads)
         rand!(dist, heads)
-        heads .= env.maxactionnorm .* (2.*heads .- 1)
+        heads .= maxactionnorm .* (2.*heads .- 1)
         heads[rand(1:k)] = maxactionnorm * opt
         tails .*= sqrt.(maxactionnorm^2 .- heads.^2)
         arms
@@ -64,17 +64,20 @@ end
 
 (dist::GaussianReward)(mean) = mean + dist.σ*randn()
 
-subgaussian_σ(d::GaussianReward) = d.σ
+subgaussian_σ(dist::GaussianReward) = dist.σ
 
 @with_kw struct BoundedReward @deftype Float64
     min = -1.0
     max = +1.0
+    @assert isfinite(min) && isfinite(max)
+    @assert min ≤ max
 end
 
 function (dist::BoundedReward)(mean)
     dist.min ≤ mean ≤ dist.max ||
         throw(ArgumentError("reward $mean ∉ [$(dist.min), $(dist.max)]"))
-    mean < dist.min + rand()*(dist.max - dist.min) ? dist.min : dist.max
+    u = dist.min + rand()*(dist.max - dist.min)
+    mean ≤ u ? dist.min : dist.max
 end
 
 # http://blog.wouterkoolen.info/BernoulliSubGaussian/post.html
@@ -100,9 +103,8 @@ function make_private_alg(env, horizon, ε, δ, Mechanism;
                           α=1/horizon, strategy=PanPrivTreeStrategy)
     L̃ = √(env.maxactionnorm^2 + env.maxreward^2)
     dp = DiffPrivParams(dim=env.dim+1, ε=ε, δ=δ, L̃=L̃)
-    s = strategy(SymMatrix(dp.dim), Mechanism, dp, horizon)
-    reg = regparams(typeof(s), dp, α/2, horizon)
-    EllipLinUCB(s, env, reg, α/2)
+    s = strategy(SymMatrix(dp.dim), Mechanism, horizon, dp)
+    EllipLinUCB(s, env, regparams(s, α/2), α/2)
 end
 
 #=========================================================================#
@@ -127,16 +129,22 @@ function oneround!(b::Bandit, θ, arms, noise)
     rewards[i]
 end
 
-function run_episode(env, alg, arms, noise, horizon; randθ=false)
+function run_episode(env, alg, arms, noise, horizon;
+                     randθ=false, subsample=1)
     b = Bandit(alg)
     θ = if randθ
         env.maxθnorm * normalize!(randn(dim(alg)))
     else
         [env.maxθnorm; zeros(dim(alg) - 1)]
     end
-    regrets = [oneround!(b, θ, arms(), noise) for _ in 1:horizon]
-    cumsum!(regrets, regrets)
-    regrets
+    cumregret = 0.0
+    regrets = map(subsample:subsample:horizon) do _
+        for i in 1:subsample
+            cumregret += oneround!(b, θ, arms(), noise)
+        end
+        cumregret
+    end
+    ExpResult(subsample:subsample:horizon, regrets)
 end
 
 #=========================================================================#
@@ -173,10 +181,14 @@ function Base.vcat(results::ExpResult...)
               vcat((r.data for r in results)...))
 end
 
+function pmap_progress(f, c, rest...; kwargs...)
+    progress = ProgressMeter.Progress(length(c))
+    pmap(f, progress, c, rest...; kwargs...)
+end
+
 function run_experiment(f, params; runs=1)
-    progress = ProgressMeter.Progress(runs*length(params))
-    experiment = (p for p in params, run=1:runs)
-    ExpResult(collect(params), pmap(f, progress, experiment))
+    experiment = (p for p in params, _ in 1:runs)
+    ExpResult(collect(params), pmap_progress(f, experiment))
 end
 
 #=========================================================================#

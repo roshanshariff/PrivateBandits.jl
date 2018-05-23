@@ -7,15 +7,15 @@ using Parameters
 
 using Accumulators
 
-export ContextLinBandit, EllipLinUCB, EnvParams, RegParams, dim,
-initialize, learn!, choosearm
+export ContextLinBandit, EllipLinUCB, EnvParams, RegParams,
+    initialize, learn!, choosearm
 
 #=========================================================================#
 
 abstract type ContextLinBandit end
 
-dim(alg::ContextLinBandit) = # function stub
-    throw(MethodError(dim, typeof((b,))))
+Accumulators.dim(alg::ContextLinBandit) = # function stub
+    throw(MethodError(dim, typeof((alg,))))
 
 initialize(alg::ContextLinBandit) = # function stub
     throw(MethodError(initalize, typeof((alg,))))
@@ -42,6 +42,11 @@ choosearm(alg::ContextLinUCB, s, arms) = indmax(armUCB(alg, s, arms))
     maxrewardmean = maxθnorm * maxactionnorm
     maxreward = Inf
     σ = 1
+    @assert dim ≥ 0
+    @assert maxθnorm ≥ 0
+    @assert maxactionnorm ≥ 0
+    @assert maxrewardmean ≥ 0
+    @assert maxreward ≥ 0
 end
 
 @with_kw struct RegParams @deftype Float64
@@ -49,6 +54,8 @@ end
     ρmax
     γ
     shift = 0
+    @assert ρmax ≥ ρmin > 0
+    @assert γ ≥ 0
 end
 
 struct Ellipsoid
@@ -66,7 +73,7 @@ _β(ℰ::Ellipsoid, logdetV) = ℰ.ξ + ℰ.σ*√max(0, logdetV + ℰ.κ)
 
 function (ℰ::Ellipsoid)(M::Symmetric)
     d = LinAlg.checksquare(M) - 1
-    V = lufact(principle_submatrix(M))
+    V = lufact(principle_submatrix(parent(M)))
     θ̂ = A_ldiv_B!(V, M[1:d, d+1])
     (V, θ̂, _β(ℰ, logdet(V)))
 end
@@ -78,25 +85,22 @@ function (ℰ::Ellipsoid)(C::Cholesky)
 end
 
 struct EllipLinUCB{S <: AccumStrategy} <: ContextLinUCB
-    dim :: Int
-    strategy :: AccumStrategy
+    strategy :: S
     ℰ :: Ellipsoid
     shift :: Float64
     function EllipLinUCB(strategy::AccumStrategy, env::EnvParams,
                          reg::RegParams, α) where {}
-        new{typeof(strategy)}(env.dim, strategy, Ellipsoid(env, reg, α),
-                              reg.shift)
+        new{typeof(strategy)}(strategy, Ellipsoid(env, reg, α), reg.shift)
     end
 end
 
-dim(alg::EllipLinUCB) = alg.dim
+Accumulators.dim(alg::EllipLinUCB) = dim(alg.strategy) - 1
 
 initialize(alg::EllipLinUCB) =
     accum!(alg.strategy, accumulator(alg.strategy),
-           Symmetric(Diagonal(fill(alg.shift, dim(alg)+1))))
+           Symmetric(Diagonal(fill(alg.shift, dim(alg.strategy)))))
 
-learn!(alg::EllipLinUCB, state, x, y) =
-    accum!(alg.strategy, state, [x; y])
+learn!(alg::EllipLinUCB, state, x, y) = accum!(alg.strategy, state, [x; y])
 
 function armUCB(alg::EllipLinUCB, state, arms)
     (V, θ̂, β) = alg.ℰ(accumulated(alg.strategy, state))
@@ -104,37 +108,8 @@ function armUCB(alg::EllipLinUCB, state, arms)
     ucb .+= β .* sqrt.(max.(0, invmatnormsq(V, arms)))
 end
 
-# function armUCB_alt(alg::EllipLinUCB, C, arms)
-#     V = principle_submatrix(C)
-#     θ̂ = cholU_ldiv_B!(V, cholU_lastcol(C))
-#     Vfact = UpperTriangular(V.factors)
-#     sqrtβ = alg.ε + √min(0, -2*alg.logδ + logdet(V) - alg.logdetV₀)
-#     result = similar(arms, size(arms, 2))
-#     temp = similar(arms, size(arms, 1))
-#     for j = 1:size(arms, 2)
-#         @simd for i = 1:size(arms, 1)
-#             @inbounds temp[i] = arms[i, j]
-#         end
-#         if C.uplo == 'L'
-#             A_ldiv_B!(Vfact, temp)
-#             Ac_ldiv_B!(Vfact, temp)
-#         else
-#             Ac_ldiv_B!(Vfact, temp)
-#             A_ldiv_B!(Vfact, temp)
-#         end
-#         meanreward = zero(eltype(arms))
-#         bonus = zero(eltype(arms))
-#         @simd for i = 1:size(arms, 1)
-#             @inbounds arms_ij = arms[i, j]
-#             @inbounds meanreward += arms_ij * θ̂[i]
-#             @inbounds bonus += arms_ij * temp[i]
-#         end
-#         @inbounds result[j] = meanreward + sqrtβ*√bonus
-#     end
-#     result
-# end
-
 #=========================================================================#
+# Utility functions
 
 function principle_submatrix(A::AbstractMatrix, ord=1)
     range = Base.OneTo(LinAlg.checksquare(A) - ord)
