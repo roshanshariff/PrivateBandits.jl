@@ -65,13 +65,12 @@
 
 %% Cross-references
 \usepackage{varioref}
-\usepackage[pdfusetitle]{hyperref}
+\usepackage[pdfusetitle,bookmarks]{hyperref}
 % \usepackage{bookmark}
 \usepackage[capitalise]{cleveref}
 
 \hypersetup{
   hidelinks,
-  bookmarks,
   bookmarksnumbered,
   bookmarksopen,
   bookmarksopenlevel=2
@@ -309,8 +308,8 @@ In other words, the regret characterizes the cost of having to
 \emph{learn} the optimal action over just \emph{knowing} it
 beforehand.  For stochastic problems, we are usually interested in a
 related quantity called \emph{pseudo-regret}, which is the extra
-\emph{expected} reward that the learner could have been earned if it
-had known $\vec\theta^*$ in advance.  In our setting, the cumulative
+\emph{expected} reward that the learner could have earned if it had
+known $\vec\theta^*$ in advance.  In our setting, the cumulative
 pseudo-regret after $n$ rounds is
 $\widehat{R}_n \defeq \sum_{t=1}^n\max_{\vec
   x\in\D_t}\innerp{\vec\theta^*}{\vec x - \vec x_t}$.%
@@ -485,8 +484,8 @@ $\vec{CAPITALS}$ for matrices.  Given a $d$-column matrix $\vec M$,
 its \emph{Gram matrix} is the $(d\times d)$-matrix $\XtX{\vec M}$.  A
 symmetric matrix $\vec M$ is positive-semidefinite (PSD, denoted
 $\vec M\succeq 0$) if $\transp{\vec x} \vec M \vec x \geq 0$ for any
-$\vec x$.  Any such $\vec M$ defines an inner product between vectors,
-so we define $\norm{M}{x}^2 = \transp{\vec x} \vec M \vec x$.  We use
+vector $\vec x$.  Any such $\vec M$ defines a norm on vectors, so we
+define $\norm{M}{x}^2 = \transp{\vec x} \vec M \vec x$.  We use
 $\vec M\succeq \vec N$ to mean $\vec M-\vec N\succeq 0$.  The Gaussian
 distribution $\Normal(\mu,\sigma^2)$ is defined by the density
 function
@@ -494,10 +493,11 @@ $(2\pi\sigma^2)^{\nicefrac{-1}{2}}\exp(\nicefrac{-(x-\mu)^2}{2\sigma^2})$. The
 squared $L_2$-norm of a $d$-dimensional vector whose coordinates are
 drawn iid from $\Normal(0,1)$ is given by the $\chi^2(d)$
 distribution, which is tightly concentrated around $d$.  Given two
-distributions $\Pr$ and $\mathds Q$ we denote their \emph{total variation
-  distance} by
-$d_{\rm TV}(\mathds P,\mathds Q) = \max_{\text{event }E}\abs{\Prob{E}-{\mathds
-Q}(E)}$.  %Explicit concentration bounds are given in \cref{}
+distributions $\Pr$ and $\mathds Q$ we denote their \emph{total
+  variation distance} by
+$d_{\rm TV}(\mathds P,\mathds Q) = \max_{\text{event
+  }E}\abs{\Prob{E}-{\mathds
+    Q}(E)}$.  %Explicit concentration bounds are given in \cref{}
 
 \paragraph{Notation.}\label{sec:notation} Our bound depends on many
 parameters of the problem, specified below. Additional parameters
@@ -1066,10 +1066,10 @@ t_a)\Pr_{A;~{\rm rewards}\sim \bar Q}[E] \leq \exp(0.06 \log(n)) \cdot
 
 
 \section{Additional Background Information}
-\label{apx_sec:more_background}
+\label[section]{apx_sec:more_background}
 
 \subsection{Differential Privacy}
-\label{apx_subsec:DP}
+\label[subsection]{apx_subsec:DP}
 
 In the offline setting, a dataset $D$ is a $n$-tuple of elements from some universe $\mathcal{U}$. Two datasets are called neighbors if they differ just on a single element. An algorithm $A$ is said to be $(\varepsilon,\delta)$-differentially private if for any pair of neighboring datasets $D$ and $D'$ and any subset of possible outputs $\mathcal{S}$ we have that $\Pr[A(D)\in\mathcal{S}]\leq e^\varepsilon\Pr[A(D')\in\mathcal{S}] + \delta$. A common technique~\cite{DworkOurData2006} for approximating the value of a query $f$ on dataset $D$ is to first find its $L_2$-sensitivity, $GS_2 :=\max_{D,D'\textrm{ neighboring}} \|f(D)-f(D')\|_2$, and then add Gaussian noise of $0$-mean and variance $\tfrac{2GS_2^2\ln(\nicefrac 2 \delta)}{\varepsilon^2}$.
 
@@ -1081,7 +1081,7 @@ rooted at $x$. First notice that one can compute any partial sum $\sum_{j=1}^i l
 ing data sequences $D$ and $D'$ the partial sums stored at no more than $m$ nodes in $T$ are different. Thus, if the count in each node preserves $(\varepsilon_0,\delta_0)$-differential privacy, using the advanced composition of~\cite{DworkBoosting2010} we get that the entire algorithm is $\left(O(m\varepsilon_0^2+\varepsilon_0\sqrt{2m\ln(\nicefrac 1{\delta'})}), m\delta_0 + \delta'\right)$-differentially private. Aternatively, to make sure the entire tree is $(\varepsilon,\delta)$-differentially private, it suffices to set $\varepsilon_0 = \varepsilon / \sqrt{8m\ln(\nicefrac 2 \delta)}$ and $\delta_0= \tfrac \delta{2m}$ (with $\delta'=\nicefrac \delta 2$).
 
 \subsection{Useful Facts.}
-\label{apx_subsec:facts}
+\label[subsection]{apx_subsec:facts}
 
 In this work, we repeatedly apply the following facts about PSD matrices, the Gaussian distribution, the $\chi^2$-distribution and the Wishart-distribution.
 
@@ -1440,7 +1440,7 @@ Cauchy-Schwarz inequality.
 \end{proof}
 
 \subsection{Regret Bounds Open Problem}
-\label{sec:regret-discussion}
+\label[subsection]{sec:regret-discussion}
 
 The first conclusion from these regret bounds is that allowing
 changing regularizers does not incur significant additional regret, as
@@ -1489,7 +1489,7 @@ a function of the dimension. The results of the experiment are plotted
 in \cref{fig:regret_dim} (and in log-log scale in \cref{fig:regret_dim_logscale}). The results clearly point our to super-linear dependency on $d$. In fact, on our log-scale plot we see a slope of roughly $1.66$, giving rise to the conjecture that the dependency of the pseudo-regret on $d$ in this setting is $\Omega(d^{5/3})$. Of course, there could be other settings where the pseudo-regret is as high as $\Omega(d^2)$. We conjecture that the dependency on $d$ is indeed quadartic.
 
 \section{Privacy Proofs}
-\label{apx_sec:privacy_proofs}
+\label[section]{apx_sec:privacy_proofs}
 \newcommand{\cut}[1]{}
 \cut{
 Before giving the omitted proofs from the body of the paper, we wish
@@ -1501,9 +1501,15 @@ noise (\cref{cor:regret_with_Wishart}) is $\tilde O(\sqrt n(d+\tfrac{\sqrt d}\va
 
 So, how come with Gaussian noise we get a worse dependency on $\varepsilon$ than in the Wishart case? The reason lies in the two factors. First, the degrees of freedom $k$ in the Wishart noise are of the form $k=d+O(\varepsilon^{-2})$, making the top eigenvalue of the added noise $\|\vec H_t\|$ proportional to $O(\sqrt{\log(n)k}+\sqrt d) = O(\sqrt{d\log(n)}+ \tfrac{\sqrt{\log(n)}}{\varepsilon})$, so we get an additive relation rather than a multiplicative relation. In contrast, sampling a Gaussian noise, even though the variance in each coordinate is $O(\log(n)\cdot \varepsilon^{-2})$ and independent of $d$, the bound on the noise in this case is greater by a factor of $\sqrt{d}$, resultsing in the bound $\|\vec H_t\| = O(\sqrt{d\log(n)}/\varepsilon)$. Second, the bound on $\gamma$ is different in the two cases. For Wishart noise, we are able to use the special structure of $\vec H_t$ being the Gram matrix of multivariate Gaussian samples to infer the $\|\vec h_t\|_{\inv{\vec H_t}}$ is basically a projection of a sample from a spherical Gaussian onto a $d$-dimensional space~--- making the bound $\gamma$ \emph{independent} of $mk$ (the degrees of freedom in the Wishart noise) and depends solely on $d$. As a result, $\gamma \ll \rho_{\max}$ in the Wishart noise case, and we have already established that $\rho_{\max}$ has additive dependencies between $\sqrt d$ and $\varepsilon^{-1}$. In contrast, we are unable to leverage on any structure in the Gaussian noise case, making our $\gamma$ bound very similar to $\rho_{\max}$ which is in this case $O(\sqrt d/\varepsilon)$.
 
-Admittedly, we do not know if this is merely an artifact of our analysis, or rather truly a difference in the bound. It is possible that slightly revising the proof of \cref{thm:linucb-regret} could leads to different bounds, which are identical between the two privacy-preserving techniques. To attempt to test this empirically requires ridicolously large $d$ and $1/\varepsilon$, which is far beyond what we could handle.
-}
-We now turn to providing the missing privacy-proofs from the main body of the paper. First, we give the omitted proof from \cref{sec:dp-wishart}.
+Admittedly, we do not know if this is merely an artifact of our
+analysis, or rather truly a difference in the bound. It is possible
+that slightly revising the proof of \cref{thm:linucb-regret} could
+leads to different bounds, which are identical between the two
+privacy-preserving techniques. To attempt to test this empirically
+requires ridicolously large $d$ and $1/\varepsilon$, which is far
+beyond what we could handle.  } We now provide the missing privacy
+proofs from the main body of the paper.  First, we give the omitted
+proof from \cref{sec:dp-wishart}.
 
 \PropWishartTails*
 \begin{proof}
@@ -1523,7 +1529,7 @@ h_t\|_{\vec H_t^{-1}} = \sqrt{ \transp{\vec z} \vec Z (\transp{\vec  Z}
   \vec Z)^{-1}  \transp{\vec Z} \vec z }$. The matrix $\vec Z
 (\transp{\vec Z} \vec Z)^{-1}  \transp{\vec Z}$ is a projection matrix
 onto a $d$-dimensional space, and projecting the spherical Gaussian
-$\vec z$ onto this subspace results in a $d$-dimensional sphrical
+$\vec z$ onto this subspace results in a $d$-dimensional spherical
 Gaussian. Using concentration bounds on the $\chi^2$-distribution (\cref{claim:chi2-tails}) we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{\vec H_t^{-1}}\leq \tilde L(\sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})})$. %Taking a union bound over all $n$ days concludes the proof.
 \end{proof}
 
@@ -1612,7 +1618,7 @@ noise in the reward at round $s$) and we defined $V \defeq \transp{X}X
 + H$ and $Z\defeq X^T\eta$.
 
 \begin{lemma}\label{lemma:subgaussian-z}
-  Under \cref{assumption:subgaussian-noise} and for any
+  Under \cref{ass:subgaussian} and for any
 $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
   \begin{align*}
     \Ex{\exp(\transp{\lambda}Z)} \le \exp\paren{\norm{G}{\lambda}^2/2}.
@@ -1627,7 +1633,7 @@ $\lambda\in\Real^d$, the random variable $Z = \transp{X}\eta$ satisfies
       &= \Ex[\Big]{\Ex[\Big]{\exp\paren{\transp{\lambda}X_t\eta_t} \given \mathcal{F}_t} \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}} \\
       &\le \Ex[\Big]{\exp\paren{{(\transp{\lambda}X_t)}^2/2}
         \prod_{s=1}^{t-1} \exp\paren{\transp{\lambda}X_s\eta_s}}
-      &\text{since $\eta_t$ is conditionally 1-subgaussian given $\mathcal{F}_t$}\\
+      &\text{1-subgaussianity of $\eta_t$ given $\mathcal{F}_t$}\\
       &\le \Ex[\Big]{\prod_{s=1}^t\exp({(\transp{\lambda}X_s)}^2/2)}
       &\text{similarly conditioning on $\mathcal{F}_{t-1},\mathcal{F}_{t-2},\dotsc$}\\
       &= \Ex[\Big]{\exp\paren[\Big]{\sum_{s=1}^t\frac{\transp{\lambda}X_s\transp{X_s}\lambda}{2}}} \\
