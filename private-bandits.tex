@@ -377,7 +377,7 @@ surprisingly, our framework combines a tree-based privacy
 algorithm~\citep{ChanPrivateContinualRelease2010,DworkContinualObservation2010}
 with a linear upper confidence bound (LinUCB)
 algorithm~\cite{DaniStochasticLinearOptimization2008}.  For
-modularity, in Section~\ref{sec:LinUCB} we analyze a family of linear
+modularity, in \cref{sec:LinUCB} we analyze a family of linear
 UCB algorithms that use different regularizers in every round, under
 the premise that the regularizers are PSD with bounded singular
 values.  Moreover, we repeat our analysis twice --- first we obtain a
@@ -400,9 +400,9 @@ second uses additive Gaussian noise~\citep{DworkAnalyzeGauss2014}
 (shifted to make it PSD w.h.p.\@ over all rounds), achieving
 $\tilde O(\sqrt n(d + d^{3/4}/\sqrt\varepsilon))$ regret.  The details
 of the two techniques are given in \cref{sec:alg-dp}.
-%We also present empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
+%We also present empirical evidence showing our analysis is in fact optimal, presented in \cref{}.
 
-In Section~\ref{sec:lower-bounds} we also give a lower bound for the
+In \cref{sec:lower-bounds} we also give a lower bound for the
 $\varepsilon$-differentially private MAB problem. Whereas all previous
 work on the private MAB problem uses standard (non-private) bounds, we
 show that \emph{any} private algorithm must incur \emph{an additional}
@@ -472,7 +472,7 @@ setting, however (i)~without maintaining PSD, (ii)~without any
 analysis, only empirical evidence, and (iii)~without presenting lower
 bounds. Further details about acheiving differential privacy via
 additive noise and the tree-based algorithm appear in
-Section~\ref{apx_sec:more_background} of the supplementary material.
+\cref{apx_sec:more_background} of the supplementary material.
 %
 The related problem of private linear regression have also been extensively studied in the offline setting
 \citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}.
@@ -497,7 +497,7 @@ distribution, which is tightly concentrated around $d$.  Given two
 distributions $\Pr$ and $\mathds Q$ we denote their \emph{total variation
   distance} by
 $d_{\rm TV}(\mathds P,\mathds Q) = \max_{\text{event }E}\abs{\Prob{E}-{\mathds
-Q}(E)}$.  %Explicit concentration bounds are given in Section~\ref{}
+Q}(E)}$.  %Explicit concentration bounds are given in \cref{}
 
 \paragraph{Notation.}\label{sec:notation} Our bound depends on many
 parameters of the problem, specified below. Additional parameters
@@ -590,7 +590,7 @@ $\tilde{\vec\theta}_t \defeq \inv{\vec V_t}\tilde{\vec u}_t$.
     \State Receive $\D_t \gets{}$ decision set ${} \subset \Real^d$.
     \State Receive regularized $\vec V_t \gets \vec G_t + \vec H_t$ and perturbed $\tilde{\vec u}_t \gets \vec u_t + \vec h_t$
     \State Compute regressor $\tilde{\vec\theta}_{t} \gets \inv{\vec V_{t}}\tilde{\vec u}_{t}$
-    \State Compute confidence-set bound $\beta_t$ based on Porposition~\ref{prop:calc-beta}.
+    \State Compute confidence-set bound $\beta_t$ based on \cref{prop:calc-beta}.
     \State Pick action $\vec x_t \gets \argmax_{\vec x\in\D_t}
     \innerp{\tilde{\vec \theta}_t}{\vec x} +
     \beta_t\norm{\inv{\vec V_t}}{\vec x}$.
@@ -632,7 +632,7 @@ and algorithm:
   means as in \cref{ass:meanreward-bound}), we can set $\tilde L^2 = L^2 + \tilde B^2$.
 \end{assumptions*}
 
-\cref{ass:x-bound,ass:meanreward-bound} aren't required to have good pseudo-regret bounds, they merely simplify the bounds on the confidence set (see Proposition~\ref{prop:calc-beta} and Section~\ref{sec:regret-bounds}). \cref{ass:bounded-data} is not required at all for now, it is only used for joint-differential privacy in Section~\ref{sec:alg-dp}.
+\cref{ass:x-bound,ass:meanreward-bound} aren't required to have good pseudo-regret bounds, they merely simplify the bounds on the confidence set (see \cref{prop:calc-beta} and \cref{sec:regret-bounds}). \cref{ass:bounded-data} is not required at all for now, it is only used for joint-differential privacy in \cref{sec:alg-dp}.
 
 
 % \cref{ass:x-bound,ass:meanreward-bound} are not needed for the
@@ -641,7 +641,7 @@ and algorithm:
 % important to note that of these, only \cref{ass:x-bound} is needed for
 % differential privacy (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
 
-To fully describe Algorithm~\ref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accurate~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain.
+To fully describe \cref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accurate~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain.
 In other words, the $\beta_t$ should be as small as possible subject to being accurate.
 
 \begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
@@ -651,7 +651,7 @@ In other words, the $\beta_t$ should be as small as possible subject to being ac
   $\norm{\vec V_t}{\vec\theta^* - \tilde{\vec\theta}_t} \le \beta_t$
   for all rounds $t=1,\dotsc,n$ simultaneously.
 \end{definition}
-
+\vspace{-\parskip}
 We now argue that three parameters are the key to establishing accurate confidence-set bounds $(\beta_t)_{t=1}^n$~--- taking into account the noise in the setting \emph{and} the noise added by a changing $\vec H_t$ and $\vec h_t$.
 
 \begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
@@ -788,7 +788,7 @@ hold.
 
 Below we present two techniques for maintaining (and updating) the
 private estimations of $\vec M_t$. As mentioned in
-Section~\ref{subsec:related_work}, the key component of our technique is
+\cref{subsec:related_work}, the key component of our technique is
 the tree-based algorithm, allowing us to estimate $\vec M_t$ using at most
 $m \defeq 1 + \ceil{\log_2n}$ noisy counters. In order for the entire
 tree-based algorithm to be $(\varepsilon,\delta)$-differentially
@@ -922,10 +922,10 @@ However, it is important to note that the result of adding Gaussian
 noise may not preserve the PSD property of the noisy Gram matrix. To
 that end, we ought to shift $\vec N_t$ by some $c\cdot \Eye$, in order
 to make sure that we maintain strictly positive eigenvalues throughout
-the execution of the algorithm. Since the bounds in Theorems~\ref{thm:linucb-regret} and~\ref{thm:linucb-gap-regret} mainly depends on $\sqrt{\rho_{\max}} +\gamma$, we choose the shift-magnitude to be $2\Upsilon \Eye$. This makes $\rho_{\max}=3\Upsilon$ and $\rho_{\min}=\Upsilon$ and as a result then
+the execution of the algorithm. Since the bounds in \cref{thm:linucb-regret,thm:linucb-gap-regret} mainly depend on $\sqrt{\rho_{\max}} +\gamma$, we choose the shift-magnitude to be $2\Upsilon \Eye$. This makes $\rho_{\max}=3\Upsilon$ and $\rho_{\min}=\Upsilon$ and as a result then
 $\norm{\inv{\vec H_t}}{\vec h_t} \leq \sqrt{\nicefrac 1 \Upsilon}\norm{}{\vec h_t}$ which we can
 bound using standard concentration bounds on the $\chi^2$-distribution
-(see Claim~\ref{claim:chi2-tails}). This culminates in the following
+(see \cref{claim:chi2-tails}). This culminates in the following
 bounds.
 \begin{proposition}
 \label{pro:accurate_bounds_for_Gaussian}
@@ -942,10 +942,10 @@ whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$;
 $2\Upsilon\Eye$; and $\vec h_t$ is given by summing $\leq m$
 $d$-dimensional vectors whose entries are sampled iid from
 $\Normal(0,\sigma_{\rm noise}^2)$ (the symmetrization doesn't change
-the distribution of each coordinate). And this leads to a bound on the regret of Algorithm~\ref{alg:linucb} with the tree-based algorithm using Gaussian noise.
+the distribution of each coordinate). And this leads to a bound on the regret of \cref{alg:linucb} with the tree-based algorithm using Gaussian noise.
 \begin{corollary}
 \label{cor:regret_with_Gaussian}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmetrized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $2\Upsilon\Eye$, we get a regret bound of
+Applying \cref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmetrized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $2\Upsilon\Eye$, we get a regret bound of
 \[O(B\sqrt n \left(  
 \sigma (d \log(n)+\log(\nicefrac 1 \alpha)) + S\tilde L \log(n) \sqrt{
 {d(\sqrt d + 1\ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
@@ -958,8 +958,8 @@ in general, and a gap-dependent pseudo-regret bound of
 }
 \right)^2 )\]
 \end{corollary}
-
-It is fairly evident that the bound of Corollary~\ref{cor:regret_with_Gaussian} is better than the bound of Corollary~\ref{cor:regret_with_Wishart}: whereas the first bound is roughly $\tilde O(\sqrt n(d+\nicefrac {\sqrt d}\varepsilon
+\vspace{-\parskip}
+It is fairly evident that the bound of \cref{cor:regret_with_Gaussian} is better than the bound of \cref{cor:regret_with_Wishart}: whereas the first bound is roughly $\tilde O(\sqrt n(d+\nicefrac {\sqrt d}\varepsilon
 ))$, this last bound is roughly $\tilde O(\sqrt n(d + d^{3/4}/\varepsilon^{1/2}))$.
 \section{Lower Bounds}
 \label{sec:lower-bounds}
@@ -973,7 +973,7 @@ assume user $t$ provides a context $c_t$ which actually determines the
 mapping of the arms into feature vectors: $\phi(c_t, a) \in
 \Real^d$. The sequence of choice thus made by the learner is
 $a_1,..., a_n \in \A^n$ which we aim to keep private. The next
-claim, whose proof is deferred to Section~\ref{apx_sec:privacy_proofs}
+claim, whose proof is deferred to \cref{apx_sec:privacy_proofs}
 in the supplementary material, shows that this is impossible without
 effectively losing any reasonable notion of utility.
 \DeclareRobustCommand{\DPDefinition} {Formally, two sequences
@@ -993,30 +993,32 @@ effectively losing any reasonable notion of utility.
 For any $\varepsilon < \ln(2)$ and $\delta < 0.25$, any $(\varepsilon,\delta)$-differentially private algorithm $A$ for the contextual bandit problem must incur pseudo-regret of $\Omega(n)$.
 %\end{claim}
 \end{restatable}
+\vspace{-\parskip}
 \DeclareRobustCommand{\DPLowerBoundProof}
 {\begin{proof}
 We consider a setting with two arms $\A=\{a^1,a^2\}$ and two possible contexts: $c^1$ which maps $a^1\mapsto \vec\theta^*$ and $a^2 \mapsto -\vec\theta^*$; and $c^2$ which flips the mapping. Assuming $\|\vec\theta^*\|=1$ it is evident we incur a pseudo-regret of $2$ when pulling arm $a^1$ is under context $c^2$ or pulling arm $a^2$ under $c^1$. Fix a day $t$ and a history of previous inputs and arm pulls $H_{t-1}$. Consider a pair of neighboring sequences that agree on the history $H_{t-1}$ and differ just on day $t$ --- in $S$ the context $c_t =c^1$ whereas in $S'$ it is set as $c_t =c^2$. Denote $\mathcal{S}$ as the subset of action sequences that are fixed on the first $t-1$ days according to $H_{t-1}$, have the $t$-th action be $a^1$ and on days $>t$ may have any action. Thus, applying the guarantee of differential privacy w.r.t to $\mathcal{S}$ we get that $\Pr[a_t = a^1 |~S] = \Pr[A(S)\in \mathcal{S}] \leq e^\varepsilon \Pr[a_t=a^1 |~S'] + \delta$. Consider an adversary that sets the context of day $t$ to be either $c^1$ or $c^2$ uniformly at random and independently of other days. The pseudo-regret incurred on day $t$ is thus: $2\cdot \tfrac 1 2 \left( \Pr[a_t=a^2|~S] + \Pr[a_t=a^1|~S'] \right)  \geq (1- \Pr[a_t=a^1|~S]) + e^{-\varepsilon}(\Pr[a_t=a^1|~S]-\delta) = 1 + (e^{-\varepsilon}-1)\Pr[a_t=a^2|~S] - \delta > 1 - 1\cdot \tfrac 1 2 - \tfrac 1 4 = \tfrac 1 4$. As the above applies to any day $t$,  the algorithm's pseudo-regret is $\geq \tfrac n 4$ against such random adversary.
 \end{proof}}
-
 The second lower bound we show is more challenging. We show that any $\varepsilon$-differentially private algorithm for the classic MAB problem must incur \emph{an additional} pseudo-regret of $\Omega( k\log(n)/\epsilon)$ on top of the standard (non-private) regret bounds.  We consider an instance of the MAB where the leading arm is $a^1$, the rewards are drawn from a distribution over $\{-1,1\}$, and the gap between the means of arm $a^1$ and arm $a\neq a^1$ is $\Delta_a$. Simple calculation shows that for such distributions, the total-variation distance between two distributions whose means are $\mu$ and $\mu-\Delta$ is $\Delta/2$. Fix $\Delta_2, \Delta_3,...,\Delta_k$ as some small constants, and we now argue the following.
 \begin{claim}
 \label{clm:LB_pulling_any_arms_many_times}
-Let $A$ be any $\varepsilon$-differentially private algorithm for the MAB problems with $k$ arms whose expected regret is at most $n^{3/4}$. Fix any arm $a\neq a^1$, whose difference between it and the optimal arm $a^1$ is $\Delta_a$. Then, for sufficiently large $n$s, $A$ pulls arm $a$ at least $\tfrac {\log(n)}{100\varepsilon\Delta_a}$ many times w.p. $\geq \nicefrac 1 2$.
+Let $A$ be any $\varepsilon$-differentially private algorithm for the MAB problems with $k$ arms whose expected regret is at most $n^{3/4}$. Fix any arm $a\neq a^1$, whose difference between it and the optimal arm $a^1$ is $\Delta_a$. Then, for sufficiently large $n$s, $A$ pulls arm $a$ at least $\nicefrac {\log(n)}{100\varepsilon\Delta_a}$ many times w.p. $\geq \nicefrac 1 2$.
 \end{claim}
+\vspace{-\parskip}
 We comment that the bound $n^{3/4}$ was chosen arbitrarily, and we only require a regret upper bound of $n^{1-c}$ for some $c>0$. Of course, we could have used standard assumptions, where the regret is asymptotically smaller than \emph{any} polynomial; or discuss algorithms of regret $\tilde O(\sqrt n)$ (best minimax regret). Aiming to separate the standard lower-bounds on regret from the private bounds, we decided to use $n^{3/4}$.
 As an immediate corollary we obtain the following \emph{private} regret bound:
 \begin{corollary}
 \label{cor:LB_private_MAB}
-The expected pseudo-regret of any $\varepsilon$-differentially private algorithm for the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\paren[\Big]{\sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}}$ we get that the private regret bound is the $\max$ of the two terms, i.e.: $\Omega\paren[\Big]{\tfrac {k\log(n)}{\varepsilon}+\sum_{a\neq a^1} \tfrac{\log(n)}{\Delta_a}}$.
+The expected pseudo-regret of any $\varepsilon$-differentially private algorithm for the MAB is $\Omega(k\log(n)/\varepsilon)$. Combined with the non-private bound of $\Omega\paren[\big]{\sum_{a\neq a^1} \nicefrac{\log(n)}{\Delta_a}}$ we get that the private regret bound is the $\max$ of the two terms, i.e.: $\Omega\paren[\big]{\nicefrac {k\log(n)}{\varepsilon}+\sum_{a\neq a^1} \nicefrac{\log(n)}{\Delta_a}}$.
 \end{corollary}
-{
-  \vspace{-5mm}
-  \begin{proof}
-    Based on Claim~\ref{clm:LB_pulling_any_arms_many_times}, the expected pseudo-regret is $\geq \sum_{a\neq a^1} \tfrac 1 2 \cdot \Delta_a \tfrac{\log(n)}{100 \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
-  \end{proof}
-  \vspace{-6mm}
-}
-\begin{proof}[Proof of Claim~\ref{clm:LB_pulling_any_arms_many_times}]
+\vspace{-2.5\parskip}
+\begin{proof}
+  Based on \cref{clm:LB_pulling_any_arms_many_times}, the expected
+  pseudo-regret is at least
+  $\sum_{a\neq a^1}\tfrac{\Delta_a\log(n)}{200
+    \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
+\end{proof}
+\vspace{-2.5\parskip}
+\begin{proof}[Proof of \Cref{clm:LB_pulling_any_arms_many_times}]
 Fix arm $a$. Let $\bar P$ be the vector of the $k$-probability distributions associated with the $k$ arms. Denote $E$ as the event that arm $a$ is pulled $<\nicefrac{\log(n)}{100\varepsilon\Delta_a} := t_a$ many times. Our goal is to show that $\Pr_{A;~{\rm rewards}\sim \bar P}[E]<\nicefrac 1 2$.
 
 To that end, we postulate a different distribution for the rewards of
@@ -1232,7 +1234,7 @@ gap-dependent analysis later avoids this, but has other trade-offs.
   our regret bounds end up with a factor $B$; we now explain how.
   First note that $B$ is trivially at most $LS$ by Cauchy-Schwarz:
   $\abs{\innerp{\vec\theta^*}{\vec x_t}} \le
-  \norm{}{\vec\theta^*}\norm{}{\vec x_t} \le LS$.  The case where $B<1$ yet is some constant is trivial: clearly we can take $B=1$ without violating the assumption.  The case where $B=o(1)$ is actually quite intricate and somewhat ``unnatural'': while a-priori  we know the mean-reward can be as large as $LS$, it is in fact \emph{much} smaller. This means we have to scale down actions, and shrink the entire problem by a sub-constant; and as a result the noise $\sigma$ is actually now \emph{far} larger (it is like $\sigma/B$ in the original setting). While thie can be a mere technicality in general, since our leading application is privacy this also means that the bounds on the actual reward we use in Section~\ref{sec:alg-dp} needs to be scaled by a very large factor. Thus, allowing for ridiculously small $B$ turns into an unnecessary nusance, and we simply assume that our upper-bound $B$ is not tiny~--- namely, we assume $B\geq 1$. 
+  \norm{}{\vec\theta^*}\norm{}{\vec x_t} \le LS$.  The case where $B<1$ yet is some constant is trivial: clearly we can take $B=1$ without violating the assumption.  The case where $B=o(1)$ is actually quite intricate and somewhat ``unnatural'': while a-priori  we know the mean-reward can be as large as $LS$, it is in fact \emph{much} smaller. This means we have to scale down actions, and shrink the entire problem by a sub-constant; and as a result the noise $\sigma$ is actually now \emph{far} larger (it is like $\sigma/B$ in the original setting). While this can be a mere technicality in general, since our leading application is privacy this also means that the bounds on the actual reward we use in \cref{sec:alg-dp} needs to be scaled by a very large factor. Thus, allowing for ridiculously small $B$ turns into an unnecessary nusance, and we simply assume that our upper-bound $B$ is not tiny~--- namely, we assume $B\geq 1$. 
   
   It
   remains to deal with the situation where $B>1$.
@@ -1482,23 +1484,47 @@ gaussian $\Normal(0,1)$ regardless of the chosen action. We repeated the entire 
 We varied $d$ in the range $[10, 100]$ (linearly spaced for the first
 graph and logarithmically spaced in the latter).
 
-\paragraph{Results.} We measured the pseudo-regret of our algorithm as a function of the dimension. The results of the experiment are plotted in Figure~\ref{fig:regret_dim} (and in log-scale in Figure~\ref{fig:regret_dim_logscale}). The results clearly point our to super-linear dependency on $d$. In fact, on our log-scale plot we see a slope of roughly $1.66$, giving rise to the conjecture that the dependency of the pseudo-regret on $d$ in this setting is $\Omega(d^{5/3})$. Of course, there could be other settings where the pseudo-regret is as high as $\Omega(d^2)$. We conjecture that the dependency on $d$ is indeed quadartic.
+\paragraph{Results.} We measured the pseudo-regret of our algorithm as
+a function of the dimension. The results of the experiment are plotted
+in \cref{fig:regret_dim} (and in log-log scale in \cref{fig:regret_dim_logscale}). The results clearly point our to super-linear dependency on $d$. In fact, on our log-scale plot we see a slope of roughly $1.66$, giving rise to the conjecture that the dependency of the pseudo-regret on $d$ in this setting is $\Omega(d^{5/3})$. Of course, there could be other settings where the pseudo-regret is as high as $\Omega(d^2)$. We conjecture that the dependency on $d$ is indeed quadartic.
 
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
 \newcommand{\cut}[1]{}
 \cut{
-Before giving the omitted proofs from the body of the paper, we wish to have a short comparison between the regret bounds we get with the two different techniques to introduce differential privacy. In particular, omitting dependencies on any parameter but $n,d$ and $\varepsilon$, we have that the pseudo-regret bound of the Wishart noise (Corollary~\ref{cor:regret_with_Wishart}) is $\tilde O(\sqrt n(d+\tfrac{\sqrt d}\varepsilon))$; and that pseudo-regret bound of the Gaussian noise (Corollary~\ref{cor:regret_with_Gaussian}) is $\tilde O(\sqrt nd/\varepsilon)$. Before explaining how it came to be that the former has a better dependency on $\varepsilon$ than the latter, we first emphasize that (1) these bounds are only asymptotic (Wishart noise has far worst constants than the constants in the Gaussian bound), and that (2) this is an over simplification, as the many parameters of the problem may affect the regret bounds in favor of the Gaussian noise.
+Before giving the omitted proofs from the body of the paper, we wish
+to have a short comparison between the regret bounds we get with the
+two different techniques to introduce differential privacy. In
+particular, omitting dependencies on any parameter but $n,d$ and
+$\varepsilon$, we have that the pseudo-regret bound of the Wishart
+noise (\cref{cor:regret_with_Wishart}) is $\tilde O(\sqrt n(d+\tfrac{\sqrt d}\varepsilon))$; and that pseudo-regret bound of the Gaussian noise (\cref{cor:regret_with_Gaussian}) is $\tilde O(\sqrt nd/\varepsilon)$. Before explaining how it came to be that the former has a better dependency on $\varepsilon$ than the latter, we first emphasize that (1) these bounds are only asymptotic (Wishart noise has far worst constants than the constants in the Gaussian bound), and that (2) this is an over simplification, as the many parameters of the problem may affect the regret bounds in favor of the Gaussian noise.
 
 So, how come with Gaussian noise we get a worse dependency on $\varepsilon$ than in the Wishart case? The reason lies in the two factors. First, the degrees of freedom $k$ in the Wishart noise are of the form $k=d+O(\varepsilon^{-2})$, making the top eigenvalue of the added noise $\|\vec H_t\|$ proportional to $O(\sqrt{\log(n)k}+\sqrt d) = O(\sqrt{d\log(n)}+ \tfrac{\sqrt{\log(n)}}{\varepsilon})$, so we get an additive relation rather than a multiplicative relation. In contrast, sampling a Gaussian noise, even though the variance in each coordinate is $O(\log(n)\cdot \varepsilon^{-2})$ and independent of $d$, the bound on the noise in this case is greater by a factor of $\sqrt{d}$, resultsing in the bound $\|\vec H_t\| = O(\sqrt{d\log(n)}/\varepsilon)$. Second, the bound on $\gamma$ is different in the two cases. For Wishart noise, we are able to use the special structure of $\vec H_t$ being the Gram matrix of multivariate Gaussian samples to infer the $\|\vec h_t\|_{\inv{\vec H_t}}$ is basically a projection of a sample from a spherical Gaussian onto a $d$-dimensional space~--- making the bound $\gamma$ \emph{independent} of $mk$ (the degrees of freedom in the Wishart noise) and depends solely on $d$. As a result, $\gamma \ll \rho_{\max}$ in the Wishart noise case, and we have already established that $\rho_{\max}$ has additive dependencies between $\sqrt d$ and $\varepsilon^{-1}$. In contrast, we are unable to leverage on any structure in the Gaussian noise case, making our $\gamma$ bound very similar to $\rho_{\max}$ which is in this case $O(\sqrt d/\varepsilon)$.
 
-Admittedly, we do not know if this is merely an artifact of our analysis, or rather truly a difference in the bound. It is possible that slightly revising the proof of Theorem~\ref{thm:linucb-regret} could leads to different bounds, which are identical between the two privacy-preserving techniques. To attempt to test this empirically requires ridicolously large $d$ and $1/\varepsilon$, which is far beyond what we could handle.
+Admittedly, we do not know if this is merely an artifact of our analysis, or rather truly a difference in the bound. It is possible that slightly revising the proof of \cref{thm:linucb-regret} could leads to different bounds, which are identical between the two privacy-preserving techniques. To attempt to test this empirically requires ridicolously large $d$ and $1/\varepsilon$, which is far beyond what we could handle.
 }
-We now turn to providing the missing privacy-proofs from the main body of the paper. First, we give the omitted proof from Section~\ref{sec:dp-wishart}.
+We now turn to providing the missing privacy-proofs from the main body of the paper. First, we give the omitted proof from \cref{sec:dp-wishart}.
 
 \PropWishartTails*
 \begin{proof}
-Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds on the eigenvalues of the Wishart distribution (e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $\vec H_t$ lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d} + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec h_t\|_{\vec H_t^{-1}}$ we draw back to the definition of the Wishart distribution as the Gram matrix of samples from a multivariate Gaussian $\Normal(\vec 0, \tilde L^2\Eye)$. Denote this matrix of Gaussians as $[\vec Z ; \vec z]$ where $\vec Z\in \Real^{mk\times d}$ and $\vec z \in \Real^{mk}$, and we have that $\vec H_t = \transp{\vec Z} \vec Z$ and $\vec h_t = \transp{\vec Z} \vec z$, thus $\|\vec h_t\|_{\vec H_t^{-1}} = \sqrt{ \transp{\vec z} \vec Z (\transp{\vec  Z} \vec Z)^{-1}  \transp{\vec Z} \vec z }$. The matrix $\vec Z (\transp{\vec Z} \vec Z)^{-1}  \transp{\vec Z}$ is a projection matrix onto a $d$-dimensional space, and projecting the spherical Gaussian $\vec z$ onto this subspace results in a $d$-dimensional sphrical Gaussian. Using concentration bounds on the $\chi^2$-distribution~\ref{claim:chi2-tails} we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{\vec H_t^{-1}}\leq \tilde L(\sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})})$. %Taking a union bound over all $n$ days concludes the proof.
+Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward
+bounds on the eigenvalues of the Wishart distribution
+(e.g.~\cite{SheffetPrivateApproxRegression2015}, Lemma~A.3) give that
+w.p. $\geq 1- \tfrac \alpha{2n}$ all of the eigen values of $\vec H_t$
+lie in the interval $\tilde L^2 \paren*{\sqrt{mk} \pm \paren*{\sqrt{d}
+    + \sqrt{2\ln(\nicefrac{8n}{\alpha})}}}^2$. To estimate $\|\vec
+h_t\|_{\vec H_t^{-1}}$ we draw back to the definition of the Wishart
+distribution as the Gram matrix of samples from a multivariate
+Gaussian $\Normal(\vec 0, \tilde L^2\Eye)$. Denote this matrix of
+Gaussians as $[\vec Z ; \vec z]$ where $\vec Z\in \Real^{mk\times d}$
+and $\vec z \in \Real^{mk}$, and we have that $\vec H_t = \transp{\vec
+  Z} \vec Z$ and $\vec h_t = \transp{\vec Z} \vec z$, thus $\|\vec
+h_t\|_{\vec H_t^{-1}} = \sqrt{ \transp{\vec z} \vec Z (\transp{\vec  Z}
+  \vec Z)^{-1}  \transp{\vec Z} \vec z }$. The matrix $\vec Z
+(\transp{\vec Z} \vec Z)^{-1}  \transp{\vec Z}$ is a projection matrix
+onto a $d$-dimensional space, and projecting the spherical Gaussian
+$\vec z$ onto this subspace results in a $d$-dimensional sphrical
+Gaussian. Using concentration bounds on the $\chi^2$-distribution (\cref{claim:chi2-tails}) we have that w.p. $\geq 1- \tfrac \alpha{2n}$ it holds that $\|\vec h_t\|_{\vec H_t^{-1}}\leq \tilde L(\sqrt{d} + \sqrt{2\ln(\tfrac{2n}{\alpha})})$. %Taking a union bound over all $n$ days concludes the proof.
 \end{proof}
 
 \begin{theorem}[{\citealp[Theorem~4.1]{SheffetPrivateApproxRegression2015}}]%
@@ -1515,7 +1541,7 @@ Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds
   changing a single row of $A$.
 \end{theorem}
 
-We now give the proof of the lower bound of any private algorithm under the stadard notion of differential privacy under continual observation, as discussed in Section~\ref{sec:lower-bounds}. First, of course, we need to define this notion. \DPDefinition
+We now give the proof of the lower bound of any private algorithm under the stadard notion of differential privacy under continual observation, as discussed in \cref{sec:lower-bounds}. First, of course, we need to define this notion. \DPDefinition
 ~We now prove the following.
 \clmLinearRegretDP*
 \DPLowerBoundProof
