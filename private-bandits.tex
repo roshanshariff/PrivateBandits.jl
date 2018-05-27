@@ -182,6 +182,8 @@
 \setlength{\abovedisplayskip}{3pt}
 \setlength{\belowdisplayskip}{3pt}
 
+\phantomsection
+\makeatletter\addcontentsline{toc}{chapter}{\@title}\makeatother
 \maketitle
 
 \begin{abstract}
@@ -609,7 +611,7 @@ and algorithm:
 % important to note that of these, only \cref{ass:x-bound} is needed for
 % differential privacy (see \cref{ass:bounded-data} in \cref{sec:alg-dp}).
 
-To fully describe Algorithm~\ref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accuracte~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain.
+To fully describe Algorithm~\ref{alg:linucb} we need to specify how to compute the confidence-set bounds $(\beta_t)_t$. On the one hand, these bounds have to be accurate~--- the confidence set $\E_t$ should contain the unknown $\vec\theta^*$; on the other hand, the larger they are, the larger the regret bounds we obtain.
 In other words, the $\beta_t$ should be as small as possible subject to being accurate.
 
 \begin{definition}[Accurate $(\beta_t)_t$]\label{def:accurate-beta}
@@ -1414,7 +1416,7 @@ actions are unit-length: the optimal arm is chosen such that its projection onto
 regularizer $\rho\Eye$ on all rounds, with
 $\rho_{\max}=\rho_{\min}=1$ and $\gamma=0$. (Again, we test the performance of the standard LinUCB, not the JDP version.)  We set the number of
 rounds as $n=d^2$. The noise $\eta_t$ in each day is drawn from the standard
-gaussian $\Normal(0,1)$ regardless of the chosen action. We repeated the entire experiment $T=160$ times. 
+gaussian $\Normal(0,1)$ regardless of the chosen action. We repeated the entire experiment $T=160$ times.
 
 We varied $d$ in the range $[10, 100]$ (linearly spaced for the first
 graph and logarithmically spaced in the latter).

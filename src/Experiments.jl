@@ -13,8 +13,8 @@ using DifferentialPrivacy
 using LinearBandits
 using Accumulators
 
-export reward_noise, make_alg, make_private_alg, run_episode, orthoarms,
-    unitarms, gaparms, constarms, ExpResult, pmap_progress, run_experiment
+export GapArms, make_alg, make_private_alg, run_episode, ExpResult,
+    pmap_progress, run_experiment
 
 #=========================================================================#
 
@@ -25,36 +25,63 @@ export reward_noise, make_alg, make_private_alg, run_episode, orthoarms,
 #     () -> arms
 # end
 
-function gaparms(env::EnvParams; k=env.dim^2, gap=0.0)
-    @unpack dim, maxactionnorm = env
-
-    opt = env.maxrewardmean/(env.maxθnorm*maxactionnorm)
-    maxsubopt = opt - gap
-    minsubopt = -opt
-
-    β = (dim-1)/2
-    dist = Truncated(Beta(β, β), (1+minsubopt)/2, (1+maxsubopt)/2)
-
-    arms = zeros(dim, k)
-    heads = @view arms[1:1, :]
-    tails = @view arms[2:end, :]
-
-    function ()
-        randn!(tails)
-        colwise_sumsq!(heads, tails, 1)
-        tails ./= sqrt.(heads)
-        rand!(dist, heads)
-        heads .= maxactionnorm .* (2.*heads .- 1)
-        heads[rand(1:k)] = maxactionnorm * opt
-        tails .*= sqrt.(maxactionnorm^2 .- heads.^2)
-        arms
+struct GapArms
+    opt :: Float64
+    maxsubopt :: Float64
+    minsubopt :: Float64
+    norm :: Float64
+    function GapArms(env::EnvParams; gap=0.0)
+        opt = env.maxrewardmean/(env.maxθnorm*env.maxactionnorm)
+        new(opt, opt-gap, -opt, env.maxactionnorm)
     end
 end
 
-function constarms(makearms)
-    arms = makearms()
-    () -> arms
+function (f::GapArms)(arms::Matrix)
+    (d, k) = size(arms)
+    β = (d - 1)/2
+    dist = Truncated(Beta(β, β), (1+f.minsubopt)/2, (1+f.maxsubopt)/2)
+    heads = @view arms[1:1, :]
+    tails = @view arms[2:end, :]
+    randn!(tails)
+    colwise_sumsq!(heads, tails, 1)
+    tails ./= sqrt.(heads)
+    rand!(dist, heads)
+    heads .= f.norm .* (2.*heads .- 1)
+    @inbounds heads[rand(1:k)] = f.norm * f.opt
+    tails .*= sqrt.(f.norm^2 .- heads.^2)
+    arms
 end
+
+# function gaparms(env::EnvParams; k=env.dim^2, gap=0.0)
+#     @unpack dim, maxactionnorm = env
+
+#     opt = env.maxrewardmean/(env.maxθnorm*maxactionnorm)
+#     maxsubopt = opt - gap
+#     minsubopt = -opt
+
+#     β = (dim-1)/2
+#     dist = Truncated(Beta(β, β), (1+minsubopt)/2, (1+maxsubopt)/2)
+
+#     arms = zeros(dim, k)
+#     heads = @view arms[1:1, :]
+#     tails = @view arms[2:end, :]
+
+#     function ()
+#         randn!(tails)
+#         colwise_sumsq!(heads, tails, 1)
+#         tails ./= sqrt.(heads)
+#         rand!(dist, heads)
+#         heads .= maxactionnorm .* (2.*heads .- 1)
+#         heads[rand(1:k)] = maxactionnorm * opt
+#         tails .*= sqrt.(maxactionnorm^2 .- heads.^2)
+#         arms
+#     end
+# end
+
+# function constarms(makearms)
+#     arms = makearms()
+#     () -> arms
+# end
 
 #=========================================================================#
 
@@ -129,22 +156,29 @@ function oneround!(b::Bandit, θ, arms, noise)
     rewards[i]
 end
 
-function run_episode(env, alg, arms, noise, horizon;
-                     randθ=false, subsample=1)
+function run_episode(env::EnvParams, alg::ContextLinBandit, makearms,
+                     horizon::Int;
+                     numarms=env.dim^2, constarms=false, subsample=horizon)
+
+    (env, noise) = reward_noise(env)
+    θ = env.maxθnorm * normalize!(randn(env.dim))
+    (Q, _) = qr(reshape(θ, :, 1); thin=false)
+
+    alignedarms = zeros(env.dim, numarms)
+    arms = zeros(env.dim, numarms)
+    constarms && A_mul_B!(arms, Q, makearms(alignedarms))
+
     b = Bandit(alg)
-    θ = if randθ
-        env.maxθnorm * normalize!(randn(dim(alg)))
-    else
-        [env.maxθnorm; zeros(dim(alg) - 1)]
-    end
     cumregret = 0.0
-    regrets = map(subsample:subsample:horizon) do _
-        for i in 1:subsample
-            cumregret += oneround!(b, θ, arms(), noise)
+    skip = horizon ÷ subsample
+    regrets = map(skip:skip:horizon) do _
+        for i in 1:skip
+            constarms || A_mul_B!(arms, Q, makearms(alignedarms))
+            cumregret += oneround!(b, θ, arms, noise)
         end
         cumregret
     end
-    ExpResult(subsample:subsample:horizon, regrets)
+    ExpResult(skip:skip:horizon, regrets)
 end
 
 #=========================================================================#

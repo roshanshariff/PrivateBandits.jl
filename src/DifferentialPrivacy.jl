@@ -9,7 +9,7 @@ using LinearBandits: RegParams
 using Accumulators
 
 export ComposedStrategy, TreeStrategy, PanPrivTreeStrategy,
-    DiffPrivParams, WishartMechanism, numcomposed,
+    DiffPrivParams, WishartMechanism, GaussianMechanism, numcomposed,
     advanced_composition, regparams
 
 abstract type ComposedStrategy <: AccumStrategy end
@@ -52,7 +52,7 @@ end
 
 function (T::Type{<:ComposedStrategy})(s::AccumStrategy, Noise::Type,
                                        horizon::Int, dp::DiffPrivParams)
-    noise = Noise(advanced_composition(numcomposed(T, horizon), dp))
+    noise = Noise(dp; m=numcomposed(T, horizon))
     T(s, noise, horizon)
 end
 
@@ -173,9 +173,11 @@ end
 
 struct WishartMechanism
     dist :: Distributions.Wishart{Float64, PDMats.ScalMat{Float64}}
-    WishartMechanism(dp::DiffPrivParams) =
+    function WishartMechanism(dp::DiffPrivParams; m=1)
+        m > 1 && (dp = advanced_composition(m, dp; δfail=dp.δ/(m+1)))
         new(Distributions.Wishart(dp.dim + floor(Int, 28log(4/dp.δ)/dp.ε^2),
                                   PDMats.ScalMat(dp.dim, dp.L̃^2)))
+    end
 end
 
 function regparams(mechanism::WishartMechanism, α; m=1)
@@ -190,6 +192,41 @@ function regparams(mechanism::WishartMechanism, α; m=1)
 end
 
 (noise::WishartMechanism)() = Symmetric(rand(noise.dist))
+
+#=========================================================================#
+# Gaussian mechanism
+
+struct GaussianMechanism
+    dim :: Int
+    σ :: Float64
+    GaussianMechanism(dp::DiffPrivParams; m=1) =
+        new(dp.dim, √16m * dp.L̃^2 * log(4/dp.δ) / dp.ε)
+end
+
+function (noise::GaussianMechanism)()
+    d = noise.dim
+    σ = noise.σ
+    M = zeros(d, d)
+    for i = 1:d
+        @inbounds M[i,i] = √2*σ*randn()
+    end
+    for j = 2:d, i = 1:j-1
+        @inbounds M[i,j] = σ*randn()
+    end
+    Symmetric(M, :U)
+end
+
+function regparams(mechanism::GaussianMechanism, α; m=1)
+    d = mechanism.dim - 1
+    σ_max = mechanism.σ * √2m * (√16d - 2log(α))
+    γ = √m * mechanism.σ * (√d + √-2log(α))
+    RegParams(
+        ρmin = σ_max,
+        ρmax = 3σ_max,
+        γ = γ/√σ_max,
+        shift = 2σ_max
+    )
+end
 
 #=========================================================================#
 # Utility functions
