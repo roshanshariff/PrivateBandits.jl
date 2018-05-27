@@ -272,54 +272,54 @@ preferences to all users at times $t'>t$.\footnote{The guarantee of
 \label{subsec:problem_formulation}
 \paragraph{Stochastic Contextual Linear Bandits.}
 %\label{sec:contextual-bandits}
-In the classic MAB problem, in every round $t$ a learner
-selects an \emph{action} $a_t$ from a fixed set $\A$ and receives a
-\emph{reward} $y_t$.  In the (stationary) \emph{stochastic} MAB, the
-reward is noisy with a fixed but unknown expectation
-$\Ex{y_t\given a_t}$ that depends only on the selected action.
-In the stochastic contextual bandit problem, the learner also receives
-a \emph{context} $c_t\in\C$ at the beginning of each round, and the
-expected reward $\Ex{y_t\given c_t,a_t}$ depends on both $c_t$ and
-$a_t$.  It is common to assume that the context
-affects the reward in a linear way: map every context-action pair to a
-\emph{feature vector} $\phi(c_t,a_t)\in\Real^d$ (where $\phi$ is an
+In the classic MAB, in every round $t$ a learner selects an
+\emph{action} $a_t$ from a fixed set $\A$ and receives a \emph{reward}
+$y_t$.  In the (stationary) \emph{stochastic} MAB, the reward is noisy
+with a fixed but unknown expectation $\Ex{y_t\given a_t}$ that depends
+only on the selected action.  In the stochastic contextual bandit
+problem, before each round the learner also receives a \emph{context}
+$c_t\in\C$ --- the expected reward $\Ex{y_t\given c_t,a_t}$ depends on
+both $c_t$ and $a_t$.  It is common to assume that the context affects
+the reward in a linear way: map every context-action pair to a
+\emph{feature vector} $\phi(c,a)\in\Real^d$ (where $\phi$ is an
 arbitrary but known function) and assume that
 $\Ex{y_t\given c_t,a_t} = \innerp{\vec\theta^*}{\phi(c_t,a_t)}$.  The
 vector $\vec\theta^*\in\Real^d$ is the key unknown parameter of the
 environment which the learner must discover to maximize reward.
-Alternatively, we can assume $\phi$ has been computed already, so each round the learner is given a
-%Note how all the learner needs to know about the context is implicitly encoded by the
-\emph{decision set}
-$\D_t \defeq \set{\phi(c_t,a)\given a\in\A \subset \Real^d}$, where
-choosing $x_t\in\D_t$ effectively determines the action
-$a_t\in\A_t$.  Thus, the contextual stochastic linear bandit framework
-consists of repeated rounds in which the learner
+Alternatively, we say that on every round the learner is given a
+\emph{decision set} $\D_t \defeq \set{\phi(c_t,a)\given a\in\A}$ of
+all the pre-computed feature vectors: choosing $\vec x_t\in\D_t$
+effectively determines the action $a_t\in\A$.  Thus, the contextual
+stochastic linear bandit framework consists of repeated rounds in
+which the learner
 \begin{enumerate*}[(i),before=\unskip{: },itemjoin={{; }},itemjoin*={{; and }}]
 \item receives a \emph{decision set} $\mathcal{D}_t \subset \Real^d$
 \item chooses an \emph{action} $\vec x_t \in \mathcal{D}_t$
 \item receives a stochastic \emph{reward}
   $y_t = \innerp{\vec\theta^*}{\vec x_t} + \eta_t$.
 \end{enumerate*}
-When all $\D_t$s are identical (and have orthogonal vectors) the problem reduces to standard MAB.
+When all the $\D_t$ are identical and consist of the standard basis
+vectors, the problem reduces to standard MAB\@.
 
-The learner's objective is to maximize cumulative reward, which is equivalent to
-minimizing \emph{regret} --- the extra reward a
-learner would have received by always choosing the best available
-action.
+The learner's objective is to maximize cumulative reward, which is
+equivalent to minimizing \emph{regret}: the extra reward a learner
+would have received by always choosing the best available action.
 %An effective learner may nevertheless earn only a small reward if all the actions are poor, but would then still achieve low regret.
-In other words, the regret characterizes the cost of having
-to \emph{learn} the optimal action over just \emph{knowing} it beforehand.
-For stochastic problems, we are usually interested in a related
-quantity called \emph{pseudo-regret}, which is the extra
-\emph{expected} reward that could have been earned had the learner known $\vec\theta^*$ in advance.  In our setting,
-the cumulative pseudo-regret after $n$ rounds is
-$\widehat{R}_n \defeq
-\sum_{t=1}^n\max_{x\in\D_t}\innerp{\vec\theta^*}{\vec x - \vec x_t}$.%
-\footnote{The pseudo-regret ignores the reward noise but not the
-  randomness in the learner's choice of actions.  It equals the reward
-  in expectation, but is more amenable to high-probability bounds such
-  as those we provide. In particular, in some cases we can acheive polylog$(n)$ pseudo-regret bounds because pseudo-regret isn't masked by the
-  unavoidable reward noise, whose standard-deviation is $\Omega(\sqrt n)$.}
+In other words, the regret characterizes the cost of having to
+\emph{learn} the optimal action over just \emph{knowing} it
+beforehand.  For stochastic problems, we are usually interested in a
+related quantity called \emph{pseudo-regret}, which is the extra
+\emph{expected} reward that the learner could have been earned if it
+had known $\vec\theta^*$ in advance.  In our setting, the cumulative
+pseudo-regret after $n$ rounds is
+$\widehat{R}_n \defeq \sum_{t=1}^n\max_{\vec
+  x\in\D_t}\innerp{\vec\theta^*}{\vec x - \vec x_t}$.%
+\footnote{The pseudo-regret ignores the stochasticity of the reward
+  but not the resulting randomness in the learner's choice of actions.
+  It equals the regret in expectation, but is more amenable to
+  high-probability bounds such as ours.  In particular, in some cases
+  we can achieve polylog$(n)$ bounds on pseudo-regret because, unlike
+  regret, it doesn't have added regret noise of variance $\Omega(n)$.}
 
 
 \paragraph{Joint Differential Privacy.} %
@@ -352,54 +352,81 @@ $(\mathcal{D}_{t'},y_{t'}) = (\mathcal{D}'_{t'}, y'_{t'})$.
 \begin{definition}
 \label{def:joint-dp}
   A randomized algorithm $A$ for the contextual bandit problem is
-  \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{n}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Pr[A(S)\in \mathcal{S}_{>t}] \leq e^\varepsilon\Pr[A(S')\in \mathcal{S}'_{>t}] +\delta$.
+  \emph{$(\varepsilon,\delta)$-jointly differentially private} (JDP) under continual observation if for any $t$ and any pair of $t$-neighboring sequences $S$ and $S'$, and any subset ${\cal S}_{>t} \subset \mathcal{D}_{t+1} \times \mathcal{D}_{t+2} \times \cdots \times \mathcal{D}_{n}$ of sequence of actions ranging from day $t+1$ to the end of the sequence, it holds that $\Prob{A(S)\in \mathcal{S}_{>t}} \leq e^\varepsilon\Prob{A(S')\in \mathcal{S}'_{>t}} +\delta$.
 \end{definition}
-Note that the standard definition of differential privacy requires the
-distribution proximity to hold for any subset of sequences of actions
-ranging from day $t$ to the end of sequence. However, in our problem
-formulation, with given decision sets, this notion isn't even
-well-defined --- the decision set of day $t$ is different under $S$
-and under $S'$. Therefore, when we discuss the impossibility of
-regret-minimization under standard differential privacy, we revert
-back to the setting of different contexts with fixed action set. See
-\cref{sec:lower_bounds} for further details.
+The standard notion of differential privacy under continual
+observation would require that changing the context $c_t$ cannot have
+much effect on the probability of choosing action $a_t$ --- even for
+round $t$ itself (not just for future rounds as with JDP)\@.  In our
+problem formulation, however, changing $c_t$ to $c_t'$ may change the
+decision set $\D_t$ to a possibly disjoint $\D_t'$, making that notion
+ill-defined.  Therefore, when we discuss the impossibility of
+regret-minimization under standard differential privacy in
+\cref{sec:lower-bounds}, we revert back to a fixed action set $\A$
+with an explicit per-round context $c_t$.
 
-\subsection{Our Contribution and Paper Organization}
+\vspace{-1mm}
+
+\subsection{Our Contributions and Paper Organization}
 \label{subsec:contributions}
 
 In this work, in addition to formulating the definition of JDP under
 continual observation, we also present a framework for implementing
-JDP algorithms for the contextual bandit problem. Not surprisingly,
-our framework combines the tree-based algorithm~\cite{ChanPrivateContinualRelease2010,DworkContinualObservation2010}  with the linear
-upper-confidence bound (LinUCB) algorithm~\cite{DaniStochasticLinearOptimization2008}.  However, for modularity,
-in Section~\ref{sec:LinUCB} we first analyze a family of linear UCB algorithms where in each
-day one uses a different regularizer, under the premise that all
-regularizers' singular values are bounded. Moreover, we repeat our analysis twice. Once in a general framework,
-obtaining an upper bound on the regret which is proportional to
-$\tilde O(\sqrt n)$; and once in an instance dependent setting, where in each
-day there's a significant gap of at least $\Delta$ between the best arm and any other
-arms, obtaining a regret upper bound of $\mathrm{polylog}(n)/\Delta$.
+JDP algorithms for the contextual linear bandit problem. Not
+surprisingly, our framework combines a tree-based privacy
+algorithm~\citep{ChanPrivateContinualRelease2010,DworkContinualObservation2010}
+with a linear upper confidence bound (LinUCB)
+algorithm~\cite{DaniStochasticLinearOptimization2008}.  For
+modularity, in Section~\ref{sec:LinUCB} we analyze a family of linear
+UCB algorithms that use different regularizers in every round, under
+the premise that the regularizers are PSD with bounded singular
+values.  Moreover, we repeat our analysis twice --- first we obtain a
+general $\tilde O(\sqrt n)$ upper bound on regret; then, for problem
+instances that maintain a $\Delta$ reward gap separating the optimal
+and sub-optimal actions, we obtain a $\mathrm{polylog}(n)/\Delta$
+regret upper bound.
 % \footnote{The analysis carries through to $k-1$ gaps between the $i$th
 % arm and the leading one, yet its result is too cumbersome so we omit
 % this analysis.}
-Our leading application of course is privacy, though
-one could postulate other reasons why such a change in regularizers
-would be useful (e.g., updating the regularizer when an initial upper
-bound of a parameter turns out to be wrong). We then plug-in two
-particular regularizers into our scheme: the first is immediate, a privacy preserving mechanism that uses additive Wishart
-noise~\citep{SheffetPrivateApproxRegression2015} making the noise always a PSD matrix, achieving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; then, we use the additive Gaussian
-noise~\citep{DworkAnalyzeGauss2014} which we shift by $2\Upsilon\Eye$ to force the noise to be PSD (w.h.p.)\ over all days, giving a regret bound of $\tilde O(\sqrt n(d + d^{3/4}/\sqrt\varepsilon))$. The details of the two techniques are given in Section~\ref{sec:alg-dp}.
+Our leading application of course is privacy, though one could
+postulate other reasons where such changing regularizers would be
+useful (e.g., if parameter estimates turn out to be wrong and have to
+be updated).  We then plug two particular regularizers into our
+scheme: the first is a privacy-preserving mechanism that uses additive
+Wishart noise~\citep{SheffetPrivateApproxRegression2015} (which is
+always PSD), achieving
+$\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$ regret; the
+second uses additive Gaussian noise~\citep{DworkAnalyzeGauss2014}
+(shifted to make it PSD w.h.p.\@ over all rounds), achieving
+$\tilde O(\sqrt n(d + d^{3/4}/\sqrt\varepsilon))$ regret.  The details
+of the two techniques are given in \cref{sec:alg-dp}.
 %We also present empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
-In Section~\ref{sec:lower_bounds} we also give a lower bound for the $\varepsilon$-differentially private
-MAB problem. Whereas all previous work on the private MAB problem uses standard (non-private) bounds, we show that
-\emph{any} private algorithm must incur \emph{an additional} regret of
-$\Omega(k\log(n)/\varepsilon)$. While the result resembles the lower bound in the
-adversarial setting, the proof technique cannot rely on standard packing arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} since the input for the
-problem is stochastic rather than adversarial.  Instead, we rely on a recent coupling argument given in~\cite{KarwaVadhanFiniteSampleDP2017} to prove any private algorithm must substantially explore suboptimal arms.
+In Section~\ref{sec:lower-bounds} we also give a lower bound for the
+$\varepsilon$-differentially private MAB problem. Whereas all previous
+work on the private MAB problem uses standard (non-private) bounds, we
+show that \emph{any} private algorithm must incur \emph{an additional}
+regret of $\Omega(k\log(n)/\varepsilon)$. While the result resembles
+the lower bound in the adversarial setting, the proof technique cannot
+rely on standard packing
+arguments~\citep[e.g.][]{HardtTalwarGeometryDP2010} since the input
+for the problem is stochastic rather than adversarial.  Instead, we
+rely on a recent coupling
+argument~\citep{KarwaVadhanFiniteSampleDP2017} to prove any private
+algorithm must substantially explore suboptimal arms.
 
-\paragraph{Future Directions.} The linear-UCB algorithm we adapt in this work is a canonical approach to the linear MAB problem, also referred to as ``optimism in the face of uncertainty.'' However, a recent work~\cite{LattimoreS17} shows that in certain situations it is best to adjust to the actions in the decision set in a very particular way, that utilizes a complicated optimization problem. We pose here the question of devising a private version of the algorithm in~\cite{LattimoreS17} which interpolates between UCB and fine-tuning to the specific action set.
+\paragraph{Future Directions.} The linear UCB algorithm we adapt in
+this work is a canonical approach to the linear bandit problem, using
+the principle of ``optimism in the face of uncertainty.''  However,
+recent work~\citep{LattimoreS17} shows that all such ``optimistic''
+algorithms are sub-optimal, and instead proposes adapting to the
+decision set in a particular way by solving a complicated optimization
+problem.  It remains an open question to devise a private version of
+this algorithm which interpolates between UCB and fine-tuning to the
+specific action set.
+
 \vspace{-1mm}
+
 \subsection{Related Work}
 \label{subsec:related_work}
 %\paragraph{MAB and the Contextual Bandit Problem.}
@@ -412,24 +439,28 @@ Differential privacy, first introduced by
 \citet{DworkCalibratingNoiseSensitivity2006,DworkOurData2006}, is a
 rigorous mathematical notion of privacy that requires the probability
 of any observable output to change very little when any single datum
-changes.  (We omit the formal definition because we already defined JDP.)
+changes.  (We omit the formal definition, having already defined JDP.)
 %A classic result~\cite{DworkOurData2006} states that if $f$ is a function of the input whose $L_2$-norm cannot change by more than $B$ with a change of a single datum, then adding Gaussian noise to $f$ of $0$-mean and variance $B^2\log(\nicefrac 1 \delta)/\varepsilon^2$ preserves $(\varepsilon,\delta)$-differential privacy.
 Among its many elegant traits is the notion of group privacy: should
 $k$ datums change then the change in the probability of any event is
 still limited by (roughly) $k$ times the change when a single datum
-was changed.  A different property of differential privacy is composition~\cite{DworkBoosting2010}: The combination of $k$ $(\varepsilon,\delta)$-differentially private algorithms is $\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1 {\delta'})}), k\delta+\delta'}$-differentially private for any $\delta'>0$.
-%
+was changed.  Differential privacy also composes: the combination of
+$k$ $(\varepsilon,\delta)$-differentially private algorithms is
+$\paren[\big]{O(k\varepsilon^2 + 2\sqrt{k\log(\nicefrac 1
+    {\delta'})}), k\delta+\delta'}$-differentially private for any
+$\delta'>0$~\citep{DworkBoosting2010}.
+
 The notion of differential privacy under continual observation was
-first defined by \citet{DworkContinualObservation2010} using the \textbf{tree-based algorithm}~\citep[originally
-appearing in][]{ChanPrivateContinualRelease2010}. This algorithm
-maintains a binary tree whose $n$ leaves correspond to the $n$ entries
-in the input sequence. Each node in the tree maintains a noisy
-(privacy-preserving) count of the sum of the input entries in its
-subtree, thus enabling us to maintain a running count of the sum of
-inputs by combining at most $\log(n)$ noisy counts. This
-algorithm is the key ingredient of a variety of works that deal with
-privacy in an online setting, including
-counts~\cite{DworkContinualObservation2010}, online convex
+first defined by \citet{DworkContinualObservation2010} using the
+\textbf{tree-based algorithm}~\citep[originally appearing
+in][]{ChanPrivateContinualRelease2010}.  This algorithm maintains a
+binary tree whose $n$ leaves correspond to the $n$ entries in the
+input sequence. Each node in the tree maintains a noisy
+(privacy-preserving) sum of the input entries in its subtree --- the
+cumulative sums of the inputs can thus be obtained by combining
+at most $\log(n)$ noisy sums.  This algorithm is the key ingredient of
+a variety of works that deal with privacy in an online setting,
+including counts~\cite{DworkContinualObservation2010}, online convex
 optimization~\cite{JainDPOnlineLearning2012}, and regret minimization
 in both the
 adversarial~\citep{SmithThakurtaPrivateOnlineLearning2013,TossouAchievingPrivacyAdversarial2017}
@@ -439,7 +470,9 @@ settings. We comment that \citet{MishraNearlyOptimalDPBandits2015}
 proposed an algorithm similar to our own for the contextual bandit
 setting, however (i)~without maintaining PSD, (ii)~without any
 analysis, only empirical evidence, and (iii)~without presenting lower
-bounds. Further details about acheiving differential privacy via additive noise and the tree-based algorithm appear in Section~\ref{apx_sec:more_background} of the supplementary material.
+bounds. Further details about acheiving differential privacy via
+additive noise and the tree-based algorithm appear in
+Section~\ref{apx_sec:more_background} of the supplementary material.
 %
 The related problem of private linear regression have also been extensively studied in the offline setting
 \citep{ChaudhuriDPERM2011,BassilyPrivateEmpiricalRisk2014}.
@@ -447,25 +480,24 @@ The related problem of private linear regression have also been extensively stud
 \section{Preliminaries and Notation}
 \label{sec:preliminaries}
 
-We use $\vec{bold}$ character to denote vectors and bold
-$\vec{CAPITAL}$ letters to denote matrices.
-Given a $d$-column matrix
-$\vec M$, its \emph{Gram matrix} is the $(d\times d)$-matrix
-$\transp{\vec M}\vec M$.  A matrix $\vec M$ is positive-semidefinite
-(PSD), denoted $M\succeq 0$ if for any $\vec x$ it holds that
-$\transp{\vec x} \vec M \vec x \geq 0$.  We use $\vec M\succeq \vec N$
-to denote the fact that $(\vec M-\vec N)$ is PSD; any such $\vec M$
-defines an inner product between vectors, so we define
-$\norm{M}{x} = \transp{\vec x} \vec M \vec x$.  The
-Gaussian distribution $\Normal(\mu,\sigma^2)$ is defined by the density
+We use $\vec{bold}$ letters to denote vectors and bold
+$\vec{CAPITALS}$ for matrices.  Given a $d$-column matrix $\vec M$,
+its \emph{Gram matrix} is the $(d\times d)$-matrix $\XtX{\vec M}$.  A
+symmetric matrix $\vec M$ is positive-semidefinite (PSD, denoted
+$\vec M\succeq 0$) if $\transp{\vec x} \vec M \vec x \geq 0$ for any
+$\vec x$.  Any such $\vec M$ defines an inner product between vectors,
+so we define $\norm{M}{x}^2 = \transp{\vec x} \vec M \vec x$.  We use
+$\vec M\succeq \vec N$ to mean $\vec M-\vec N\succeq 0$.  The Gaussian
+distribution $\Normal(\mu,\sigma^2)$ is defined by the density
 function
-$(2\pi\sigma^2)^{-0.5}\exp(-\nicefrac{(x-\mu)^2}{2\sigma^2})$. The
-$L_2$-norm squared of a $d$-dimensional vector whose coordinates are
-drawn iid from $\Normal(0,1)$ is given by the $\chi^2$-distribution,
-which is tightly concentrated around $d$. Given two distributions $P$
-and $Q$ we denote their \emph{total variation} distances as
-$d_{\rm TV}(P,Q) = \max_{{\rm
-    event}~E}|\Pr_P[E]-\Pr_Q[E]|$.  %Explicit concentration bounds are given in Section~\ref{}
+$(2\pi\sigma^2)^{\nicefrac{-1}{2}}\exp(\nicefrac{-(x-\mu)^2}{2\sigma^2})$. The
+squared $L_2$-norm of a $d$-dimensional vector whose coordinates are
+drawn iid from $\Normal(0,1)$ is given by the $\chi^2(d)$
+distribution, which is tightly concentrated around $d$.  Given two
+distributions $\Pr$ and $\mathds Q$ we denote their \emph{total variation
+  distance} by
+$d_{\rm TV}(\mathds P,\mathds Q) = \max_{\text{event }E}\abs{\Prob{E}-{\mathds
+Q}(E)}$.  %Explicit concentration bounds are given in Section~\ref{}
 
 \paragraph{Notation.}\label{sec:notation} Our bound depends on many
 parameters of the problem, specified below. Additional parameters
@@ -480,10 +512,10 @@ parameters of the problem, specified below. Additional parameters
   \item[$\D_t$] $\subset\Real^d$; decision set at round $t$
   \item[$\vec x_t$] $\in \D_t$; action at round $t$ \todo{Is this necessary? It was specified in the problem definition. Can it be merged with 6?}
   \item[$y_t$] $\in \Real$; reward at round $t$
-  \item[$\vec\theta^*$] unknown parameter vector in $\Real^d$
+  \item[$\vec\theta^*$] $\in \Real^d$; unknown parameter vector
   \item[$m$] $\defeq \lceil\log_2(n)+1 \rceil$
-  \item[$\vec X_{<t}$] $(t-1)\times d$ matrix with $\vec X_{<t,s} = \transp{\vec
-      x_s}$ for $s<t$
+  \item[$\vec X_{<t}$] $\in \Real^{(t-1)\times d}$, with
+    $\vec X_{<t,s} = \transp{\vec x_s}$ for $s<t$
   \item[$\vec G_t$] Gram matrix of the actions: $\XtX{\vec X_{<t}}$
   \item[$\vec H_t$] regularizer at day $t$
   \item[$\vec y_{<t}$] vector of rewards up to day $t-1$
@@ -519,7 +551,7 @@ natural to center the confidence set $\E_t$ on the (regularized)
 linear regression estimate:
 \begin{align*}
   \hat{\vec\theta}_t
-  &\defeq \min_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_{<t} \hat{\vec\theta}
+  &\defeq \argmin_{\hat{\vec\theta} \in \Real^d} \norm{}{\vec X_{<t} \hat{\vec\theta}
     - \vec y_{<t}}^2 + \norm{\vec H_t}{\hat{\vec\theta}}^2
     = \inv{(\vec G_t + \vec H_t)} \transp{\vec X_{<t}} \vec y_{<t}.
     &\text{where } \vec G_t \defeq \XtX{\vec X_{<t}}
@@ -620,16 +652,18 @@ In other words, the $\beta_t$ should be as small as possible subject to being ac
   for all rounds $t=1,\dotsc,n$ simultaneously.
 \end{definition}
 
-We now argue that 3 parameters are the key to establishing accurate confidence-set bounds $(\beta_t)_{t=1}^n$~--- taking into account the noise in the setting \emph{and} the noise added by a changing $\vec H_t$ and $\vec h_t$.
+We now argue that three parameters are the key to establishing accurate confidence-set bounds $(\beta_t)_{t=1}^n$~--- taking into account the noise in the setting \emph{and} the noise added by a changing $\vec H_t$ and $\vec h_t$.
 
 \begin{definition}[Accurate $\rho_{\min}$, $\rho_{\max}$, and
   $\gamma$]\label{def:accurate-params}
   The bounds $0 < \rho_{\min} \le \rho_{\max}$ and $\gamma$ are
-  $(\alpha/2n)$-\emph{accurate} for $(\vec H_t)_{t=1}^n$ and $(\vec h_t)_{t=1}^n$ if for a given $t$ w.p. $\leq \alpha/2n$ any of the following does not hold
+  $(\alpha/2n)$-\emph{accurate} for $(\vec H_t)_{t=1}^n$ and
+  $(\vec h_t)_{t=1}^n$ if for each round $t$:
   \begin{align*}
     \norm{}{\vec H_t} &\le \rho_{\max},
-    &\norm{}{\inv{\vec H_t}} &\le \nicefrac{1}{\rho_{\min}},
-    &\norm{\inv{\vec H_t}}{\vec h_t} &\le \gamma.
+    &\norm{}{\inv{\vec H_t}} &\le 1/\rho_{\min},
+    &\norm{\inv{\vec H_t}}{\vec h_t} &\le \gamma;
+    &\text{with probability at least } 1-\alpha/2n.
   \end{align*}
 \end{definition}
 
@@ -658,8 +692,15 @@ We now argue that 3 parameters are the key to establishing accurate confidence-s
 We now present bounds on the maximum regret of \cref{alg:linucb}.
 However, due to space constraints, we defer an extensive discussion of
 the proof techniques used and the significance of the results to
-\cref{sec:more-linucb-discussion} in the supplementary material. We comment that the proofs are based on those of
-\citet{AbbasiYadkoriImprovedAlgorithmsLinear2011} who analyzed LinUCB under constant regularizers. On the one hand, these changes are mostly technical; however, it turns out that multiple expressions in various parts of the proof diverge and now depend on $\rho_{\max} / \rho_{\min}$ and tracing all of them is somewhat hairy. While we weren't able to ``pull it off,'' it is an interesting question to see if one could establish similar bounds using known results only as a black-box.
+\cref{sec:more-linucb-discussion} in the supplementary material.  The
+proofs are based on those of
+\citet{AbbasiYadkoriImprovedAlgorithmsLinear2011}, who analyzed LinUCB
+with constant regularizers.  On one hand, our changes are mostly
+technical; however, it turns out that various parts of the proof
+diverge and now depend on $\rho_{\max}$ and $\rho_{\min}$; tracing
+them all is somewhat involved.  It is an interesting question to
+establish similar bounds using known results only as a black box; we
+were not able to accomplish this.
 
 \begin{restatable}[Regret of \Cref{alg:linucb}]{theorem}{ThmLinUCBRegret}%
   \label{thm:linucb-regret}%\
@@ -684,7 +725,7 @@ the proof techniques used and the significance of the results to
     ass:psd-reg,ass:subgaussian} hold and the
   $\beta_t$ are as given by \cref{prop:calc-beta}.  If the optimal
   actions in every decision set $\D_t$ are separated from the
-  sub-optimal arms by a reward gap of at least $\Delta$, then with
+  sub-optimal actions by a reward gap of at least $\Delta$, then with
   probability at least $1-\alpha$ the pseudo-regret of
   \cref{alg:linucb} satisfies
   \begin{align}
@@ -726,15 +767,24 @@ post-processes $\vec G_t$ and $\vec u_t$.
   chosen $\vec x_t$.
 \end{remark}
 
-Rather than applying the tree-based algorithm twice, once for $\vec G_t$ and once for $\vec u_t$, we aggregate both into a single matrix and apply the tree-based algorithm to this $(d+1)\times(d+1)$-matrix. Denote $\vec A \defeq \begin{bmatrix} \vec X_{1:n} & \vec y_{1:n} \end{bmatrix} \in
-\Real^{n\times(d+1)}$, with $\vec A_t$ holding the top $t-1$ rows of $\vec A$
-(and $\vec A_1 = \vec 0_{1\times(d+1)}$).  Denote $\vec M_t \defeq \XtX{\vec A_t}$
---- then the top-left $d\times d$ sub-matrix of $\vec M_t$ is the Gram
-matrix $\vec G_t$ and the first $d$ entries of its last column are
-$\vec u_t$. We maintain a differentially
-private approximation of $\vec M_t$. The tree-based algorithm maintains a private estimation of $\vec M_t$ using additive noise, releasing $\vec M_t + \vec N_t$.  The
-top-left $d\times d$ sub-matrix of $\vec N_t$ becomes $\vec H_t$ and the first
-$d$ entries of its last column become $\vec h_t$. Lastly, to have a private estimation of $\vec M_t$, \Cref{ass:bounded-data} must hold.
+Rather than applying the tree-based algorithm separately to $\vec G_t$
+and $\vec u_t$, we aggregate both into the single matrix
+$\vec M_t\in\Real^{(d+1)\times(d+1)}$, which we now construct.  Define
+$\vec A \defeq \begin{bmatrix} \vec X_{1:n} & \vec
+  y_{1:n} \end{bmatrix} \in \Real^{n\times(d+1)}$, with $\vec A_t$
+holding the top $t-1$ rows of $\vec A$ (and
+$\vec A_1 = \vec 0_{1\times(d+1)}$).  Now let
+$\vec M_t \defeq \XtX{\vec A_t}$ --- then the top-left $d\times d$
+sub-matrix of $\vec M_t$ is the Gram matrix $\vec G_t$ and the first
+$d$ entries of its last column are $\vec u_t$.  Furthermore, since
+$M_{t+1} = M_t + \XtX{\begin{bmatrix}\transp{\vec x_t} &
+    y_t \end{bmatrix}}$, the tree-based algorithm for private
+cumulative sums can be used to maintain a private estimation of
+$\vec M_t$ using additive noise, releasing $\vec M_t + \vec N_t$.  The
+top-left $d\times d$ sub-matrix of $\vec N_t$ becomes $\vec H_t$ and
+the first $d$ entries of its last column become $\vec h_t$. Lastly, to
+have a private estimation of $\vec M_t$, \Cref{ass:bounded-data} must
+hold.
 
 Below we present two techniques for maintaining (and updating) the
 private estimations of $\vec M_t$. As mentioned in
@@ -773,32 +823,36 @@ $\Normal(\vec 0_{d+1}, \vec V)$ and computing their Gram
 matrix.
 %Under suitably chosen $\vec V$ and $k$, this noise preserves $(\varepsilon,\delta)$-differential privacy.
 
-\begin{theorem}[\cite{SheffetPrivateApproxRegression2015}, Theorem~4.1]%
+\begin{theorem}[{Theorem~4.1~\citep{SheffetPrivateApproxRegression2015}}]%
   \label{thm:wishart-cont-dp}
   Fix positive $\varepsilon_0$ and $\delta_0$. If the $L_2$-norm of each
-  row in the input is bouded by $\tilde L$ then adding to the inputs'
-  Gram matrix noise sampled from $\Wishart_{d+1}(\tilde
-  L^2 \Eye, k_0)$ is $(\varepsilon_0,\delta_0)$-differentially private,
-  provided $k_0\geq d+1 + 28\varepsilon_0^{-2}\ln(4/\delta_0)$.
+  row in the input is bounded by $\tilde L$ then releasing the input's
+  Gram matrix with added noise sampled from
+  $\Wishart_{d+1}(\tilde L^2 \Eye, k_0)$ is
+  $(\varepsilon_0,\delta_0)$-differentially private, provided
+  $k_0 \ge d + 1 + 28\varepsilon_0^{-2}\ln(\nicefrac{4}{\delta_0})$.
 \end{theorem}
-Applying this guarantee to our setting, where each count needs to
-preserve
-$(\varepsilon/\sqrt{8m\ln(2/\delta)}, \delta/2m)$-differential
-privacy, it suffices to sample a matrix from
-$\Wishart_{d+1}(\tilde{L} \Eye, k)$ with
-$k \defeq \ceil{d+1 + 224
-  m\varepsilon^{-2}\ln(8m/\delta)\ln(2/\delta)}$. Moreover, combining
-the noise of $m$ samples from the Wishart distribution is equivalent
-to sampling a noise matrix
-$\vec N_t\sim \Wishart_{d+1}(\tilde L^2\Eye, mk)$.\footnote{Intuitively, we merely
-concatenate the $m$ batches of multivariate Gaussians sampled in the
-generation of each of the $m$ Wishart noises.} Furthermore, consider
-the regularizers $\vec H_t$ and $\vec h_t$ derived from $\vec N_t$ (the top-left
-submatrix and the right-most subcolumn resp.)~--- $\vec H_t$ is sampled
-from $\Wishart_d(\tilde L^2\Eye,k)$ , and each entry of $\vec h_t$ is
-the dot-product of two multivariate Gaussians. Knowing their
-distribution, we can infer the accurate bounds required for our regret
-bounds. The proof is thus deferred to the supplementary material, Section~\ref{apx_sec:privacy_proofs}.
+\vspace{-\parskip} Applying this guarantee to our setting, where each
+count needs to preserve
+$(\nicefrac{\varepsilon}{\sqrt{8m\ln(\nicefrac{2}{\delta})}},
+\nicefrac{\delta}{2m})$-differential privacy, it suffices to sample a
+matrix from $\Wishart_{d+1}(\tilde{L} \Eye, k)$ with
+$k \defeq d + 1 + \ceil{224
+  m\varepsilon^{-2}\ln(\nicefrac{8m}{\delta})\ln(\nicefrac{2}{\delta})}$.
+Moreover, the sum of $m$ independent samples from the Wishart
+distribution is a noise matrix
+$\vec N_t\sim \Wishart_{d+1}(\tilde L^2\Eye, mk)$.%
+\footnote{Intuitively, we merely concatenate the $m$ batches of
+  multivariate Gaussians sampled in the generation of each of the $m$
+  Wishart noises.} %
+Furthermore, consider the regularizers $\vec H_t$ and $\vec h_t$ derived
+from $\vec N_t$ (the top-left submatrix and the right-most subcolumn
+resp.)~--- $\vec H_t$ has distribution
+$\Wishart_d(\tilde L^2\Eye,mk)$, and each entry of $\vec h_t$ is the
+dot-product of two multivariate Gaussians. Knowing their distribution,
+we can infer the accurate bounds required for our regret bounds. The
+proof is thus deferred to \cref{apx_sec:privacy_proofs} of the
+supplementary material.
 \begin{restatable}{proposition}{PropWishartTails}
 \label{pro:accurate_bounds_for_Wishart}
 Fix any $\alpha>0$. If for each $t$ the $\vec H_t$ and $\vec h_t$ are
@@ -815,7 +869,9 @@ are $(\alpha/2n)$-accurate bounds:
     \gamma \defeq \tilde L(\sqrt{d} + \sqrt{2\ln(2n/\alpha)}).
  \end{align*}}
 \end{restatable}
-Plugging-in the above bounds to Theorems~\ref{thm:linucb-regret} and~\ref{thm:linucb-gap-regret} we get the following pseudo-regret upper-bounds.
+\vspace{-\parskip} Plugging these into
+\cref{thm:linucb-regret,thm:linucb-gap-regret} gives us the following
+upper bounds on pseudo-regret.
 \begin{corollary}
 \label{cor:regret_with_Wishart}
 \cref{alg:linucb} with $\vec H_t$ and $\vec h_t$ generated by the tree-based
@@ -906,7 +962,7 @@ in general, and a gap-dependent pseudo-regret bound of
 It is fairly evident that the bound of Corollary~\ref{cor:regret_with_Gaussian} is better than the bound of Corollary~\ref{cor:regret_with_Wishart}: whereas the first bound is roughly $\tilde O(\sqrt n(d+\nicefrac {\sqrt d}\varepsilon
 ))$, this last bound is roughly $\tilde O(\sqrt n(d + d^{3/4}/\varepsilon^{1/2}))$.
 \section{Lower Bounds}
-\label{sec:lower_bounds}
+\label{sec:lower-bounds}
 
 In this section, we present lower bounds for two versions of the
 problem we deal with in this work. The first, and probably the more
@@ -1459,7 +1515,7 @@ Seeing as $\vec H_t\sim\Wishart_d(\tilde L^2 \Eye, mk)$, straight-forward bounds
   changing a single row of $A$.
 \end{theorem}
 
-We now give the proof of the lower bound of any private algorithm under the stadard notion of differential privacy under continual observation, as discussed in Section~\ref{sec:lower_bounds}. First, of course, we need to define this notion. \DPDefinition
+We now give the proof of the lower bound of any private algorithm under the stadard notion of differential privacy under continual observation, as discussed in Section~\ref{sec:lower-bounds}. First, of course, we need to define this notion. \DPDefinition
 ~We now prove the following.
 \clmLinearRegretDP*
 \DPLowerBoundProof
