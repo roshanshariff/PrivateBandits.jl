@@ -384,11 +384,9 @@ Our leading application of course is privacy, though
 one could postulate other reasons why such a change in regularizers
 would be useful (e.g., updating the regularizer when an initial upper
 bound of a parameter turns out to be wrong). We then plug-in two
-particular regularizers into our scheme: one based on additive Wishart
-noise~\citep{SheffetPrivateApproxRegression2015} which always results
-in a PSD matrix, achieving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; and one based on additive Gaussian
-noise \citep{DworkAnalyzeGauss2014} shifted by $\Upsilon\Eye$ to make
-it PSD w.h.p.\ over all days, giving a regret bound of $\tilde O(\sqrt n d/\varepsilon)$. (The actual bounds depends on \emph{many} variables, so there are settings where the latter is better than the former.) The details of the two techniques are given in Section~\ref{sec:alg-dp}.
+particular regularizers into our scheme: the first is immediate, a privacy preserving mechanism that uses additive Wishart
+noise~\citep{SheffetPrivateApproxRegression2015} making the noise always a PSD matrix, achieving regret of $\tilde O(\sqrt{n}(d+\nicefrac{\sqrt d}{\varepsilon}))$; then, we use the additive Gaussian
+noise~\citep{DworkAnalyzeGauss2014} which we shift by $2\Upsilon\Eye$ to force the noise to be PSD (w.h.p.)\ over all days, giving a regret bound of $\tilde O(\sqrt n(d + d^{3/4}/\sqrt\varepsilon))$. The details of the two techniques are given in Section~\ref{sec:alg-dp}.
 %We also present empirical evidence showing our analysis is in fact optimal, presented in Section~\ref{}.
 
 In Section~\ref{sec:lower_bounds} we also give a lower bound for the $\varepsilon$-differentially private
@@ -399,7 +397,7 @@ adversarial setting, the proof technique cannot rely on standard packing argumen
 problem is stochastic rather than adversarial.  Instead, we rely on a recent coupling argument given in~\cite{KarwaVadhanFiniteSampleDP2017} to prove any private algorithm must substantially explore suboptimal arms.
 
 \paragraph{Future Directions.} The linear-UCB algorithm we adapt in this work is a canonical approach to the linear MAB problem, also referred to as ``optimism in the face of uncertainty.'' However, a recent work~\cite{LattimoreS17} shows that in certain situations it is best to adjust to the actions in the decision set in a very particular way, that utilizes a complicated optimization problem. We pose here the question of devising a private version of the algorithm in~\cite{LattimoreS17} which interpolates between UCB and fine-tuning to the specific action set.
-\vspace{-0.5mm}
+\vspace{-1mm}
 \subsection{Related Work}
 \label{subsec:related_work}
 %\paragraph{MAB and the Contextual Bandit Problem.}
@@ -822,8 +820,8 @@ Plugging-in the above bounds to Theorems~\ref{thm:linucb-regret} and~\ref{thm:li
 mechanism with each node adding noise independently from
 $\Wishart_{d+1}( (L^2+\tilde B^2)\Eye, k )$, assuming
 $n/\log(n)\gg k$, we get a pseudo-regret bound of
-\[ O(\sqrt n\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right) )  \] in general, and a gap-dependent pseudo-regret bound of
-\[ O(\tfrac1 \Delta\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right)^2 ) \]
+\[ O(B\sqrt n\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right) )  \] in general, and a gap-dependent pseudo-regret bound of
+\[ O(\tfrac B \Delta\left( d\log(n)\left( \sigma+S\tilde{L} \right) +S\tilde{L}\sqrt d \left( \tfrac{\log(n)\log(\nicefrac{\log(n)}{\delta})}{\varepsilon} +\sqrt{\log(\nicefrac 2 \alpha)\log(\tfrac{n}{d^2\log(n)}}) \right) +\sigma\log(\nicefrac 1 \alpha) \right)^2 ) \]
 \end{corollary}
 
 \subsection{Differential Privacy via Additive Gaussian Noise}
@@ -858,24 +856,16 @@ each coordinate is $m\sigma_{\rm noise}^2$.  The top-left
 $(d\times d)$-submatrix of $\vec N_t$ has operator norm of at most
 \begin{align*}\textstyle
 \Upsilon \defeq \sigma_{\rm noise}\sqrt{2m}(4\sqrt{d} +
-2\ln(\nicefrac n \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4
-\delta)(4\sqrt{d} + 2\ln(\nicefrac n \alpha)) / \varepsilon.
+2\ln(\nicefrac {2n} \alpha)) = \sqrt{32} m\tilde L ^2 \ln(\nicefrac 4
+\delta)(4\sqrt{d} + 2\ln(\nicefrac {2n} \alpha)) / \varepsilon.
 \end{align*}
 
 However, it is important to note that the result of adding Gaussian
 noise may not preserve the PSD property of the noisy Gram matrix. To
-that end, we add $(\Upsilon +1)\Eye$ to the Gaussian noise, in order
+that end, we ought to shift $\vec N_t$ by some $c\cdot \Eye$, in order
 to make sure that we maintain strictly positive eigenvalues throughout
-the execution of the algorithm. The end result is that for each day
-$t$ we have that $\vec H_t$ is given by (i) summing $\leq m$ matrices
-whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$;
-(ii) symmetrizing the result as shown above; and (iii) adding
-$(\upsilon+1)\Eye$; $\vec h_t$ is given by summing $\leq m$
-$d$-dimensional vectors whose entries are sampled iid from
-$\Normal(0,\sigma_{\rm noise}^2)$ (the symmetrization doesn't change
-the distribution of each coordinate). As the least eigenvalue of
-$\vec H_t$ (we can guarantee) is $1$, then
-$\norm{\inv{\vec H_t}}{\vec h_t} \leq \norm{}{\vec h_t}$ which we can
+the execution of the algorithm. Since the bounds in Theorems~\ref{thm:linucb-regret} and~\ref{thm:linucb-gap-regret} mainly depends on $\sqrt{\rho_{\max}} +\gamma$, we choose the shift-magnitude to be $2\Upsilon \Eye$. This makes $\rho_{\max}=3\Upsilon$ and $\rho_{\min}=\Upsilon$ and as a result then
+$\norm{\inv{\vec H_t}}{\vec h_t} \leq \sqrt{\nicefrac 1 \Upsilon}\norm{}{\vec h_t}$ which we can
 bound using standard concentration bounds on the $\chi^2$-distribution
 (see Claim~\ref{claim:chi2-tails}). This culminates in the following
 bounds.
@@ -883,21 +873,36 @@ bounds.
 \label{pro:accurate_bounds_for_Gaussian}
 Fix any $\alpha>0$. Given that for each $t$ the regularizers $\vec H_t, \vec h_t$ are taken by applying the tree-based algorithm with symmterized Guassian noise whose entries are sampled iid from $\Normal(0, \sigma_{\rm noise}^2)$, then the following $\rho_{\min},\rho_{\max}$ and $\gamma$ are $(\alpha/2n)$-accurate bounds:
 \begin{align*}
-    &\rho_{\max}\defeq  2\Upsilon+1 &&\rho_{\min}\defeq 1 && \gamma \defeq \sqrt m\sigma_{\rm noise}(\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})=4m\tilde L^2 \ln(\nicefrac 4 \delta) (\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})/\varepsilon
+    &\rho_{\max}\defeq  3\Upsilon, &&\rho_{\min}\defeq \Upsilon, && \gamma \defeq \sqrt{\inv{\Upsilon}}\sqrt m\sigma_{\rm noise}(\sqrt d + \sqrt{2\ln(\nicefrac{2n}\alpha)})\leq\sqrt{ {m\tilde L^2(\sqrt d+2\ln(\nicefrac {2n}{\alpha}))} /({\sqrt 2 \varepsilon}) }
   \end{align*}
 \end{proposition}
-Note how $\gamma=O(\Upsilon)$ (the only difference is $\sqrt{\log(\tfrac n \alpha)}$).
-As a result we get a bound on the regret of Algorithm~\ref{alg:linucb} with the tree-based algorithm using Gaussian noise.
+Note how this choice of shift indeed makes both $\rho_{\max}$ and $\gamma^2$ roughly on the order of $O(\Upsilon)$.\\
+The end result is that for each day
+$t$ we have that $\vec H_t$ is given by (i) summing $\leq m$ matrices
+whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$;
+(ii) symmetrizing the result as shown above; and (iii) adding
+$2\Upsilon\Eye$; and $\vec h_t$ is given by summing $\leq m$
+$d$-dimensional vectors whose entries are sampled iid from
+$\Normal(0,\sigma_{\rm noise}^2)$ (the symmetrization doesn't change
+the distribution of each coordinate). And this leads to a bound on the regret of Algorithm~\ref{alg:linucb} with the tree-based algorithm using Gaussian noise.
 \begin{corollary}
 \label{cor:regret_with_Gaussian}
-Applying Algorithm~\ref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmetrized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $(\Upsilon+1)\Eye$, assuming $n/d>\Upsilon$, we get a regret bound of
-\[O(\sqrt n \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right) )\]
+Applying Algorithm~\ref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmetrized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $2\Upsilon\Eye$, we get a regret bound of
+\[O(B\sqrt n \left(  
+\sigma (d \log(n)+\log(\nicefrac 1 \alpha)) + S\tilde L \log(n) \sqrt{
+{d(\sqrt d + 1\ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
+}
+\right) )\]
 in general, and a gap-dependent pseudo-regret bound of
-\[O(\tfrac 1 \Delta \left(  \sigma\left(d\log(\nicefrac{nL^2}{d}) + \log(\nicefrac 1 \alpha) \right) + (S\tilde{L}+\tilde{L}^2)\sqrt{d\log(\nicefrac{nL^2}{d})}\tfrac{\log(n)\log(\nicefrac 1 \delta)(\sqrt d + \sqrt{\log(\nicefrac n \alpha)})}{\varepsilon}\right)^2 )\]
+\[O(\tfrac B \Delta \left(  
+\sigma (d \log(n)+\log(\nicefrac 1 \alpha)) + S\tilde L \log(n) \sqrt{
+{d(\sqrt d + 1\ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
+}
+\right)^2 )\]
 \end{corollary}
 
-A comparison of the bounds in Corollaries~\ref{cor:regret_with_Wishart} and~\ref{cor:regret_with_Gaussian} appears in the supplementary material, Section~\ref{apx_sec:privacy_proofs}.
-
+It is fairly evident that the bound of Corollary~\ref{cor:regret_with_Gaussian} is better than the bound of Corollary~\ref{cor:regret_with_Wishart}: whereas the first bound is roughly $\tilde O(\sqrt n(d+\nicefrac {\sqrt d}\varepsilon
+))$, this last bound is roughly $\tilde O(\sqrt n(d + d^{3/4}/\varepsilon^{1/2}))$.
 \section{Lower Bounds}
 \label{sec:lower_bounds}
 
@@ -1169,10 +1174,10 @@ gap-dependent analysis later avoids this, but has other trade-offs.
   our regret bounds end up with a factor $B$; we now explain how.
   First note that $B$ is trivially at most $LS$ by Cauchy-Schwarz:
   $\abs{\innerp{\vec\theta^*}{\vec x_t}} \le
-  \norm{}{\vec\theta^*}\norm{}{\vec x_t} \le LS$.  If $B<1$ then
-  clearly we can take $B=1$ without violating the assumption.  It
+  \norm{}{\vec\theta^*}\norm{}{\vec x_t} \le LS$.  The case where $B<1$ yet is some constant is trivial: clearly we can take $B=1$ without violating the assumption.  The case where $B=o(1)$ is actually quite intricate and somewhat ``unnatural'': while a-priori  we know the mean-reward can be as large as $LS$, it is in fact \emph{much} smaller. This means we have to scale down actions, and shrink the entire problem by a sub-constant; and as a result the noise $\sigma$ is actually now \emph{far} larger (it is like $\sigma/B$ in the original setting). While thie can be a mere technicality in general, since our leading application is privacy this also means that the bounds on the actual reward we use in Section~\ref{sec:alg-dp} needs to be scaled by a very large factor. Thus, allowing for ridiculously small $B$ turns into an unnecessary nusance, and we simply assume that our upper-bound $B$ is not tiny~--- namely, we assume $B\geq 1$. 
+  
+  It
   remains to deal with the situation where $B>1$.
-
   In this case, we can pre-process the rewards to the algorithm,
   scaling them down by a factor of $B$.  If we also scale down all the
   actions $\vec x\in\D_t$, then the rest of the assumptions remain
@@ -1341,7 +1346,7 @@ preceding results.
   \end{align*}
   The argument outlined in \cref{remark:meanreward-bound} preceding
   the proof of \cref{lemma:linucb-regret} tells us how to reintroduce
-  the missing factor of $B'$ in this regret bound.
+  the missing factor of $B$ in this regret bound.
 \end{proof}
 
 The proof of the gap-dependent regret bound diverges from the previous
@@ -1371,7 +1376,7 @@ Cauchy-Schwarz inequality.
   \end{align*}
   As before, see \cref{remark:meanreward-bound} preceding
   the proof of \cref{lemma:linucb-regret} to introduce
-  the missing $B'$ factor.
+  the missing $B$ factor.
 \end{proof}
 
 \subsection{Regret Bounds Open Problem}
@@ -1423,14 +1428,15 @@ graph and logarithmically spaced in the latter).
 
 \section{Privacy Proofs}
 \label{apx_sec:privacy_proofs}
-
+\newcommand{\cut}[1]{}
+\cut{
 Before giving the omitted proofs from the body of the paper, we wish to have a short comparison between the regret bounds we get with the two different techniques to introduce differential privacy. In particular, omitting dependencies on any parameter but $n,d$ and $\varepsilon$, we have that the pseudo-regret bound of the Wishart noise (Corollary~\ref{cor:regret_with_Wishart}) is $\tilde O(\sqrt n(d+\tfrac{\sqrt d}\varepsilon))$; and that pseudo-regret bound of the Gaussian noise (Corollary~\ref{cor:regret_with_Gaussian}) is $\tilde O(\sqrt nd/\varepsilon)$. Before explaining how it came to be that the former has a better dependency on $\varepsilon$ than the latter, we first emphasize that (1) these bounds are only asymptotic (Wishart noise has far worst constants than the constants in the Gaussian bound), and that (2) this is an over simplification, as the many parameters of the problem may affect the regret bounds in favor of the Gaussian noise.
 
 So, how come with Gaussian noise we get a worse dependency on $\varepsilon$ than in the Wishart case? The reason lies in the two factors. First, the degrees of freedom $k$ in the Wishart noise are of the form $k=d+O(\varepsilon^{-2})$, making the top eigenvalue of the added noise $\|\vec H_t\|$ proportional to $O(\sqrt{\log(n)k}+\sqrt d) = O(\sqrt{d\log(n)}+ \tfrac{\sqrt{\log(n)}}{\varepsilon})$, so we get an additive relation rather than a multiplicative relation. In contrast, sampling a Gaussian noise, even though the variance in each coordinate is $O(\log(n)\cdot \varepsilon^{-2})$ and independent of $d$, the bound on the noise in this case is greater by a factor of $\sqrt{d}$, resultsing in the bound $\|\vec H_t\| = O(\sqrt{d\log(n)}/\varepsilon)$. Second, the bound on $\gamma$ is different in the two cases. For Wishart noise, we are able to use the special structure of $\vec H_t$ being the Gram matrix of multivariate Gaussian samples to infer the $\|\vec h_t\|_{\inv{\vec H_t}}$ is basically a projection of a sample from a spherical Gaussian onto a $d$-dimensional space~--- making the bound $\gamma$ \emph{independent} of $mk$ (the degrees of freedom in the Wishart noise) and depends solely on $d$. As a result, $\gamma \ll \rho_{\max}$ in the Wishart noise case, and we have already established that $\rho_{\max}$ has additive dependencies between $\sqrt d$ and $\varepsilon^{-1}$. In contrast, we are unable to leverage on any structure in the Gaussian noise case, making our $\gamma$ bound very similar to $\rho_{\max}$ which is in this case $O(\sqrt d/\varepsilon)$.
 
 Admittedly, we do not know if this is merely an artifact of our analysis, or rather truly a difference in the bound. It is possible that slightly revising the proof of Theorem~\ref{thm:linucb-regret} could leads to different bounds, which are identical between the two privacy-preserving techniques. To attempt to test this empirically requires ridicolously large $d$ and $1/\varepsilon$, which is far beyond what we could handle.
-
-We now turn to providing the missing proofs from the main body of the paper. First, we give the omitted proof from Section~\ref{sec:dp-wishart}.
+}
+We now turn to providing the missing privacy-proofs from the main body of the paper. First, we give the omitted proof from Section~\ref{sec:dp-wishart}.
 
 \PropWishartTails*
 \begin{proof}
