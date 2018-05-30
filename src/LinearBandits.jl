@@ -14,9 +14,6 @@ export ContextLinBandit, EllipLinUCB, EnvParams, RegParams,
 
 abstract type ContextLinBandit end
 
-Accumulators.dim(alg::ContextLinBandit) = # function stub
-    throw(MethodError(dim, typeof((alg,))))
-
 initialize(alg::ContextLinBandit) = # function stub
     throw(MethodError(initalize, typeof((alg,))))
 
@@ -94,18 +91,15 @@ struct EllipLinUCB{S <: AccumStrategy} <: ContextLinUCB
     end
 end
 
-Accumulators.dim(alg::EllipLinUCB) = dim(alg.strategy) - 1
-
 initialize(alg::EllipLinUCB) =
-    accum!(alg.strategy, accumulator(alg.strategy),
-           Symmetric(Diagonal(fill(alg.shift, dim(alg.strategy)))))
+    accum!(alg.strategy, accumulator(alg.strategy, alg.shift*I))
 
 learn!(alg::EllipLinUCB, state, x, y) = accum!(alg.strategy, state, [x; y])
 
 function armUCB(alg::EllipLinUCB, state, arms)
     (V, θ̂, β) = alg.ℰ(accumulated(alg.strategy, state))
     ucb = At_mul_B(arms, θ̂)
-    ucb .+= β .* sqrt.(max.(0, invmatnormsq(V, arms)))
+    ucb .+= β .* .√max.(0, invquad(V, arms))
 end
 
 #=========================================================================#
@@ -137,14 +131,14 @@ function cholL_ldiv_B!(C::Cholesky, B)
     istril(M) ? A_ldiv_B!(M, B) : Ac_ldiv_B!(M, B)
 end
 
-#invmatnormsq(mat, vecs) = squeeze(sum(vecs .* (mat \ vecs), 1), 1)
+#invquad(mat, vecs) = squeeze(sum(vecs .* (mat \ vecs), 1), 1)
 
-function invmatnormsq(C::Cholesky, X)
+function invquad(C::Cholesky, X)
     LinvX = cholL_ldiv_B!(C, copy(X))
     colwise_sumsq!(similar(X, size(X, 2)), LinvX, 1)
 end
 
-invmatnormsq(V, X) = colwise_dot!(similar(X, size(X, 2)), X, V\X)
+invquad(V, X) = colwise_dot!(similar(X, size(X, 2)), X, V\X)
 
 #=========================================================================#
 

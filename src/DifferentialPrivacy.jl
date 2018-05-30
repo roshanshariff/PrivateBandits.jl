@@ -8,9 +8,8 @@ using Parameters
 using LinearBandits: RegParams
 using Accumulators
 
-export ComposedStrategy, TreeStrategy, PanPrivTreeStrategy,
-    DiffPrivParams, WishartMechanism, GaussianMechanism, numcomposed,
-    advanced_composition, regparams
+export TreeStrategy, PanPrivTreeStrategy, DiffPrivParams, WishartMechanism,
+    GaussianMechanism, regparams
 
 abstract type ComposedStrategy <: AccumStrategy end
 
@@ -27,11 +26,6 @@ horizon(s::ComposedStrategy) = # function stub
     throw(MethodError(horizon, typeof((s,))))
 
 numcomposed(s::ComposedStrategy) = numcomposed(typeof(s), horizon(s))
-
-Accumulators.initial(s::ComposedStrategy) =
-    Accumulators.initial(basestrategy(s))
-
-Accumulators.dim(s::ComposedStrategy) = dim(basestrategy(s))
 
 @with_kw struct DiffPrivParams @deftype Float64
     dim :: Int
@@ -207,25 +201,20 @@ function (noise::GaussianMechanism)()
     d = noise.dim
     σ = noise.σ
     M = zeros(d, d)
-    for i = 1:d
-        @inbounds M[i,i] = √2*σ*randn()
-    end
-    for j = 2:d, i = 1:j-1
-        @inbounds M[i,j] = σ*randn()
+    for j = 2:d
+        for i = 1:j-1
+            @inbounds M[i,j] = σ*randn()
+        end
+        @inbounds M[j,j] = √2*σ*randn()
     end
     Symmetric(M, :U)
 end
 
 function regparams(mechanism::GaussianMechanism, α; m=1)
     d = mechanism.dim - 1
-    σ_max = mechanism.σ * √2m * (√16d - 2log(α))
-    γ = √m * mechanism.σ * (√d + √-2log(α))
-    RegParams(
-        ρmin = σ_max,
-        ρmax = 3σ_max,
-        γ = γ/√σ_max,
-        shift = 2σ_max
-    )
+    σmax = mechanism.σ * √2m * (√16d - 2log(α))
+    γ = √m * mechanism.σ * (√d + √-2log(α)) / √σmax
+    RegParams(ρmin=σmax, ρmax=3σmax, γ=γ, shift=2σmax)
 end
 
 #=========================================================================#
