@@ -948,13 +948,13 @@ the distribution of each coordinate). And this leads to a bound on the regret of
 Applying \cref{alg:linucb} where the regularizers $\vec H_t$ and $\vec h_t$ are derived by applying the tree-based algorithm where each node holds a symmetrized matrix whose entries are sampled iid from $\Normal(0,\sigma_{\rm noise}^2)$ and adding $2\Upsilon\Eye$, we get a regret bound of
 \[O(B\sqrt n \left(  
 \sigma (d \log(n)+\log(\nicefrac 1 \alpha)) + S\tilde L \log(n) \sqrt{
-{d(\sqrt d + 1\ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
+{d(\sqrt d + \ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
 }
 \right) )\]
 in general, and a gap-dependent pseudo-regret bound of
 \[O(\tfrac B \Delta \left(  
 \sigma (d \log(n)+\log(\nicefrac 1 \alpha)) + S\tilde L \log(n) \sqrt{
-{d(\sqrt d + 1\ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
+{d(\sqrt d + \ln(\nicefrac {n}{\alpha}))\ln(\nicefrac 1 \delta)}/{\varepsilon}
 }
 \right)^2 )\]
 \end{corollary}
@@ -1014,7 +1014,7 @@ The expected pseudo-regret of any $\varepsilon$-differentially private algorithm
 \begin{proof}
   Based on \cref{clm:LB_pulling_any_arms_many_times}, the expected
   pseudo-regret is at least
-  $\sum_{a\neq a^1}\tfrac{\Delta_a\log(n)}{200
+  $\sum\limits_{a\neq a^1}\tfrac{\Delta_a\log(n)}{200
     \varepsilon\Delta_a} = \tfrac{(k-1)\log(n)}{200\varepsilon}$.
 \end{proof}
 \vspace{-2.5\parskip}
