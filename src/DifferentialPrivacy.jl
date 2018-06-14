@@ -9,7 +9,8 @@ using LinearBandits: RegParams
 using Accumulators
 
 export TreeStrategy, PanPrivTreeStrategy, DiffPrivParams, WishartMechanism,
-    GaussianMechanism, regparams
+    ShiftedWishart, ShiftedWishartA, ShiftedWishartB, GaussianMechanism,
+    regparams
 
 abstract type ComposedStrategy <: AccumStrategy end
 
@@ -44,10 +45,9 @@ function advanced_composition(m, dp::DiffPrivParams; δfail=dp.δ/2)
     DiffPrivParams(dp; ε = ε/√(8m*log(1/δfail)), δ = (δ-δfail)/m)
 end
 
-function (T::Type{<:ComposedStrategy})(s::AccumStrategy, Noise::Type,
+function (T::Type{<:ComposedStrategy})(s::AccumStrategy, Mechanism,
                                        horizon::Int, dp::DiffPrivParams)
-    noise = Noise(dp; m=numcomposed(T, horizon))
-    T(s, noise, horizon)
+    T(s, Mechanism(dp; m=numcomposed(T, horizon)), horizon)
 end
 
 regparams(s::ComposedStrategy, α; m=1) =
@@ -188,6 +188,49 @@ end
 (noise::WishartMechanism)() = Symmetric(rand(noise.dist))
 
 #=========================================================================#
+# Shifted Wishart Mechanism
+# Shift by ρmin - x for
+#  x = 4√mkd
+#  x = √(ρmin⋅d)
+
+struct ShiftedWishartMechanism
+    dist :: WishartMechanism
+    ρmin :: Float64
+end
+
+function regparams(shifted::ShiftedWishartMechanism, α; m=1)
+    unshifted = regparams(shifted.dist, α; m=m)
+    RegParams(
+        ρmin = shifted.ρmin,
+        ρmax = unshifted.ρmax - unshifted.ρmin + shifted.ρmin,
+        γ = unshifted.γ * √(unshifted.ρmin / shifted.ρmin),
+        shift = shifted.ρmin - unshifted.ρmin
+    )
+end
+
+(noise::ShiftedWishartMechanism)() = noise.dist()
+
+struct ShiftedWishart
+    ρmin :: Float64
+end
+
+function (s::ShiftedWishart)(dp::DiffPrivParams; m=1)
+    ShiftedWishartMechanism(WishartMechanism(dp; m=m), s.ρmin)
+end
+
+function ShiftedWishartA(dp::DiffPrivParams; m=1)
+    wishart = WishartMechanism(dp; m=m)
+    (k, S) = Distributions.params(wishart.dist)
+    ShiftedWishartMechanism(wishart, 10*√(m*k*(dp.dim-1)))
+end
+
+function ShiftedWishartB(dp::DiffPrivParams; m=1)
+    dist = WishartMechanism(dp; m=m)
+    reg = regparams(dist, 1; m=m)
+    ShiftedWishartMechanism(dist, √(reg.ρmin / (dp.dim-1)))
+end
+
+#=========================================================================#
 # Gaussian mechanism
 
 struct GaussianMechanism
@@ -201,7 +244,7 @@ function (noise::GaussianMechanism)()
     d = noise.dim
     σ = noise.σ
     M = zeros(d, d)
-    for j = 2:d
+    for j = 1:d
         for i = 1:j-1
             @inbounds M[i,j] = σ*randn()
         end

@@ -13,17 +13,12 @@ using DifferentialPrivacy
 using LinearBandits
 using Accumulators
 
-export GapArms, make_alg, make_private_alg, run_episode, ExpResult,
-    pmap_progress, run_experiment
+export GapArms, SubspaceArms, make_alg, make_private_alg, run_episode,
+    ExpResult, pmap_progress, run_experiment
 
 #=========================================================================#
 
 # Rademacher arms
-
-# function orthoarms(env::EnvParams)
-#     arms = Matrix(Diagonal(fill(env.maxactionnorm, env.dim)))
-#     () -> arms
-# end
 
 struct GapArms
     opt :: Float64
@@ -36,15 +31,15 @@ struct GapArms
     end
 end
 
-function (f::GapArms)(arms::Matrix)
+function (f::GapArms)(arms::AbstractMatrix)
     (d, k) = size(arms)
-    β = (d - 1)/2
+    β = (d - 1)/2  # https://stats.stackexchange.com/a/85977
     dist = Truncated(Beta(β, β), (1+f.minsubopt)/2, (1+f.maxsubopt)/2)
     heads = @view arms[1:1, :]
     tails = @view arms[2:end, :]
     randn!(tails)
     colwise_sumsq!(heads, tails, 1)
-    tails ./= sqrt.(heads)
+    tails ./= .√heads
     rand!(dist, heads)
     heads .= f.norm .* (2.*heads .- 1)
     @inbounds heads[rand(1:k)] = f.norm * f.opt
@@ -52,36 +47,28 @@ function (f::GapArms)(arms::Matrix)
     arms
 end
 
-# function gaparms(env::EnvParams; k=env.dim^2, gap=0.0)
-#     @unpack dim, maxactionnorm = env
+struct SubspaceArms{T}
+    arms :: T
+    subspacedims :: Rational{Int}
+    norm :: Float64
+    function SubspaceArms(env::EnvParams, arms, subspacedims) where {}
+        new{typeof(arms)}(arms, subspacedims, env.maxactionnorm)
+    end
+end
 
-#     opt = env.maxrewardmean/(env.maxθnorm*maxactionnorm)
-#     maxsubopt = opt - gap
-#     minsubopt = -opt
+function (f::SubspaceArms)(arms::AbstractMatrix)
+    (D, k) = size(arms)
+    d = ceil(Int, D*f.subspacedims)
 
-#     β = (dim-1)/2
-#     dist = Truncated(Beta(β, β), (1+minsubopt)/2, (1+maxsubopt)/2)
+    top = @view arms[1:d, :]
+    bottom = @view arms[d+1:end, :]
+    f.arms(top)
+    A_mul_B!(bottom, randn(D-d, d), top)
 
-#     arms = zeros(dim, k)
-#     heads = @view arms[1:1, :]
-#     tails = @view arms[2:end, :]
+    sqnorms = colwise_sumsq!(zeros(1, k), arms, 1)
+    arms .*= f.norm ./ .√sqnorms
+end
 
-#     function ()
-#         randn!(tails)
-#         colwise_sumsq!(heads, tails, 1)
-#         tails ./= sqrt.(heads)
-#         rand!(dist, heads)
-#         heads .= maxactionnorm .* (2.*heads .- 1)
-#         heads[rand(1:k)] = maxactionnorm * opt
-#         tails .*= sqrt.(maxactionnorm^2 .- heads.^2)
-#         arms
-#     end
-# end
-
-# function constarms(makearms)
-#     arms = makearms()
-#     () -> arms
-# end
 
 #=========================================================================#
 
@@ -126,11 +113,17 @@ function make_alg(env::EnvParams, horizon;
     EllipLinUCB(strategy(env.dim+1), env, reg, α)
 end
 
-function make_private_alg(env, horizon, ε, δ, Mechanism;
-                          α=1/horizon, strategy=PanPrivTreeStrategy)
+function make_private_strategy(env, horizon, ε, δ, Mechanism;
+                               Strategy=PanPrivTreeStrategy)
     L̃ = √(env.maxactionnorm^2 + env.maxreward^2)
     dp = DiffPrivParams(dim=env.dim+1, ε=ε, δ=δ, L̃=L̃)
-    s = strategy(SymMatrix(dp.dim), Mechanism, horizon, dp)
+    Strategy(SymMatrix(dp.dim), Mechanism, horizon, dp)
+end
+
+function make_private_alg(env, horizon, ε, δ, Mechanism;
+                          α=1/horizon, Strategy=PanPrivTreeStrategy)
+    s = make_private_strategy(env, horizon, ε, δ, Mechanism;
+                              Strategy=Strategy)
     EllipLinUCB(s, env, regparams(s, α/2), α/2)
 end
 
@@ -195,7 +188,7 @@ end
     _std = std(result.data, 2; mean=_mean) / √_n
     y := _mean
     ribbon := _std
-    marker --> true
+    #marker --> true
     ()
 end
 

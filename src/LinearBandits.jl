@@ -8,7 +8,7 @@ using Parameters
 using Accumulators
 
 export ContextLinBandit, EllipLinUCB, EnvParams, RegParams,
-    initialize, learn!, choosearm
+    regret_bound, initialize, learn!, choosearm
 
 #=========================================================================#
 
@@ -54,6 +54,22 @@ end
     @assert ρmax ≥ ρmin > 0
     @assert γ ≥ 0
 end
+
+function regret_bound(env::EnvParams, reg::RegParams, horizon, α)
+    n = horizon
+    d = env.dim
+    S = env.maxθnorm
+    L = env.maxactionnorm
+    B = env.maxrewardmean
+    σ = env.σ
+    ρmax = reg.ρmax
+    ρmin = reg.ρmin
+    γ = reg.γ
+    log_term = d*log1p(n*L^2/(d*ρmin))
+    B*√8n * (σ*(2log(2/α) + log_term) + (S*√ρmax + γ)*√log_term)
+end
+
+#=========================================================================#
 
 struct Ellipsoid
     σ :: Float64
