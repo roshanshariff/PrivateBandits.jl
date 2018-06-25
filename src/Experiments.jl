@@ -164,14 +164,15 @@ function run_episode(env::EnvParams, alg::ContextLinBandit, makearms,
     b = Bandit(alg)
     cumregret = 0.0
     skip = horizon ÷ subsample
-    regrets = map(skip:skip:horizon) do _
-        for i in 1:skip
+    regrets = [cumregret]
+    for _ in skip:skip:horizon
+        for _ in 1:skip
             constarms || A_mul_B!(arms, Q, makearms(alignedarms))
             cumregret += oneround!(b, θ, arms, noise)
         end
-        cumregret
+        push!(regrets, cumregret)
     end
-    ExpResult(skip:skip:horizon, regrets)
+    ExpResult(0:skip:horizon, regrets)
 end
 
 #=========================================================================#

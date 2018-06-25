@@ -65,8 +65,10 @@ function regret_bound(env::EnvParams, reg::RegParams, horizon, α)
     ρmax = reg.ρmax
     ρmin = reg.ρmin
     γ = reg.γ
-    log_term = d*log1p(n*L^2/(d*ρmin))
-    B*√8n * (σ*(2log(2/α) + log_term) + (S*√ρmax + γ)*√log_term)
+
+    β = σ*√(2log(2/α) + d*log((ρmax/ρmin) + n*L^2/(d*ρmin))) + S*√ρmax + γ
+    regret_mult = B * √(8*n*d*log1p(n*L^2/(d*ρmin)))
+    return β * regret_mult
 end
 
 #=========================================================================#
