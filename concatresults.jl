@@ -2,7 +2,7 @@
 
 using JLD2
 
-using Experiments
+using PrivateBandits.Experiments
 
 
 function loadresults(dirname)

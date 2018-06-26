@@ -7,13 +7,14 @@
 
 using JLD2
 using DataStructures
+using Printf
 
-using DifferentialPrivacy
-using LinearBandits
-using Experiments
+using PrivateBandits.DifferentialPrivacy
+using PrivateBandits.LinearBandits
+using PrivateBandits.Experiments
 
 (run, dim) = begin
-    dims = [round(Int, d) for d in logspace(log10(4), log10(64), 17)]
+    dims = round.(Int, 2 .^ LinRange(log2(4), log2(64), 17))
     taskid = parse(Int, ENV["SLURM_ARRAY_TASK_ID"])
     (run, dim) = divrem(taskid-1, length(dims))
     (run+1, dims[dim+1])

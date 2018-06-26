@@ -1,6 +1,6 @@
 module Accumulators
 
-using Base.LinAlg: Cholesky, lowrankupdate!
+using LinearAlgebra
 
 export AccumStrategy, Accumulator, CholeskyUpdate, SymMatrix,
     accumulator, accum, accum!, accumulated
@@ -61,18 +61,19 @@ end
 accumulator(::CholeskyUpdate, init) = cholfact(init)
 accumulator(::CholeskyUpdate, init::Cholesky) = copy(init)
 accumulator(s::CholeskyUpdate, init::UniformScaling) =
-    Cholesky(diagm(fill(√init.λ, s.dim)), :U)
+    Cholesky(Matrix(√init.λ*I, s.dim, s.dim), :U,
+             convert(LinearAlgebra.BlasInt, 0))
 
 function accum!(::CholeskyUpdate, a::Cholesky, x::AbstractMatrix)
     M = full(a)
     M .+= x
-    cholfact!(M)
+    cholesky!(M)
 end
 
 accum!(::CholeskyUpdate, a::Cholesky, x::StridedVector) =
     lowrankupdate!(a, x)
 
-accum!(::CholeskyUpdate, a::Cholesky, ::Void) = a
+accum!(::CholeskyUpdate, a::Cholesky, ::Nothing) = a
 
 accumulated(::CholeskyUpdate, a::Cholesky) = a
 
@@ -85,7 +86,7 @@ end
 accumulator(::SymMatrix, init) = Symmetric(copy(init))
 accumulator(::SymMatrix, init::Symmetric) = copy(init)
 accumulator(s::SymMatrix, init::UniformScaling) =
-    Symmetric(diagm(fill(init.λ, s.dim)))
+    Symmetric(Matrix(init.λ*I, s.dim, s.dim))
 
 function accum!(::SymMatrix, a::Symmetric, x::Symmetric)
     M = parent(a)
@@ -99,7 +100,7 @@ function accum!(::SymMatrix, a::Symmetric, x::AbstractVector)
     a
 end
 
-accum!(::SymMatrix, a::Symmetric, ::Void) = a
+accum!(::SymMatrix, a::Symmetric, ::Nothing) = a
 
 accumulated(::SymMatrix, a::Symmetric) = a
 

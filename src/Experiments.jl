@@ -1,17 +1,21 @@
 module Experiments
 
+using LinearAlgebra
+using Statistics
+using Random
 using Distributions: Beta, Truncated
 using PDMats: colwise_sumsq!
 using Parameters
-using NamedTuples
-using Plots
+using RecipesBase
 
+using Distributed: pmap
 import ProgressMeter
-import PmapProgressMeter
+include("PmapProgressMeter.jl")
 
-using DifferentialPrivacy
-using LinearBandits
-using Accumulators
+using ..DifferentialPrivacy
+using ..LinearBandits
+using ..Accumulators
+
 
 export GapArms, SubspaceArms, make_alg, make_private_alg, run_episode,
     ExpResult, pmap_progress, run_experiment
@@ -41,7 +45,7 @@ function (f::GapArms)(arms::AbstractMatrix)
     colwise_sumsq!(heads, tails, 1)
     tails ./= .√heads
     rand!(dist, heads)
-    heads .= f.norm .* (2.*heads .- 1)
+    heads .= f.norm .* (2 .* heads .- 1)
     @inbounds heads[rand(1:k)] = f.norm * f.opt
     tails .*= sqrt.(f.norm^2 .- heads.^2)
     arms
@@ -63,7 +67,7 @@ function (f::SubspaceArms)(arms::AbstractMatrix)
     top = @view arms[1:d, :]
     bottom = @view arms[d+1:end, :]
     f.arms(top)
-    A_mul_B!(bottom, randn(D-d, d), top)
+    mul!(bottom, randn(D-d, d), top)
 
     sqnorms = colwise_sumsq!(zeros(1, k), arms, 1)
     arms .*= f.norm ./ .√sqnorms
@@ -124,7 +128,7 @@ function make_private_alg(env, horizon, ε, δ, Mechanism;
                           α=1/horizon, Strategy=PanPrivTreeStrategy)
     s = make_private_strategy(env, horizon, ε, δ, Mechanism;
                               Strategy=Strategy)
-    EllipLinUCB(s, env, regparams(s, α/2), α/2)
+    EllipLinUCB(s, env, regparams(s; α=α/2), α/2)
 end
 
 #=========================================================================#
@@ -140,7 +144,7 @@ end
 
 function oneround!(b::Bandit, θ, arms, noise)
     i = choosearm(b.alg, b.state, arms)
-    rewards = At_mul_B(arms, θ)
+    rewards = arms' * θ
     let arm = view(arms, :, i)
         b.state = learn!(b.alg, b.state, arm, noise(rewards[i]))
     end
@@ -155,8 +159,9 @@ function run_episode(env::EnvParams, alg::ContextLinBandit, makearms,
 
     (env, noise) = reward_noise(env)
     θ = env.maxθnorm * normalize!(randn(env.dim))
-    (Q, R) = qr(reshape(θ, :, 1); thin=false)
-    Q .*= R[]
+    Q = let F = qr(θ)
+        sign(F.R[]) * F.Q
+    end
 
     alignedarms = zeros(env.dim, numarms)
     arms = zeros(env.dim, numarms)
@@ -168,7 +173,7 @@ function run_episode(env::EnvParams, alg::ContextLinBandit, makearms,
     regrets = [cumregret]
     for _ in skip:skip:horizon
         for _ in 1:skip
-            constarms || A_mul_B!(arms, Q, makearms(alignedarms))
+            constarms || mul!(arms, Q, makearms(alignedarms))
             cumregret += oneround!(b, θ, arms, noise)
         end
         push!(regrets, cumregret)
@@ -186,8 +191,8 @@ end
 @recipe function plot_ExpResult(result::ExpResult)
     x := result.coords
     _n = size(result.data, 2)
-    _mean = mean(result.data, 2)
-    _std = std(result.data, 2; mean=_mean) / √_n
+    _mean = mean(result.data, dims=2)
+    _std = std(result.data; mean=_mean, dims=2) / √_n
     y := _mean
     ribbon := _std
     #marker --> true

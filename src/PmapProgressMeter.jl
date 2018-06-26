@@ -1,5 +1,6 @@
 module PmapProgressMeter
 
+import Distributed
 using ProgressMeter
 using Compat
 
@@ -10,7 +11,7 @@ globalPrintLock = Dict()
 
 "Wraps pmap with a progress meter. If the keyword argument passcallback is true, then passes an additional first argument to the function which is a callback taking one argument, n, to add n to the progress meter. If it is false, then updates the progress meter by 1 every time a parallel call
 finishes."
-function Base.pmap(f::Function, p::Progress, values...; kwargs...)
+function Distributed.pmap(f::Function, p::Progress, values...; kwargs...)
     global globalProgressMeters
     global globalProgressValues
     global globalPrintLock
@@ -27,7 +28,7 @@ function Base.pmap(f::Function, p::Progress, values...; kwargs...)
       delete!(kwa,:passcallback)
     end
 
-    out = pmap(values...; kwa...) do x...
+    out = Distributed.pmap(values...; kwa...) do x...
         if passcallback
           v = f(n -> remotecall(updateProgressMeter, 1, id, n), x...)
         else

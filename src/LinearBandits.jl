@@ -1,10 +1,10 @@
 module LinearBandits
 
-using Base.LinAlg: Cholesky
+using LinearAlgebra
 using PDMats: colwise_dot!, colwise_sumsq!
 using Parameters
 
-using Accumulators
+using ..Accumulators
 
 export ContextLinBandit, EllipLinUCB, EnvParams, RegParams,
     regret_bound, initialize, learn!, choosearm
@@ -27,7 +27,7 @@ abstract type ContextLinUCB <: ContextLinBandit end
 armUCB(alg::ContextLinUCB, s, arms) = # function stub
     throw(MethodError(armUCB, typeof((alg, s, arms))))
 
-choosearm(alg::ContextLinUCB, s, arms) = indmax(armUCB(alg, s, arms))
+choosearm(alg::ContextLinUCB, s, arms) = argmax(armUCB(alg, s, arms))
 
 #=========================================================================#
 
@@ -86,9 +86,9 @@ end
 _β(ℰ::Ellipsoid, logdetV) = ℰ.ξ + ℰ.σ*√max(0, logdetV + ℰ.κ)
 
 function (ℰ::Ellipsoid)(M::Symmetric)
-    d = LinAlg.checksquare(M) - 1
-    V = lufact(principle_submatrix(parent(M)))
-    θ̂ = A_ldiv_B!(V, M[1:d, d+1])
+    d = LinearAlgebra.checksquare(M) - 1
+    V = lu(principle_submatrix(parent(M)))
+    θ̂ = ldiv!(V, M[1:d, d+1])
     (V, θ̂, _β(ℰ, logdet(V)))
 end
 
@@ -115,7 +115,7 @@ learn!(alg::EllipLinUCB, state, x, y) = accum!(alg.strategy, state, [x; y])
 
 function armUCB(alg::EllipLinUCB, state, arms)
     (V, θ̂, β) = alg.ℰ(accumulated(alg.strategy, state))
-    ucb = At_mul_B(arms, θ̂)
+    ucb = arms' * θ̂
     ucb .+= β .* .√max.(0, invquad(V, arms))
 end
 
@@ -123,12 +123,12 @@ end
 # Utility functions
 
 function principle_submatrix(A::AbstractMatrix, ord=1)
-    range = Base.OneTo(LinAlg.checksquare(A) - ord)
+    range = Base.OneTo(LinearAlgebra.checksquare(A) - ord)
     view(A, range, range)
 end
 
 principle_submatrix(C::Cholesky, ord=1) =
-    Cholesky(principle_submatrix(C.factors, ord), C.uplo)
+    Cholesky(principle_submatrix(C.factors, ord), C.uplo, C.info)
 
 principle_submatrix(S::Symmetric, ord=1) =
     Symmetric(principle_submatrix(parent(S), ord), Symbol(S.uplo))
@@ -139,13 +139,13 @@ function cholU_lastcol(C::Cholesky)
 end
 
 function cholU_ldiv_B!(C::Cholesky, B)
-    M = C[:UL]
-    istriu(M) ? A_ldiv_B!(M, B) : Ac_ldiv_B!(M, B)
+    M = C.UL
+    istriu(M) ? ldiv!(M, B) : ldiv!(M', B)
 end
 
 function cholL_ldiv_B!(C::Cholesky, B)
-    M = C[:UL]
-    istril(M) ? A_ldiv_B!(M, B) : Ac_ldiv_B!(M, B)
+    M = C.UL
+    istril(M) ? ldiv!(M, B) : ldiv!(M', B)
 end
 
 #invquad(mat, vecs) = squeeze(sum(vecs .* (mat \ vecs), 1), 1)

@@ -7,24 +7,26 @@
 
 using JLD2
 using DataStructures
+using Printf
 
-using DifferentialPrivacy
-using LinearBandits
-using Experiments
+using PrivateBandits.DifferentialPrivacy
+using PrivateBandits.LinearBandits
+using PrivateBandits.Experiments
 
 horizon = 5*10^7;
 env = EnvParams(dim=5, maxrewardmean=0.75, maxreward=1.0);
 arms = GapArms(env; gap=0.5)
 
-algs = OrderedDict{String, ContextLinBandit}()
-algs["Non-private"] = make_alg(env, horizon; ρ=1.0)
 make_exp2_alg(mechanism) = make_private_alg(env, horizon, 1.0, 0.1, mechanism)
-algs["Gaussian"] = make_exp2_alg(GaussianMechanism)
-algs["Gaussian(Opt)"] = make_exp2_alg(ShiftedGaussianOpt(env, horizon))
-algs["Wishart"] = make_exp2_alg(WishartMechanism)
-algs["Wishart(A)"] = make_exp2_alg(ShiftedWishartA)
-algs["Wishart(B)"] = make_exp2_alg(ShiftedWishartB)
-algs["Wishart(Opt)"] = make_exp2_alg(ShiftedWishartOpt(env, horizon))
+
+algs = OrderedDict{String, ContextLinBandit}(
+    "Non-private" => make_alg(env, horizon; ρ=1.0),
+    "Gaussian" => make_exp2_alg(GaussianMechanism),
+    "Gaussian(Opt)" => make_exp2_alg(OptShifted{GaussianMechanism}(env, horizon)),
+    "Wishart" => make_exp2_alg(ShiftedWishart),
+    "Wishart(Unshifted)" => make_exp2_alg(WishartMechanism),
+    "Wishart(Opt)" => make_exp2_alg(OptShifted{WishartMechanism}(env, horizon)),
+)
 
 taskid = parse(Int, ENV["SLURM_ARRAY_TASK_ID"])
 (run, algid) = divrem(taskid-1, length(algs)) .+ 1

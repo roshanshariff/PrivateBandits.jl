@@ -1,17 +1,18 @@
 module DifferentialPrivacy
 
+using LinearAlgebra
+using Distributions
 using Parameters
 import Distributions
 import PDMats
 using Optim: optimize, minimizer
 
-using LinearBandits: EnvParams, RegParams, regret_bound
-using Accumulators
+using ..LinearBandits: EnvParams, RegParams, regret_bound
+using ..Accumulators
 
 export TreeStrategy, PanPrivTreeStrategy, DiffPrivParams,
-    WishartMechanism, ShiftedWishart, ShiftedWishartA,
-    ShiftedWishartB, ShiftedWishartOpt, GaussianMechanism,
-    ShiftedGaussian, ShiftedGaussianOpt, regparams
+    GaussianMechanism, WishartMechanism, ShiftedWishart, shifted,
+    OptShifted, regparams
 
 abstract type ComposedStrategy <: AccumStrategy end
 
@@ -51,8 +52,8 @@ function (T::Type{<:ComposedStrategy})(s::AccumStrategy, Mechanism,
     T(s, Mechanism(dp; m=numcomposed(T, horizon)), horizon)
 end
 
-regparams(s::ComposedStrategy, α; m=1) =
-    regparams(noisedist(s), α/horizon(s); m=m*numcomposed(s))
+regparams(s::ComposedStrategy; α, m=1) =
+    regparams(noisedist(s); α=α/horizon(s), m=m*numcomposed(s))
 
 #=========================================================================#
 # Tree Strategy (not pan-private)
@@ -66,7 +67,7 @@ end
 
 function TreeAccum(s::ComposedStrategy, init)
     initstate = accumulator(basestrategy(s), init)
-    state = Vector{typeof(initstate)}(numcomposed(s))
+    state = Vector{typeof(initstate)}(undef, numcomposed(s))
     state[end] = initstate
     TreeAccum(0, state)
 end
@@ -123,7 +124,7 @@ struct PanPrivTreeStrategy{S<:AccumStrategy, Noise} <: ComposedStrategy
     horizon :: Int
     function PanPrivTreeStrategy(s::AccumStrategy, noise, horizon::Int) where {}
         horizon > 0 || throw(ArgumentError("Horizon $horizon ≤ 0"))
-        new{typeof(s), typeof(noise)}(s, noise, nextpow2(horizon))
+        new{typeof(s), typeof(noise)}(s, noise, nextpow(2, horizon))
     end
 end
 
@@ -164,6 +165,34 @@ function Accumulators.accumulated(s::PanPrivTreeStrategy, a::TreeAccum)
 end
 
 #=========================================================================#
+# Gaussian mechanism
+
+struct GaussianMechanism
+    dim :: Int
+    σ :: Float64
+    GaussianMechanism(dp::DiffPrivParams; m=1) =
+        new(dp.dim, √(16m) * dp.L̃^2 * log(4/dp.δ) / dp.ε)
+end
+
+function (noise::GaussianMechanism)()
+    M = zeros(noise.dim, noise.dim)
+    for j = 1:noise.dim
+        for i = 1:j-1
+            @inbounds M[i,j] = noise.σ*randn()
+        end
+        @inbounds M[j,j] = √2*noise.σ*randn()
+    end
+    Symmetric(M, :U)
+end
+
+function regparams(mechanism::GaussianMechanism; α, m=1)
+    d = mechanism.dim - 1
+    σmax = mechanism.σ * √(2m) * (√(16d) - 2log(α))
+    γ = √m * mechanism.σ * (√d + √(-2log(α))) / √σmax
+    RegParams(ρmin=σmax, ρmax=3σmax, γ=γ, shift=2σmax)
+end
+
+#=========================================================================#
 # Wishart Mechanism
 
 struct WishartMechanism
@@ -175,161 +204,116 @@ struct WishartMechanism
     end
 end
 
-function regparams(mechanism::WishartMechanism, α; m=1)
+function regparams(mechanism::WishartMechanism; α, m=1)
     (k, S) = Distributions.params(mechanism.dist)
     d = PDMats.dim(S) - 1
     Δ = √d + √(2(log(4) - log(α)))
     RegParams(
         ρmin = eigmin(S) * (√(m*k) - Δ)^2,
         ρmax = eigmax(S) * (√(m*k) + Δ)^2,
-        γ = √eigmax(S) * (√d + √-2log(α))
+        γ = √eigmax(S) * (√d + √(-2log(α)))
     )
 end
 
 (noise::WishartMechanism)() = Symmetric(rand(noise.dist))
 
 #=========================================================================#
-# Shifted Wishart Mechanism
-# Shift by ρmin - x for
-#  x = 4√mkd
-#  x = √(ρmin⋅d)
+# Shifted Mechanisms
 
-struct ShiftedWishartMechanism
-    dist :: WishartMechanism
+struct Shifted{Mechanism}
+    mechanism :: Mechanism
     ρmin :: Float64
+    Shifted(mechanism; ρmin) = new{typeof(mechanism)}(mechanism, ρmin)
 end
 
-function regparams(shifted::ShiftedWishartMechanism, α; m=1)
-    unshifted = regparams(shifted.dist, α; m=m)
+Shifted{Mechanism}(dp::DiffPrivParams; m=1, ρmin) where {Mechanism} =
+    Shifted(Mechanism(dp; m=m); ρmin=ρmin)
+
+function regparams(shifted::Shifted; α, m=1)
+    unshifted = regparams(shifted.mechanism; α=α, m=m)
+    shift = shifted.ρmin - unshifted.ρmin
     RegParams(
         ρmin = shifted.ρmin,
-        ρmax = unshifted.ρmax - unshifted.ρmin + shifted.ρmin,
+        ρmax = unshifted.ρmax + shift,
         γ = unshifted.γ * √(unshifted.ρmin / shifted.ρmin),
-        shift = shifted.ρmin - unshifted.ρmin
+        shift = unshifted.shift + shift
     )
 end
 
-(noise::ShiftedWishartMechanism)() = noise.dist()
+(shifted::Shifted)() = shifted.mechanism()
 
-struct ShiftedWishart
-    ρmin :: Float64
-end
-
-function (s::ShiftedWishart)(dp::DiffPrivParams; m=1)
-    ShiftedWishartMechanism(WishartMechanism(dp; m=m), s.ρmin)
-end
-
-function ShiftedWishartA(dp::DiffPrivParams; m=1)
-    wishart = WishartMechanism(dp; m=m)
-    (k, S) = Distributions.params(wishart.dist)
-    ShiftedWishartMechanism(wishart, 4*√(m*k*(dp.dim-1)))
-end
-
-function ShiftedWishartB(dp::DiffPrivParams; m=1)
-    dist = WishartMechanism(dp; m=m)
-    reg = regparams(dist, 1; m=m)
-    ShiftedWishartMechanism(dist, (dp.dim-1)*√reg.ρmin)
-end
-
-struct ShiftedWishartOpt
-    env :: EnvParams
-    horizon :: Int
-    α :: Float64
-    ShiftedWishartOpt(env, horizon, α=1/horizon) = new(env, horizon, α)
-end
-
-function (s::ShiftedWishartOpt)(dp::DiffPrivParams; m=1)
-    wishart = WishartMechanism(dp; m=m)
-    (k,) = Distributions.params(wishart.dist)
-    α = s.α/2
-    function regret(log_ρmin)
-        mechanism = ShiftedWishartMechanism(wishart, exp(log_ρmin))
-        reg = regparams(mechanism, α/s.horizon; m=m)
-        regret_bound(s.env, reg, s.horizon, α)
+function shifted(Mechanism; ρmin)
+    function (dp::DiffPrivParams; m=1)
+        Shifted{Mechanism}(dp; m=m, ρmin=ρmin)
     end
-    optresult = optimize(regret, log(√(m*k)),
-                         log(regparams(wishart, α/s.horizon; m=m).ρmin))
-    opt_ρmin = exp(minimizer(optresult))
-    ShiftedWishartMechanism(wishart, opt_ρmin)
 end
 
 #=========================================================================#
-# Gaussian mechanism
+# Shifted Wishart mechanism
 
-struct GaussianMechanism
-    dim :: Int
-    σ :: Float64
-    ρmin_over_σmax :: Float64
-    GaussianMechanism(dp::DiffPrivParams, ρmin_over_σmax=1; m=1) =
-        new(dp.dim, √16m * dp.L̃^2 * log(4/dp.δ) / dp.ε, ρmin_over_σmax)
+struct ShiftedWishart
+    mechanism :: WishartMechanism
+    ShiftedWishart(dp::DiffPrivParams; m=1) = new(WishartMechanism(dp; m=m))
 end
 
-function (noise::GaussianMechanism)()
-    d = noise.dim
-    σ = noise.σ
-    M = zeros(d, d)
-    for j = 1:d
-        for i = 1:j-1
-            @inbounds M[i,j] = σ*randn()
-        end
-        @inbounds M[j,j] = √2*σ*randn()
-    end
-    Symmetric(M, :U)
+function regparams(shifted::ShiftedWishart; α, m=1)
+    (k, S) = Distributions.params(shifted.mechanism.dist)
+    d = PDMats.dim(S) - 1
+    Δ = √d + √(2(log(4) - log(α)))
+    ρmin = 4 * eigmin(S) * √(m*k) * Δ
+    regparams(Shifted(shifted.mechanism; ρmin=ρmin); α=α, m=m)
 end
 
-function regparams(mechanism::GaussianMechanism, α; m=1)
-    d = mechanism.dim - 1
-    σmax = mechanism.σ * √2m * (√16d - 2log(α))
-    ρmin = σmax * mechanism.ρmin_over_σmax
-    γ = √m * mechanism.σ * (√d + √-2log(α)) / √ρmin
-    RegParams(ρmin=ρmin, ρmax=ρmin+2σmax, γ=γ, shift=ρmin+σmax)
-end
+(shifted::ShiftedWishart)() = shifted.mechanism()
 
-struct ShiftedGaussian
-    ρmin_over_σmax :: Float64
-end
+#=========================================================================#
+# Optimizing the shift parameter
 
-function (s::ShiftedGaussian)(dp::DiffPrivParams; m=1)
-    GaussianMechanism(dp, s.ρmin_over_σmax; m=m)
-end
-
-struct ShiftedGaussianOpt
+struct OptShifted{Mechanism}
     env :: EnvParams
     horizon :: Int
     α :: Float64
-    ShiftedGaussianOpt(env, horizon, α=1/horizon) = new(env, horizon, α)
 end
 
-function (s::ShiftedGaussianOpt)(dp::DiffPrivParams; m=1)
+OptShifted{Mechanism}(env, horizon) where Mechanism =
+    OptShifted{Mechanism}(env, horizon, 1/horizon)
+
+function (s::OptShifted{Mechanism})(dp::DiffPrivParams; m=1) where Mechanism
+    mechanism = Mechanism(dp; m=m)
     α = s.α/2
-    σmax = regparams(GaussianMechanism(dp; m=m), α/s.horizon; m=m).ρmin
-    function regret(log_ρmin)
-        mechanism = GaussianMechanism(dp, exp(log_ρmin)/σmax; m=m)
-        reg = regparams(mechanism, α/s.horizon; m=m)
+    ρmin = regparams(mechanism; α=α/s.horizon, m=m).ρmin
+    ρmin_lo = 1.0
+    ρmin_hi = max(1.0, ρmin^2)
+    opt_regret = optimize(log(ρmin_lo), log(ρmin_hi)) do log_ρmin
+        shifted = Shifted(mechanism; ρmin=exp(log_ρmin))
+        reg = regparams(shifted; α=α/s.horizon, m=m)
         regret_bound(s.env, reg, s.horizon, α)
     end
-    optresult = optimize(regret, log(σmax)/2, 3log(σmax)/2)
-    opt_ρmin = exp(minimizer(optresult))
-    GaussianMechanism(dp, opt_ρmin/σmax; m=m)
+    opt_ρmin = exp(minimizer(opt_regret))
+    Shifted(mechanism; ρmin=opt_ρmin)
 end
 
 #=========================================================================#
 # Utility functions
 
-nbits(x) = trailing_zeros(nextpow2(x+1))
+nbits(x) = trailing_zeros(nextpow(2, x+1))
 
 struct IntBits
     bits :: Int
 end
 
 Base.eltype(::Type{IntBits}) = Int
-Base.start(it::IntBits) = 0
-Base.done(it::IntBits, s) = it.bits >> s == 0
+
 Base.length(it::IntBits) = count_ones(it.bits)
 
-function Base.next(it::IntBits, s)
-    bitpos = 1 + s + trailing_zeros(it.bits >> s)
-    (bitpos, bitpos)
+function Base.iterate(it::IntBits, s=0)
+    bits = it.bits >> s
+    if bits == 0
+        nothing
+    else
+        bitpos = 1 + s + trailing_zeros(bits)
+        (bitpos, bitpos)
+    end
 end
 
 #=========================================================================#
