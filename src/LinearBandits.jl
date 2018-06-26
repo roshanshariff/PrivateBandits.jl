@@ -2,7 +2,6 @@ module LinearBandits
 
 using Base.LinAlg: Cholesky
 using PDMats: colwise_dot!, colwise_sumsq!
-using NamedTuples
 using Parameters
 
 using Accumulators
