@@ -155,7 +155,8 @@ function run_episode(env::EnvParams, alg::ContextLinBandit, makearms,
 
     (env, noise) = reward_noise(env)
     θ = env.maxθnorm * normalize!(randn(env.dim))
-    (Q, _) = qr(reshape(θ, :, 1); thin=false)
+    (Q, R) = qr(reshape(θ, :, 1); thin=false)
+    Q .*= R[]
 
     alignedarms = zeros(env.dim, numarms)
     arms = zeros(env.dim, numarms)
