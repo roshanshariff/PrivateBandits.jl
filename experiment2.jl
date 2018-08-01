@@ -1,5 +1,6 @@
 #!/usr/bin/env julia
-#SBATCH --time=02:00:00
+#SBATCH --time=02:30:00
+#SBATCH --mem-per-cpu=1000M
 #SBATCH --array=1-168
 #SBATCH --mail-user=rshariff@ualberta.ca
 #SBATCH --mail-type=ALL
@@ -13,7 +14,7 @@ using Experiments
 
 horizon = 5*10^7;
 env = EnvParams(dim=5, maxrewardmean=0.75, maxreward=1.0);
-arms = GapArms(env; gap=0.0)
+arms = GapArms(env; gap=0.5)
 
 algs = OrderedDict{String, ContextLinBandit}()
 algs["Non-private"] = make_alg(env, horizon; ρ=1.0)
