@@ -1,7 +1,7 @@
 #!/usr/bin/env julia
 #SBATCH --time=02:30:00
 #SBATCH --mem-per-cpu=1000M
-#SBATCH --array=1-168
+#SBATCH --array=1-210
 #SBATCH --mail-user=rshariff@ualberta.ca
 #SBATCH --mail-type=ALL
 
