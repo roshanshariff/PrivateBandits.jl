@@ -164,7 +164,7 @@ function run_episode(env::EnvParams, alg::ContextLinBandit, makearms,
 
     b = Bandit(alg)
     cumregret = 0.0
-    skip = horizon ÷ subsample
+    skip = max(1, horizon ÷ subsample)
     regrets = [cumregret]
     for _ in skip:skip:horizon
         for _ in 1:skip
