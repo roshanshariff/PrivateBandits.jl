@@ -42,4 +42,4 @@ algname = @sprintf("gap=%.1f,shift=%d:%d", gap, ρmin_ix-1, length(ρmins)-1)
 
 mkpath(algname)
 @time result = run_episode(env, alg, arms, horizon; subsample=10^4)
-@save joinpath(algname, @sprintf("%03d.jld", run)) result
+@save joinpath(algname, @sprintf("%03d.jld", run_ix)) result
