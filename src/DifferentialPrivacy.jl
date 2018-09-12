@@ -78,7 +78,7 @@ struct TreeStrategy{S<:AccumStrategy, Noise} <: ComposedStrategy
     horizon :: Int
     function TreeStrategy(s::AccumStrategy, noise, horizon) where {}
         horizon > 0 || throw(ArgumentError("Horizon $horizon ≤ 0"))
-        new{typeof(s), typeof(noise)}(s, noise, nextpow2(n+1)-1)
+        new{typeof(s), typeof(noise)}(s, noise, nextpow(2, horizon+1)-1)
     end
 end
 

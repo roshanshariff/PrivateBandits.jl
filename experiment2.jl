@@ -17,15 +17,15 @@ horizon = 5*10^7;
 env = EnvParams(dim=5, maxrewardmean=0.75, maxreward=1.0);
 arms = GapArms(env; gap=0.5)
 
-make_exp2_alg(mechanism) = make_private_alg(env, horizon, 1.0, 0.1, mechanism)
+make_private_alg(Mechanism) = make_alg(env, horizon, Mechanism; ε=1.0, δ=0.1)
 
 algs = OrderedDict{String, ContextLinBandit}(
     "Non-private" => make_alg(env, horizon; ρ=1.0),
-    "Gaussian" => make_exp2_alg(GaussianMechanism),
-    "Gaussian(Opt)" => make_exp2_alg(OptShifted{GaussianMechanism}(env, horizon)),
-    "Wishart" => make_exp2_alg(ShiftedWishart),
-    "Wishart(Unshifted)" => make_exp2_alg(WishartMechanism),
-    "Wishart(Opt)" => make_exp2_alg(OptShifted{WishartMechanism}(env, horizon)),
+    "Gaussian" => make_private_alg(GaussianMechanism),
+    "Gaussian(Opt)" => make_private_alg(OptShifted{GaussianMechanism}(env, horizon)),
+    "Wishart" => make_private_alg(ShiftedWishart),
+    "Wishart(Unshifted)" => make_private_alg(WishartMechanism),
+    "Wishart(Opt)" => make_private_alg(OptShifted{WishartMechanism}(env, horizon)),
 )
 
 taskid = parse(Int, ENV["SLURM_ARRAY_TASK_ID"])

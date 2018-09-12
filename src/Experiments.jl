@@ -17,7 +17,7 @@ using ..LinearBandits
 using ..Accumulators
 
 
-export GapArms, SubspaceArms, make_alg, make_private_alg, run_episode,
+export GapArms, SubspaceArms, make_alg, make_strategy, run_episode,
     ExpResult, pmap_progress, run_experiment
 
 #=========================================================================#
@@ -111,24 +111,26 @@ function reward_noise(env::EnvParams)
     end
 end
 
-function make_alg(env::EnvParams, horizon;
-                  α=1/horizon, ρ=1.0, strategy=CholeskyUpdate)
+function make_alg(env::EnvParams, horizon::Integer; ρ=1.0)
     reg = RegParams(ρmin=ρ, ρmax=ρ, γ=0, shift=ρ)
-    EllipLinUCB(strategy(env.dim+1), env, reg, α)
+    EllipLinUCB(CholeskyUpdate(env.dim+1), env, reg, 1/horizon)
 end
 
-function make_private_strategy(env, horizon, ε, δ, Mechanism;
-                               Strategy=PanPrivTreeStrategy)
+function make_alg(env::EnvParams, horizon::Integer, strategy::AccumStrategy)
+    α = 1/2horizon
+    EllipLinUCB(strategy, env, regparams(strategy; α=α), α)
+end
+
+function make_strategy(env::EnvParams, horizon::Integer, Mechanism,
+                       Strategy=PanPrivTreeStrategy; ε, δ)
     L̃ = √(env.maxactionnorm^2 + env.maxreward^2)
     dp = DiffPrivParams(dim=env.dim+1, ε=ε, δ=δ, L̃=L̃)
-    Strategy(SymMatrix(dp.dim), Mechanism, horizon, dp)
+    Strategy(SymMatrix(dp.dim), Mechanism, horizon, dp) :: AccumStrategy
 end
 
-function make_private_alg(env, horizon, ε, δ, Mechanism;
-                          α=1/horizon, Strategy=PanPrivTreeStrategy)
-    s = make_private_strategy(env, horizon, ε, δ, Mechanism;
-                              Strategy=Strategy)
-    EllipLinUCB(s, env, regparams(s; α=α/2), α/2)
+function make_alg(env::EnvParams, horizon::Integer, args...; kwargs...)
+    strategy = make_strategy(env, horizon, args...; kwargs...)
+    make_alg(env, horizon, strategy)
 end
 
 #=========================================================================#
