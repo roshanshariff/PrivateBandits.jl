@@ -18,7 +18,7 @@ horizon = 5*10^7;
 dp = (ε=1.0, δ=0.1)
 env = EnvParams(dim=5, maxrewardmean=0.75, maxreward=1.0);
 
-gaps = range(0.0; stop=0.5, step=0.1)
+gaps = 0.1 .* 0.5.^(1:6)
 
 (ρmin_lo, ρmin_hi) = map([ShiftedWishart, WishartMechanism]) do Mechanism
     strategy = make_strategy(env, horizon, Mechanism; dp...)
@@ -38,7 +38,7 @@ gap = gaps[gap_ix]
 arms = GapArms(env; gap=gap)
 alg = make_alg(env, horizon, shifted(WishartMechanism; ρmin=ρmin); dp...)
 
-algname = @sprintf("gap=%.1f,shift=%d:%d", gap, ρmin_ix-1, length(ρmins)-1)
+algname = @sprintf("gap=%f,shift=%d:%d", gap, ρmin_ix-1, length(ρmins)-1)
 
 mkpath(algname)
 @time result = run_episode(env, alg, arms, horizon; subsample=10^4)

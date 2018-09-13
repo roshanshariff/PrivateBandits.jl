@@ -54,7 +54,7 @@ end
     @assert γ ≥ 0
 end
 
-function regret_bound(env::EnvParams, reg::RegParams, horizon, α)
+function regret_bound(env::EnvParams, reg::RegParams, horizon, α; Δ=0)
     n = horizon
     d = env.dim
     S = env.maxθnorm
@@ -66,8 +66,8 @@ function regret_bound(env::EnvParams, reg::RegParams, horizon, α)
     γ = reg.γ
 
     β = σ*√(2log(2/α) + d*log((ρmax/ρmin) + n*L^2/(d*ρmin))) + S*√ρmax + γ
-    regret_mult = B * √(8*n*d*log1p(n*L^2/(d*ρmin)))
-    return β * regret_mult
+    regret_mult = 8d * log1p(n*L^2/(d*ρmin))
+    B*β * (iszero(Δ) ? √(n*regret_mult) : β*regret_mult/Δ)
 end
 
 #=========================================================================#
