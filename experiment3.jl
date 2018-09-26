@@ -44,10 +44,10 @@ end
 ρmin = ρmins[ρmin_ix]
 gap = gaps[gap_ix]
 
-algs = OrderedDict{String, ContextLinBandit}(
-    "NonPrivate" => make_alg(env, horizon; ρ=ρmin),
-    "Wishart" => make_alg(env, horizon, shifted(WishartMechanism; ρmin=ρmin); dp...),
-    "Gaussian" => make_alg(env, horizon, shifted(GaussianMechanism; ρmin=ρmin); dp...)
+algs = OrderedDict{Symbol, ContextLinBandit}(
+    :NonPrivate => make_alg(env, horizon; ρ=ρmin),
+    :Wishart => make_alg(env, horizon, shifted(WishartMechanism; ρmin=ρmin); dp...),
+    :Gaussian => make_alg(env, horizon, shifted(GaussianMechanism; ρmin=ρmin); dp...)
 )
 
 arms = GapArms(env; gap=gap)
