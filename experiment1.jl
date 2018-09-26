@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-#SBATCH --time=02:30:00
+#SBATCH --time=01:30:00
 #SBATCH --mem-per-cpu=1000M
 #SBATCH --array=1-510
 #SBATCH --mail-user=rshariff@ualberta.ca
@@ -13,20 +13,29 @@ using PrivateBandits.DifferentialPrivacy
 using PrivateBandits.LinearBandits
 using PrivateBandits.Experiments
 
-(run, dim) = begin
-    dims = round.(Int, 2 .^ LinRange(log2(4), log2(64), 17))
-    taskid = parse(Int, ENV["SLURM_ARRAY_TASK_ID"])
-    (run, dim) = divrem(taskid-1, length(dims))
-    (run+1, dims[dim+1])
+horizon = 10^5
+gap = 0.1
+dims = round.(Int, exp2.(range(log2(4); stop=log2(64), length=17)))
+
+function task_params(A...; taskid=parse(Int, ENV["SLURM_ARRAY_TASK_ID"]))
+    Tuple(CartesianIndices(((size.(A)...)..., taskid))[taskid])
 end
 
-horizon = 10^5;
-env = EnvParams(dim=dim, maxrewardmean=0.75, σ=1.0);
-arms = GapArms(env; gap=0.5)
+(dim_ix, run_ix) = task_params(dims)
+dim = dims[dim_ix]
 
-alg = make_alg(env, horizon; ρ=1.0)
+envs = let base_env = EnvParams(dim=dim, maxrewardmean=0.75);
+    OrderedDict{Symbol, EnvParams}(
+        :GaussianReward => EnvParams(base_env; σ=1.0),
+        :BernoulliReward => EnvParams(base_env; maxreward=1.0)
+    )
+end
 
-resultdir = @sprintf("dim=%02d", dim)
-mkpath(resultdir)
-@time result = run_episode(env, alg, arms, horizon; subsample=10^4)
-@save joinpath(resultdir, @sprintf("%03d.jld", run)) result
+for (env_name, env) in envs
+    alg = make_alg(env, horizon; ρ=1.0)
+    arms = GapArms(env; gap=gap)
+    result_name = @sprintf("%s,dim=%02d", env_name, dim)
+    mkpath(result_name)
+    @time result = run_episode(env, alg, arms, horizon; subsample=10^4)
+    @save joinpath(result_name, @sprintf("%03d.jld", run_ix)) result
+end
