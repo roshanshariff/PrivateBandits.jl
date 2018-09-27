@@ -6,7 +6,7 @@
 #SBATCH --mail-type=ALL
 
 using JLD2
-using DataStructures
+using OrderedCollections
 using Printf
 
 using PrivateBandits.DifferentialPrivacy
