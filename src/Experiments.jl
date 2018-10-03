@@ -202,19 +202,17 @@ end
 end
 
 function Base.hcat(results::ExpResult...)
-    if isempty(results)
-        ExpResult([], [])
-    else
-        if !all(r -> r.coords == results[1].coords, results)
-            throw(ArgumentError("Mismatch in x"))
-        end
-        ExpResult(results[1].coords, hcat((r.data for r in results)...))
-    end
+    isempty(results) &&
+        return ExpResult([], [])
+    all(r -> r.coords == results[end].coords, results) ||
+        throw(ArgumentError("Mismatch in x"))
+    ExpResult(results[1].coords, reduce(hcat, (r.data for r in results)))
 end
 
 function Base.vcat(results::ExpResult...)
-    ExpResult(vcat((r.coords for r in results)...),
-              vcat((r.data for r in results)...))
+    isempty(results) && return ExpResult([], [])
+    ExpResult(reduce(vcat, (r.coords for r in results)),
+              reduce(vcat, (r.data for r in results)))
 end
 
 function pmap_progress(f, c, rest...; kwargs...)
